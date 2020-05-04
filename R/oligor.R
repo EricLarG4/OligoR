@@ -1,6 +1,12 @@
+#' Software suite for oligonucleotide native MS data treatment
+#'
+#' @return Launches the shiny app.
+#' @examples
+#' oligor()
+
 
 oligor <- function(){
-  
+
   #libraries------------
   library(BiocManager)
   options(repos = BiocManager::repositories())
@@ -39,10 +45,10 @@ oligor <- function(){
   library(zoo)
   # install.packages("remotes")
   # remotes::install_github("DavidBarke/QWUtils")
-  library(QWUtils) 
+  library(QWUtils)
   library(plotly)
   library(shinyBS)
-  
+
   # Ui change functions ------------------------------------------------------------
   uiChangeThemeDropdown <- function(dropDownLabel = "Change Theme", defaultTheme = "grey_light")
   {
@@ -55,7 +61,7 @@ oligor <- function(){
       "Poor man's Flatly" = "poor_mans_flatly",
       "Purple gradient" = "purple_gradient"
     )
-    
+
     ns <- NS("moduleChangeTheme")
     dropdown <- tagList(
       selectizeInput
@@ -66,26 +72,26 @@ oligor <- function(){
         selected = defaultTheme
       )
     )
-    
+
     return(dropdown)
   }
-  
+
   uiChangeThemeOutput <- function()
   {
     ns <- NS("moduleChangeTheme")
     themeOutput <- tagList(
       uiOutput(ns("uiChangeTheme"))
     )
-    
+
     return(themeOutput)
   }
-  
-  
+
+
   # Server ui change functions --------------------------------------------------------
   serverChangeTheme <- function(input, output, session)
   {
     observeEvent(
-      input$dbxChangeTheme, 
+      input$dbxChangeTheme,
       {
         output$uiChangeTheme <- renderUI({
           shinyDashboardThemes(theme = input$dbxChangeTheme)
@@ -93,9 +99,9 @@ oligor <- function(){
       }
     )
   }
-  
-  
-  
+
+
+
   jscode <- "
 shinyjs.collapse = function(boxid) {
 $('#' + boxid).closest('.box').find('[data-widget=collapse]').click();
@@ -119,21 +125,21 @@ ui <- dashboardPagePlus(
     conditionalPanel(
       condition = "input.tabs == 'MSxploR'",
       boxPlus(
-        width = "100%", 
-        title = "Import MS data", 
+        width = "100%",
+        title = "Import MS data",
         status = 'info',
         solidHeader = F,
         collapsible = T,
         enable_dropdown = T,
         dropdown_icon = 'upload',
         fileInput(
-          'file1', 
+          'file1',
           'Select mzML or mzXML file'
         )
       ),
       boxPlus(
-        width = "100%", 
-        title = "m/z range narrowing", 
+        width = "100%",
+        title = "m/z range narrowing",
         # enable_label = T,
         # label_text = "narrow the m/z range for faster processing",
         status = 'primary',
@@ -149,26 +155,26 @@ ui <- dashboardPagePlus(
         )
       ),
       boxPlus(
-        width = "100%", 
-        title = "m/z binning width", 
+        width = "100%",
+        title = "m/z binning width",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
         collapsed = TRUE,
         sliderInput(
-          inputId = "slider1", 
-          label = NULL, 
+          inputId = "slider1",
+          label = NULL,
           min = 0.001, max = 0.025, value = 0.005, step = 0.001,
-          round = -3, 
+          round = -3,
           ticks = TRUE,
-          animate = FALSE, 
-          width = "100%", 
-          sep = " ", 
+          animate = FALSE,
+          width = "100%",
+          sep = " ",
           dragRange = TRUE
         )
       ),
-      boxPlus(width = "100%", 
-              title = "Data selection", 
+      boxPlus(width = "100%",
+              title = "Data selection",
               status = 'danger',
               solidHeader = F,
               collapsible = T,
@@ -192,27 +198,27 @@ ui <- dashboardPagePlus(
                 choices = c('Species 1', 'Species 2', 'Species 3', 'Species 4', 'Species 5', 'Species 6', 'Species 7', 'Species 8', 'Standard', 'Target')
               )
       ),
-      boxPlus(width = "100%", 
-              title = "HDX", 
+      boxPlus(width = "100%",
+              title = "HDX",
               status = 'warning',
               solidHeader = F,
               collapsible = T,
               collapsed = T,
-              actionBttn(inputId = "bttn99", 
+              actionBttn(inputId = "bttn99",
                          label = "Select reference",
                          icon = icon('check-circle', class = 'regular'),
                          style = "simple",
-                         color = "danger", 
-                         size = "sm", 
-                         block = F, 
+                         color = "danger",
+                         size = "sm",
+                         block = F,
                          no_outline = TRUE),
-              actionBttn(inputId = "bttn1", 
+              actionBttn(inputId = "bttn1",
                          label = "Select timepoint",
-                         icon = icon('check-circle', class = 'solid'), 
+                         icon = icon('check-circle', class = 'solid'),
                          style = "simple",
-                         color = "warning", 
-                         size = "sm", 
-                         block = F, 
+                         color = "warning",
+                         size = "sm",
+                         block = F,
                          no_outline = TRUE),
               textInput(inputId = 'time.sec',
                         label = "Manual time (s)",
@@ -220,23 +226,23 @@ ui <- dashboardPagePlus(
                         width = "100%"),
               htmlOutput('timemin')
       ),
-      boxPlus(width = "100%", 
-              title = "Kinetics", 
+      boxPlus(width = "100%",
+              title = "Kinetics",
               status = 'teal',
               solidHeader = F,
               collapsible = T,
               collapsed = T,
-              actionBttn(inputId = "bttn42", 
+              actionBttn(inputId = "bttn42",
                          label = "Select species",
-                         icon = icon('check-circle', class = 'solid'), 
+                         icon = icon('check-circle', class = 'solid'),
                          style = "simple",
-                         color = "royal", 
-                         size = "sm", 
-                         block = F, 
+                         color = "royal",
+                         size = "sm",
+                         block = F,
                          no_outline = TRUE)
       ),
-      boxPlus(width = "100%", 
-              title = "Titration", 
+      boxPlus(width = "100%",
+              title = "Titration",
               status = 'primary',
               solidHeader = F,
               collapsible = T,
@@ -253,18 +259,18 @@ ui <- dashboardPagePlus(
                         label = "Ligand concentration (µM)",
                         value = 0,
                         width = "100%"),
-              actionBttn(inputId = "bttn24", 
+              actionBttn(inputId = "bttn24",
                          label = "Select datapoint",
-                         icon = icon('check-circle', class = 'solid'), 
+                         icon = icon('check-circle', class = 'solid'),
                          style = "simple",
-                         color = "primary", 
-                         size = "sm", 
-                         block = F, 
+                         color = "primary",
+                         size = "sm",
+                         block = F,
                          no_outline = TRUE)
       ),
       boxPlus(
-        width = "100%", 
-        title = "Scan range selection", 
+        width = "100%",
+        title = "Scan range selection",
         status = 'success',
         solidHeader = F,
         collapsible = T,
@@ -275,8 +281,8 @@ ui <- dashboardPagePlus(
           textInput(inputId = "text2", "end", "1000"))
       ),
       boxPlus(
-        width = "100%", 
-        title = "m/z range selection", 
+        width = "100%",
+        title = "m/z range selection",
         status = 'success',
         solidHeader = F,
         collapsible = T,
@@ -290,15 +296,15 @@ ui <- dashboardPagePlus(
     conditionalPanel(
       condition = "input.tabs == 'HDXplotR'",
       boxPlus(
-        width = "100%", 
-        title = "Import processed data", 
+        width = "100%",
+        title = "Import processed data",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
         enable_dropdown = T,
         dropdown_icon = 'upload',
         fileInput(
-          'file.old', 
+          'file.old',
           'Select csv file'
         )
       ),
@@ -467,21 +473,21 @@ ui <- dashboardPagePlus(
     conditionalPanel(
       condition = "input.tabs =='KineticR'",
       boxPlus(
-        width = "100%", 
-        title = "Import results", 
+        width = "100%",
+        title = "Import results",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
         enable_dropdown = T,
         dropdown_icon = 'upload',
         fileInput(
-          'kin.old', 
+          'kin.old',
           'Select .xlsx file'
         )
       ),
       boxPlus(
-        width = "100%", 
-        title = "Data processing", 
+        width = "100%",
+        title = "Data processing",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
@@ -510,8 +516,8 @@ ui <- dashboardPagePlus(
         )
       ),
       boxPlus(
-        width = "100%", 
-        title = "Species", 
+        width = "100%",
+        title = "Species",
         status = 'danger',
         solidHeader = F,
         collapsible = T,
@@ -577,15 +583,15 @@ ui <- dashboardPagePlus(
     conditionalPanel(
       condition = "input.tabs =='TitR'",
       boxPlus(
-        width = "100%", 
-        title = "Import processed data", 
+        width = "100%",
+        title = "Import processed data",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
         enable_dropdown = T,
         dropdown_icon = 'upload',
         fileInput(
-          'titr.old', 
+          'titr.old',
           'Select csv file'
         )
       ),
@@ -600,13 +606,13 @@ ui <- dashboardPagePlus(
         value = 10,
         width = "100%"
       ),
-      actionBttn(inputId = "bttn55", 
+      actionBttn(inputId = "bttn55",
                  label = "Process response factors",
-                 icon = icon('check-circle', class = 'solid'), 
+                 icon = icon('check-circle', class = 'solid'),
                  style = "simple",
-                 color = "primary", 
-                 size = "sm", 
-                 block = F, 
+                 color = "primary",
+                 size = "sm",
+                 block = F,
                  no_outline = TRUE)
     ),
     conditionalPanel(
@@ -636,7 +642,7 @@ ui <- dashboardPagePlus(
                   value = "",
                   width = "100%"
                 )
-              ), 
+              ),
               br(),
               htmlOutput('chem.formula'),
               br(),
@@ -655,21 +661,21 @@ ui <- dashboardPagePlus(
                 placeholder = 'defaults to preset',
                 width = '100%'
               ),
-              selectInput("nX.select", label = 'presets', 
+              selectInput("nX.select", label = 'presets',
                           width = "100%",
-                          choices = list("all sites" = 'A', "no phosphates" = 'B', "no phosphates nor termini" = 'C'), 
+                          choices = list("all sites" = 'A', "no phosphates" = 'B', "no phosphates nor termini" = 'C'),
                           selected = "C")
       )
     ),
     conditionalPanel(
       condition = "input.tabs == 'meltR'",
       boxPlus(
-        width = "100%", 
-        title = "Import melting data", 
+        width = "100%",
+        title = "Import melting data",
         status = 'info',
         solidHeader = F,
         collapsible = T,
-        fileInput('melting.input', 
+        fileInput('melting.input',
                   'Select Excel file'),
         switchInput(inputId = "melt.blank", #toggles baseline on/off
                     label = "Blank",
@@ -680,8 +686,8 @@ ui <- dashboardPagePlus(
                     width = 'auto')
       ),
       boxPlus(
-        width = "100%", 
-        title = "Derivative", 
+        width = "100%",
+        title = "Derivative",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
@@ -695,17 +701,17 @@ ui <- dashboardPagePlus(
                    label = "Plot derivatives",
                    icon = icon('calculator', class = 'regular'),
                    style = "simple",
-                   color = "primary", 
-                   size = "sm", 
-                   block = F, 
+                   color = "primary",
+                   size = "sm",
+                   block = F,
                    no_outline = TRUE)
       ),
       boxPlus(
-        width = "100%", 
-        title = "Fitting", 
+        width = "100%",
+        title = "Fitting",
         status = 'danger',
         solidHeader = F,
-        collapsible = T, 
+        collapsible = T,
         sliderInput("nb.it.melt.fit",
                     "Max iterations",
                     min = 500,
@@ -716,17 +722,17 @@ ui <- dashboardPagePlus(
                    label = "Initialize fitting",
                    icon = icon('sign-out-alt', class = 'regular'),
                    style = "simple",
-                   color = "warning", 
-                   size = "sm", 
-                   block = F, 
+                   color = "warning",
+                   size = "sm",
+                   block = F,
                    no_outline = TRUE),
         actionBttn(inputId = "bttn.fit.melt", #initiates fit
                    label = "Launch fitting",
                    icon = icon('sign-in-alt', class = 'regular'),
                    style = "simple",
-                   color = "danger", 
-                   size = "sm", 
-                   block = F, 
+                   color = "danger",
+                   size = "sm",
+                   block = F,
                    no_outline = TRUE),
         switchInput(inputId = "toggle.baseline", #toggles baseline on/off
                     label = "toggle baselines",
@@ -875,7 +881,7 @@ ui <- dashboardPagePlus(
                                      DTOutput("fit.melt.result.summary")
                                    ),
                                    tabPanel(
-                                     title = 'Plot', 
+                                     title = 'Plot',
                                      width = 6,
                                      plotOutput("fit.melt.result.plot")
                                    )
@@ -890,9 +896,9 @@ ui <- dashboardPagePlus(
                           )
                         ),
                         absolutePanel(
-                          id = "filter.melt", 
+                          id = "filter.melt",
                           # class = "panel panel-default",
-                          top = 250, right = 600, 
+                          top = 250, right = 600,
                           width = 200, height = 'auto',
                           draggable = TRUE, fixed = TRUE,
                           bsCollapse(id = 'bsCollapseMelt',
@@ -920,14 +926,14 @@ ui <- dashboardPagePlus(
                                                    value = 1,
                                                    step = 0.01),
                                        style = 'success'
-                                     ) 
+                                     )
                           ),
                           style = "opacity: 0.9"
                         ),
                         absolutePanel(
-                          id = "custom.melt", 
+                          id = "custom.melt",
                           # class = "panel panel-default",
-                          top = 125, right = 100, 
+                          top = 125, right = 100,
                           width = 200, height = 'auto',
                           draggable = TRUE, fixed = TRUE,
                           bsCollapse(id = 'bsCollapseTest',
@@ -936,26 +942,26 @@ ui <- dashboardPagePlus(
                                        'Customisation',
                                        uiOutput('select.melting.palette.fam'),
                                        uiOutput('select.melting.palette'),
-                                       sliderInput('size.dot.melt', 'Dot size', 
-                                                   min=0, max=10, value=4, 
+                                       sliderInput('size.dot.melt', 'Dot size',
+                                                   min=0, max=10, value=4,
                                                    step=0.25, round=0),
                                        sliderInput('alpha.dot.melt', 'Dot transparency',
-                                                   min = 0, max = 1, value = 0.7, 
+                                                   min = 0, max = 1, value = 0.7,
                                                    step=0.05, round=0),
-                                       sliderInput('size.line.melt', 'line size', 
-                                                   min=0, max=5, value=1, 
+                                       sliderInput('size.line.melt', 'line size',
+                                                   min=0, max=5, value=1,
                                                    step=0.1, round=0),
                                        sliderInput('alpha.line.melt', 'line transparency',
-                                                   min = 0, max = 1, value = 1, 
+                                                   min = 0, max = 1, value = 1,
                                                    step=0.05, round=0),
-                                       sliderInput('size.baseline.melt', 'baseline size', 
-                                                   min=0, max=5, value=1, 
+                                       sliderInput('size.baseline.melt', 'baseline size',
+                                                   min=0, max=5, value=1,
                                                    step=0.1, round=0),
                                        sliderInput('alpha.baseline.melt', 'baseline transparency',
-                                                   min = 0, max = 1, value = 0.75, 
+                                                   min = 0, max = 1, value = 0.75,
                                                    step=0.05, round=0),
                                        style = 'primary'
-                                     ) 
+                                     )
                           ),
                           style = "opacity: 0.9"
                         )
@@ -1026,17 +1032,17 @@ ui <- dashboardPagePlus(
                                     colourInput("col.centroid.th", "Theory centroid colour", "tomato"),
                                     colourInput("col.line.exp", "Reference line colour", "steelblue"),
                                     colourInput("col.centroid.exp", "Centroid line colour", "steelblue"),
-                                    sliderInput('size.dot.th', 'Theory dot size', 
-                                                min=0, max=10, value=4, 
+                                    sliderInput('size.dot.th', 'Theory dot size',
+                                                min=0, max=10, value=4,
                                                 step=0.25, round=0),
-                                    sliderInput('size.line.th', 'Theory line size', 
-                                                min=0, max=5, value=1, 
+                                    sliderInput('size.line.th', 'Theory line size',
+                                                min=0, max=5, value=1,
                                                 step=0.25, round=0),
-                                    sliderInput('size.line.exp', 'Reference line size', 
-                                                min=0, max=5, value=1, 
+                                    sliderInput('size.line.exp', 'Reference line size',
+                                                min=0, max=5, value=1,
                                                 step=0.25, round=0),
-                                    sliderInput('size.centroid.th', 'Centroid line size', 
-                                                min=0, max=5, value=1, 
+                                    sliderInput('size.centroid.th', 'Centroid line size',
+                                                min=0, max=5, value=1,
                                                 step=0.25, round=0)
                           ),
                           style = "opacity: 0.9"
@@ -1050,8 +1056,8 @@ ui <- dashboardPagePlus(
                                   width = 10,
                                   title = "TIC", p("Brush to select scans, resize edges and drag as desired"),
                                   status = "primary", solidHeader = TRUE,
-                                  collapsible = TRUE, 
-                                  plotOutput("plot1", 
+                                  collapsible = TRUE,
+                                  plotOutput("plot1",
                                              brush = brushOpts(id = "plot_brush", fill = "tomato", stroke = "tomato", direction = "x"),
                                              height = 200)),
                           boxPlus(
@@ -1079,7 +1085,7 @@ ui <- dashboardPagePlus(
                                   title = "MS spectrum", p("Brush to zoom, double click to reset zoom"),
                                   status = "danger", solidHeader = TRUE,
                                   collapsible = TRUE,
-                                  plotOutput("plot3", 
+                                  plotOutput("plot3",
                                              height = 400,
                                              dblclick = "plot3_dblclick",
                                              brush = brushOpts(
@@ -1102,11 +1108,11 @@ ui <- dashboardPagePlus(
                             id = "box4",
                             width = 10,
                             title = "MS spectrum (text input)", p("select scans and zoom from text input in sidebar"),
-                            status = "success", 
+                            status = "success",
                             solidHeader = TRUE,
                             collapsible = TRUE,
                             collapsed = TRUE,
-                            plotOutput("plot4", 
+                            plotOutput("plot4",
                                        height = 400,
                             ))
                         ),
@@ -1117,18 +1123,18 @@ ui <- dashboardPagePlus(
                           wellPanel(h3("Customisation"),
                                     colourInput("col.TIC", "TIC colour", "steelblue"),
                                     colourInput("col.MS", "Spectrum colour", "steelblue"),
-                                    sliderInput('size.line.TIC', 'TIC line size', 
-                                                min=0.25, max=5, value=1, 
+                                    sliderInput('size.line.TIC', 'TIC line size',
+                                                min=0.25, max=5, value=1,
                                                 step=0.25, round=0),
-                                    sliderInput('size.line.MS', 'Spectrum line size', 
-                                                min=0.25, max=5, value=1, 
+                                    sliderInput('size.line.MS', 'Spectrum line size',
+                                                min=0.25, max=5, value=1,
                                                 step=0.25, round=0)
                           ),
                           style = "opacity: 0.9"
                         )
                ),
                #panel spectra--------------
-               tabPanel("MSstackR", 
+               tabPanel("MSstackR",
                         icon = icon('layer-group'),
                         fluidRow(
                           boxPlus(
@@ -1148,14 +1154,14 @@ ui <- dashboardPagePlus(
                           wellPanel(h3("Customisation"),
                                     colourInput("col.snap1", "Gradient start", "tomato"),
                                     colourInput("col.snap2", "Gradient end", "steelblue4"),
-                                    selectInput("trans.user", 'color guide', 
-                                                choices = list("identity", "log10"), 
+                                    selectInput("trans.user", 'color guide',
+                                                choices = list("identity", "log10"),
                                                 selected = 'identity'),
-                                    sliderInput('plot5.w', 'Plot width', 
-                                                min=100, max=2000, value=500, 
+                                    sliderInput('plot5.w', 'Plot width',
+                                                min=100, max=2000, value=500,
                                                 step=20, round=0),
-                                    sliderInput('plot5.h', 'Plot height', 
-                                                min=100, max=3000, value= 700, 
+                                    sliderInput('plot5.h', 'Plot height',
+                                                min=100, max=3000, value= 700,
                                                 step=20, round=0),
                                     switchInput(inputId = "com.scale",
                                                 label = 'm/z axis',
@@ -1175,15 +1181,15 @@ ui <- dashboardPagePlus(
                                                 onStatus = 'danger',
                                                 offStatus = 'info',
                                                 size = 'normal')
-                                    # sliderInput('plot5.ncol', 'number of columns', 
-                                    #             min=1, max=5, value=1, 
+                                    # sliderInput('plot5.ncol', 'number of columns',
+                                    #             min=1, max=5, value=1,
                                     #             step=1, round=0)
                           ),
                           style = "opacity: 0.9"
                         )
                ),
                #panel HDXplotR----------
-               tabPanel("HDXplotR", 
+               tabPanel("HDXplotR",
                         icon = icon('stopwatch'),
                         fluidRow(
                           boxPlus(
@@ -1218,22 +1224,22 @@ ui <- dashboardPagePlus(
                           draggable = TRUE,
                           wellPanel(h3("Customisation"),
                                     colourInput("col.kin", "Unselected points", "#777F85"),
-                                    colourInput("col.kin.high1", "Series 1", "#1f77b4"),  
+                                    colourInput("col.kin.high1", "Series 1", "#1f77b4"),
                                     colourInput("col.kin.high2", "Series 2", "#ff7f0e"),
                                     colourInput("col.kin.high3", "Series 3", "#2ca02c"),
                                     colourInput("col.kin.high4", "Series 4", "#d62728"),
-                                    sliderInput('size.kin', 'Dot Size', 
-                                                min=1, max=10, value=3, 
+                                    sliderInput('size.kin', 'Dot Size',
+                                                min=1, max=10, value=3,
                                                 step=0.5, round=0),
-                                    sliderInput('trans.kin', 'Opacity', 
-                                                min=0, max=1, value=0.9, 
+                                    sliderInput('trans.kin', 'Opacity',
+                                                min=0, max=1, value=0.9,
                                                 step=0.05)
                           ),
                           style = "opacity: 0.9"
                         )
                ),
                #panel timR--------
-               tabPanel("KineticR", 
+               tabPanel("KineticR",
                         icon = icon('clock'),
                         fluidRow(
                           boxPlus(
@@ -1251,18 +1257,18 @@ ui <- dashboardPagePlus(
                             status = "danger",
                             solidHeader = T,
                             collapsible = T,
-                            div(style="display: inline-block;vertical-align:top; width: 50px;", 
+                            div(style="display: inline-block;vertical-align:top; width: 50px;",
                                 dropdownButton(
-                                  circle = TRUE, 
+                                  circle = TRUE,
                                   status = "danger",
-                                  icon = icon("filter"), 
+                                  icon = icon("filter"),
                                   size = 'sm',
                                   width = '400px',
                                   tooltip = tooltipOptions(title = "Click to see change input"),
                                   tags$h4("Standardization"),
                                   prettyRadioButtons(
                                     inputId = "kin.input",
-                                    label = "Intensity", 
+                                    label = "Intensity",
                                     choices = c("Raw" = 'raw', "Corrected" = 'corrected'),
                                     icon = icon("check"),
                                     inline = T,
@@ -1270,7 +1276,7 @@ ui <- dashboardPagePlus(
                                     status = "info",
                                     animation = "jelly"
                                   ),
-                                  tags$h4("Data filtering"), 
+                                  tags$h4("Data filtering"),
                                   checkboxGroupButtons(
                                     inputId = "Pick1",
                                     label = "Select species",
@@ -1284,19 +1290,19 @@ ui <- dashboardPagePlus(
                                       no = icon("remove", lib = "glyphicon"))
                                   )
                                 )),
-                            div(style="display: inline-block;vertical-align:top; width: 50px;", 
+                            div(style="display: inline-block;vertical-align:top; width: 50px;",
                                 dropdownButton(
                                   tags$h4("Dots"),
-                                  circle = TRUE, 
+                                  circle = TRUE,
                                   status = "primary",
-                                  icon = icon("fill-drip"), 
+                                  icon = icon("fill-drip"),
                                   size = 'sm',
                                   tooltip = tooltipOptions(title = "Click to change appearance"),
-                                  sliderInput('size.dot.kin', 'Size', 
-                                              min=0, max=10, value=4, 
+                                  sliderInput('size.dot.kin', 'Size',
+                                              min=0, max=10, value=4,
                                               step=0.25, round=0),
-                                  sliderInput('transp.kin', 'Opacity', 
-                                              min=0, max=1, value=0.9, 
+                                  sliderInput('transp.kin', 'Opacity',
+                                              min=0, max=1, value=0.9,
                                               step=0.05),
                                   tags$h4("Colors"),
                                   colourInput("col.dot.kin1", "Series 1", "#1f77b4"),
@@ -1308,19 +1314,19 @@ ui <- dashboardPagePlus(
                                   colourInput("col.dot.kin7", "Series 7", "#e377c2"),
                                   colourInput("col.dot.kin8", "Series 8", "#7f7f7f")
                                 )),
-                            div(style="display: inline-block;vertical-align:top; width: 50px;", 
+                            div(style="display: inline-block;vertical-align:top; width: 50px;",
                                 dropdownButton(
                                   tags$h4("Dimensions"),
-                                  circle = TRUE, 
+                                  circle = TRUE,
                                   status = "success",
-                                  icon = icon("ruler-combined"), 
+                                  icon = icon("ruler-combined"),
                                   size = 'sm',
                                   tooltip = tooltipOptions(title = "Click to change dimensions"),
-                                  sliderInput('k.plot.w', 'Plot width', 
-                                              min=100, max=2000, value=1000, 
+                                  sliderInput('k.plot.w', 'Plot width',
+                                              min=100, max=2000, value=1000,
                                               step=20, round=0),
-                                  sliderInput('k.plot.h', 'Plot height', 
-                                              min=100, max=3000, value= 500, 
+                                  sliderInput('k.plot.h', 'Plot height',
+                                              min=100, max=3000, value= 500,
                                               step=20, round=0)
                                 )),
                             uiOutput("k.plot.ui")
@@ -1332,13 +1338,13 @@ ui <- dashboardPagePlus(
                             status = 'primary',
                             collapsible = T,
                             collapsed = T,
-                            actionBttn(inputId = "k.wide.bttn", 
+                            actionBttn(inputId = "k.wide.bttn",
                                        label = "Generate table",
-                                       icon = icon('table', class = 'solid'), 
+                                       icon = icon('table', class = 'solid'),
                                        style = "simple",
-                                       color = "primary", 
-                                       size = "sm", 
-                                       block = T, 
+                                       color = "primary",
+                                       size = "sm",
+                                       block = T,
                                        no_outline = TRUE),
                             tags$h4(''),
                             DTOutput('k.wide')
@@ -1385,111 +1391,111 @@ ui <- dashboardPagePlus(
 
 #server---------
 server <- function(input, output, session) {
-  
+
   #splash screen===========
-  
+
   Sys.sleep(1)
-  
+
   hide_waiter()
-  
+
   # Changing theme ----------------------------------------------------------
   callModule(module = serverChangeTheme, id = "moduleChangeTheme")
-  
+
   #OligoR----------
-  
-  
+
+
   z <- reactive({
     as.numeric(input$z)
   })
-  
+
   K <- reactive({
     as.numeric(input$K)
   })
-  
+
   seq2 <- reactive({
     seq2<-data.frame(number=1:1, string=c(input$sequence), stringsAsFactors = F)
   })
-  
+
   nbA <- reactive({
     nbA <- str_count(seq2()$string, "A")
   })
-  
+
   nbT <- reactive({
     nbT <- str_count(seq2()$string, "T")
   })
-  
+
   nbG <- reactive({
     nbG <- str_count(seq2()$string, "G")
   })
-  
+
   nbC <- reactive({
     nbC <- str_count(seq2()$string, "C")
   })
-  
+
   nb_PO <-reactive({
     #Number of nucleotides
-    nb_nt <- nbA() + nbT() + nbG() + nbC() 
-    
+    nb_nt <- nbA() + nbT() + nbG() + nbC()
+
     #Number of phosphates
-    nb_PO <- nb_nt - 1   
+    nb_PO <- nb_nt - 1
   })
-  
-  #Neutralized phosphate 
+
+  #Neutralized phosphate
   #(takes into account charge and potassium adducts that bring positive charges)
   nb_POH <- reactive({
-    nb_POH <- nb_PO() - z() - K() 
+    nb_POH <- nb_PO() - z() - K()
   })
-  
+
   output$nb_PO <- renderText(nb_PO())
   output$nb_POH <- renderText(nb_POH())
-  
+
   nC <- reactive({
     nC <- nbA()*10 + nbG()*10 + nbC()*9 + nbT()*10
   })
-  
+
   nH <- reactive({ #This is the total amount of hydrogen across isotopes (among which nX are exchangeable)
     #Charge taken into account here, so H will not be taken out when calculating m/z
-    nH <- nbA()*12 + nbG()*12 + nbC()*12 + nbT()*13 + 1 - z() - K() 
+    nH <- nbA()*12 + nbG()*12 + nbC()*12 + nbT()*13 + 1 - z() - K()
   })
-  
+
   nO <- reactive({
     nO <- nbA()*5 + nbG()*6 + nbC()*6 + nbT()*7 - 2
   })
-  
+
   nN <- reactive({
     nN <- nbA()*5 + nbG()*5 + nbC()*3 + nbT()*2
   })
-  
+
   nP <- reactive({
     nP <- nb_PO()
   })
-  
+
   nK <- reactive({
     nK <- K()
   })
-  
+
   chem.formula <- reactive({
-    
+
     if (!is.na(nH())) {
       chem.formula <- paste(
-        tags$b(style="color:tomato", 'Chemical formula: '), tags$span(style="color:tomato", "C"), tags$sub(style="color:tomato", nC()), 
-        tags$span(style="color:tomato", "H"), tags$sub(style="color:tomato",  nH()), 
-        tags$span(style="color:tomato", "O"), tags$sub(style="color:tomato", nO()), 
-        tags$span(style="color:tomato", "N"), tags$sub(style="color:tomato", nN()), 
-        tags$span(style="color:tomato", "P"), tags$sub(style="color:tomato", nP()), 
+        tags$b(style="color:tomato", 'Chemical formula: '), tags$span(style="color:tomato", "C"), tags$sub(style="color:tomato", nC()),
+        tags$span(style="color:tomato", "H"), tags$sub(style="color:tomato",  nH()),
+        tags$span(style="color:tomato", "O"), tags$sub(style="color:tomato", nO()),
+        tags$span(style="color:tomato", "N"), tags$sub(style="color:tomato", nN()),
+        tags$span(style="color:tomato", "P"), tags$sub(style="color:tomato", nP()),
         tags$span(style="color:tomato", "K"), tags$sub(style="color:tomato", nK()),
         sep = ''
       )
     }
   })
-  
+
   output$chem.formula <- renderText(chem.formula())
-  
+
   nX.user <- reactive({
     as.numeric(input$nX.user)
   })
-  
-  
+
+
   nX <- reactive({
     if(input$nX.user == ''){
       if(input$nX.select == 'A'){
@@ -1505,15 +1511,15 @@ server <- function(input, output, session) {
       nX.user()
     }
   })
-  
+
   output$nX <- renderText(nX())
-  
+
   #Mass calculations---------
-  
+
   DC <- reactive({
     as.numeric(input$DC)
   })
-  
+
   #Isotope abundances (averaged). Source: Isotopic compositions of the elements 2017. Available online at www.ciaaw.org.
   listIso <- reactive({
     list(
@@ -1526,7 +1532,7 @@ server <- function(input, output, session) {
       K = c(0.93258144, 0.0001171, 0.06730244)
     )
   })
-  
+
   #Atomic masses. Current atomic masses available online at www.ciaaw.org based on Wang,M., Audi,G., Kondev,F.G., Huang,W.J., Naimi,S., et al. (2017) Chinese Phys. C, 41, 030003.
   listMass <- list(
     H = c(1.0078250322, 2.0141017781),
@@ -1537,13 +1543,13 @@ server <- function(input, output, session) {
     P = c(30.973761998),
     K = c(38.96370649, 39.9639982, 40.96182526)
   )
-  
-  #Monoisotopic mass 
+
+  #Monoisotopic mass
   MonoMW <- reactive({
-    nC()*listMass$C[1] + nH()*listMass$H[1] + nN()*listMass$N[1] + nO()*listMass$O[1] + 
+    nC()*listMass$C[1] + nH()*listMass$H[1] + nN()*listMass$N[1] + nO()*listMass$O[1] +
       nP()*listMass$P[1] + nK()*listMass$K[1]
   })
-  
+
   Monomz <- reactive({
     if (z()>0) {
       MonoMW()/z()
@@ -1551,34 +1557,34 @@ server <- function(input, output, session) {
       MonoMW()
     }
   })
-  
-  
-  #Average mass calculation from number of atoms, isotopic masses and abundances. 
+
+
+  #Average mass calculation from number of atoms, isotopic masses and abundances.
   #nX is subtracted from nH because nH is the total number of H, including the exchangeable ones.
   AveMW <- reactive({
-    AveMW <- nC()*(listIso()$C[1]*listMass$C[1] + listIso()$C[2]*listMass$C[2]) + 
-      (nH()-nX())*(listIso()$H[1]*listMass$H[1] + listIso()$H[2]*listMass$H[2]) + 
-      nN()*(listIso()$N[1]*listMass$N[1] + listIso()$N[2]*listMass$N[2]) + 
-      nO()*(listIso()$O[1]*listMass$O[1] + listIso()$O[2]*listMass$O[2] + listIso()$O[3]*listMass$O[3]) + 
-      nX()*(listIso()$D[1]*listMass$D[1] + listIso()$D[2]*listMass$D[2]) + 
-      nP()*(listIso()$P[1]*listMass$P[1]) + 
+    AveMW <- nC()*(listIso()$C[1]*listMass$C[1] + listIso()$C[2]*listMass$C[2]) +
+      (nH()-nX())*(listIso()$H[1]*listMass$H[1] + listIso()$H[2]*listMass$H[2]) +
+      nN()*(listIso()$N[1]*listMass$N[1] + listIso()$N[2]*listMass$N[2]) +
+      nO()*(listIso()$O[1]*listMass$O[1] + listIso()$O[2]*listMass$O[2] + listIso()$O[3]*listMass$O[3]) +
+      nX()*(listIso()$D[1]*listMass$D[1] + listIso()$D[2]*listMass$D[2]) +
+      nP()*(listIso()$P[1]*listMass$P[1]) +
       nK()*(listIso()$K[1]*listMass$K[1] + listIso()$K[2]*listMass$K[2] + listIso()$K[3]*listMass$K[3])
   })
-  
+
   Avemz <- reactive({
     AveMW()/z() #this is called centroid in the initial, non shiny code.
   })
-  
-  
+
+
   oligo.data <- reactive({
-    
+
     data.frame(
       "Parameters" = c('phosphates', 'neutralized phosphates', 'exchangeable sites', 'monoisotopic mass',
                        'average mass', 'monoisotopic m/z', 'average m/z'),
       "Values" = c(nb_PO(), nb_POH(), nX(), MonoMW(), AveMW(), Monomz(), Avemz())
     )
   })
-  
+
   output$oligo.data <- renderDT(server = FALSE, {
     datatable(
       oligo.data(),
@@ -1597,45 +1603,45 @@ server <- function(input, output, session) {
       )
     ) %>%
       formatRound(c('Values'), digits = 5, interval = 3, mark = '')
-    
+
   })
-  
-  
+
+
   #FFT-----------
   #Below a different set of isotope abundances are used for the calculation of all isotopic peaks (full distribution), to make the use of FFT easier.
-  
+
   nrPeaks <- reactive({
     as.numeric(input$nrPeaks.user)
   })
-  
+
   Iso_Pattern <- reactive({
     #Isotopic peak abundance calculation. By default, 32 isotopic peaks are calculated but can be user-defined (more peaks may be necessary for larger and/or heavily deuterated species).
     c12 <- rep(0, nrPeaks()); h1 <- rep(0, nrPeaks()); n14 <- rep(0, nrPeaks());
     o16 <- rep(0, nrPeaks()); p31 <- rep(0, nrPeaks()); k39 <- rep(0,nrPeaks());
     h2 <- rep(0, nrPeaks());
-    
+
     #Isotope abundances
     h1[1] = 0.999855;       h1[2] = 0.000145;                            #Natural abundances of H isotopes
-    h2[1] = (1-DC()/100);     h2[2] = DC()/100;                              #Calculated abundances of H isotopes for exchangeable sites as a function of DC (user-supplied).              
+    h2[1] = (1-DC()/100);     h2[2] = DC()/100;                              #Calculated abundances of H isotopes for exchangeable sites as a function of DC (user-supplied).
     c12[1] = listIso()$C[1]; c12[2] = listIso()$C[2];
     n14[1] = listIso()$N[1]; n14[2] = listIso()$N[2];
     o16[1] = listIso()$O[1]; o16[2] = listIso()$O[2]; o16[3] = listIso()$O[3];
     p31[1] = 1.0;
     k39[1] = listIso()$K[1]; k39[2] = listIso()$K[2]; k39[3] = listIso()$K[3];
-    
-    #Determination of the isotopic pattern by Fast Fourier Transform 
-    #(only yields abundance, not the corresponding m/z). 
+
+    #Determination of the isotopic pattern by Fast Fourier Transform
+    #(only yields abundance, not the corresponding m/z).
     #Based on J. Proteome Res. 2018 Jan 5; 17(1): 751–758.
     Iso_Pattern <- Re(fft(fft(c12)^nC()*fft(h1)^(nH()-nX())*fft(n14)^nN() * fft(o16)^nO() * fft(p31)^nP() * fft(k39)^nK() * fft(h2)^nX(),
                           inverse=TRUE))/length(c12)
   })
-  
+
   #Isotopic peak m/z calculation based on the mono-isotopic mass calculated above.
-  
+
   nbPeaks <- reactive({
     1:nrPeaks()
   })
-  
+
   peak.position <- reactive({
     peak.position <- data.frame("nbPeaks1" = unlist(nbPeaks()), 'MonoMW1' = MonoMW()) %>%
       mutate('mass.th' = MonoMW1 + (nbPeaks1-1)*1.0078250321) %>%
@@ -1644,7 +1650,7 @@ server <- function(input, output, session) {
       cbind('Iso.Pattern' = Iso_Pattern()) %>%
       mutate(Iso.Pattern = 1 - (max(Iso.Pattern)-Iso.Pattern)/(max(Iso.Pattern)-min(Iso.Pattern)))
   })
-  
+
   output$peak.position <- renderDT(server = FALSE, {
     datatable(
       peak.position(),
@@ -1665,13 +1671,13 @@ server <- function(input, output, session) {
     ) %>%
       formatRound(c('mz.th'), digits = 5) %>%
       formatRound(c('Iso.Pattern'), digits = 3)
-    
+
   })
-  
+
   # output$peaks <- renderDT({
   #   MSsnaps.ref()
   # })
-  
+
   output$plot99 <- renderPlot({
     ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
       geom_line(color = input$col.line.th, size = input$size.line.th) +
@@ -1701,9 +1707,9 @@ server <- function(input, output, session) {
             legend.title = element_text(size=18, face="bold", color = "black"),
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold", color = "black"),
-      ) 
+      )
   })
-  
+
   output$plot98 <- renderPlot({
     ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
       geom_line(color = input$col.line.th, size = input$size.line.th) +
@@ -1718,8 +1724,8 @@ server <- function(input, output, session) {
       # annotate(geom="text", x=Inf, y=0.775, label=deparse(annolab2), hjust = 1,
       #          color = "black", size=5, parse=TRUE) +
       annotate(
-        geom="text", x=Inf, y=0.90, 
-        label = paste('Reference centroid: ', round(exp.centroid.ref(),5),' m/z\nAccuracy: ', round(centroid.ac(), 0), ' ppm', sep = ""), 
+        geom="text", x=Inf, y=0.90,
+        label = paste('Reference centroid: ', round(exp.centroid.ref(),5),' m/z\nAccuracy: ', round(centroid.ac(), 0), ' ppm', sep = ""),
         hjust = 1,
         color="#6BC392", size=5, fontface = 2
       ) +
@@ -1749,13 +1755,13 @@ server <- function(input, output, session) {
             legend.text = element_text(size=16, face="bold", color = "black"),
       )
   })
-  
-  
-  
-  
+
+
+
+
   #MS ref snapshots------------
   snaps.ref <- data.frame()
-  
+
   inputsnap.ref <- reactive({
     if (isTRUE(input$switch69)) {
       inputsnap.ref <- specsumbrsh.ms()
@@ -1765,132 +1771,132 @@ server <- function(input, output, session) {
       return(inputsnap.ref)
     }
   })
-  
-  
+
+
   MSsnaps.ref <- eventReactive(input$bttn99, {
     newrow.ref <- data.frame(inputsnap.ref())
     # snaps.ref <<- rbind(snaps.ref, newrow.ref)
   })
-  
+
   #determination of experimental centroid of the reference
   exp.centroid.ref <- reactive({
-    
+
     calculation <- MSsnaps.ref() %>%
       mutate(centroid = sum(mz * intensum)/sum(intensum))
-    
+
     exp.centroid.ref <- calculation$centroid[1]
   })
-  
+
   #Accuracy of the reference centroid with theory, in ppm
   centroid.ac <- reactive({
     1000000 * abs(exp.centroid.ref()-Avemz())/Avemz()
   })
-  
-  
+
+
   #max file size---------
   options(shiny.maxRequestSize=5000*1024^2)
-  
+
   mzlimits = c(400,4000) #hard limit on data range
-  
+
   #data import---------------
-  
+
   inFile <- reactive({
     input$file1
   })
-  
+
   ms <- reactive({
     openMSfile(inFile()$datapath)
   })
-  
+
   hd <- reactive({
     header(ms())
   })
-  
+
   header.dim <- reactive({
     dim(hd())
   })
-  
+
   last.scan <- reactive({
     header.dim()[1]
   })
-  
+
   id <- reactive({
     1:last.scan()
   })
-  
+
   ret.time <- reactive({
-    data.frame(hd()[7]) 
+    data.frame(hd()[7])
   })
-  
+
   sample.name <- "Sample 1"
-  
+
   inputms <- reactive({
     #Progress bar. Appears upon file import, then again if m/z range is changed.
     withProgress(message = 'Calculation in progress',
                  detail = 'Please wait', value = 0, {
-                   
+
                    incProgress(amount=1/5)
-                   
+
                    #extraction of ms data, binding of scan number, retention time
                    df.temp <- lapply(id(),function(i) {
                      init <- data.frame(peaks(ms(), i))  %>%
                        add_column(scan = i) %>%
-                       add_column(ret.time = ret.time()[i,]/60) 
+                       add_column(ret.time = ret.time()[i,]/60)
                    })
-                   
+
                    incProgress(amount=2/5)
-                   
+
                    #transformation to single dataframe
                    filling.df <- data.table::rbindlist(df.temp)
-                   
+
                    incProgress(amount=3/5)
-                   
+
                    #traceability
                    filling.df$file <- inFile()$name
                    # filling.df$sample <- input$sample.id
-                   
+
                    #binning
                    filling.df$X1 <- RoundTo(filling.df$X1, multiple = input$slider1, FUN = round)
-                   
+
                    incProgress(amount=4/5)
-                   
+
                    #naming
                    colnames(filling.df)[1:5] <- c("mz","intensity","scan", "time",'filename'#, 'sample'
                    )
-                   
+
                    #m/z range filtering
                    filling.df <- filling.df %>%
                      filter(mz > input$text11[1]) %>%  #m/z filtering
                      filter(mz < input$text11[2])
-                   
+
                    return(filling.df)
-                   
+
                    incProgress(amount=5/5)
                  })
   })
-  
+
   #diagnostics
   # output$inputms69 <- renderDT({
   #   inputms()
   # })
-  
-  
+
+
   #TIC------------
-  
+
   TIC <- reactive({
-    
-    TIC <- data.frame(hd()[7]/60, hd()[2], hd()[6]) 
-    
+
+    TIC <- data.frame(hd()[7]/60, hd()[2], hd()[6])
+
     colnames(TIC)[1:3] <- c("time","scan","intensity")
-    
+
     return(TIC)
-  }) 
-  
-  
+  })
+
+
   output$plot1 <- renderPlot({
-    
+
     req(input$file1)
-    
+
     ggplot(data = TIC(), aes(x = time, y = intensity)) +
       geom_line(color = input$col.TIC, size = input$size.line.TIC) +
       xlab("time (min)") +
@@ -1914,28 +1920,28 @@ server <- function(input, output, session) {
             legend.box = "vertical",
             legend.title = element_text(size=18, face="bold", color = "black"),
             legend.key = element_rect(fill = "white"),
-            legend.text = element_text(size=16, face="bold", color = "black")) 
+            legend.text = element_text(size=16, face="bold", color = "black"))
   }, bg = "transparent")
-  
+
   #Selection of MS data from first plot (TIC)-------
   selectedData <- reactive({
     brushedPoints(TIC(), input$plot_brush)
   })
-  
-  #textinput------------- 
+
+  #textinput-------------
   scanstxt <- reactive({
     input$text1:input$text2
   })
-  
+
   mztxt <- reactive({
     input$text3:input$text4
   })
-  
+
   #brushinput-----------
   scansbrsh <- reactive({
     min(selectedData()$scan):max(selectedData()$scan)
   })
-  
+
   #Selection of defined scans in MS data---------
   selecscanstxt <- reactive({
     inputms() %>%
@@ -1945,13 +1951,13 @@ server <- function(input, output, session) {
     inputms() %>%
       filter(scan %in% scansbrsh())
   })
-  
+
   #time management--------
-  
+
   time.min <- reactive({
     as.numeric(input$time.sec) / 60
   })
-  
+
   timemin <- reactive({
     paste(
       tags$b(style="color:grey", 'Manual time (min): '),
@@ -1959,13 +1965,13 @@ server <- function(input, output, session) {
       sep = ''
     )
   })
-  
+
   output$timemin <- renderText({
     timemin()
   })
-  
-  #summing of scans-----------  
-  
+
+  #summing of scans-----------
+
   specsumtxt <- reactive({
     selecscanstxt() %>%
       filter(mz > min(mztxt())) %>%
@@ -1978,7 +1984,7 @@ server <- function(input, output, session) {
       add_column('lgd.conc' = as.numeric(input$lgd.conc)) %>%
       add_column('Stoich' = as.numeric(input$Stoich))
   })
-  
+
   specsumbrsh <- reactive({
     selecscansbrsh() %>%
       # filter(mz > min(ranges$x)) %>%
@@ -1991,15 +1997,15 @@ server <- function(input, output, session) {
       add_column('lgd.conc' = as.numeric(input$lgd.conc)) %>%
       add_column('Stoich' = as.numeric(input$Stoich))
   })
-  
+
   #Definition of initial mz range-------
   ranges <- reactiveValues(x = mzlimits, y = NULL)   #place above to save on calculation time
-  
+
   #Zoomed MS spectrum from brush----------------
   output$plot3 <- renderPlot({
-    
+
     req(input$file1)
-    
+
     ggplot(data = specsumbrsh(), aes(x = mz, y = intensum)) +
       geom_line(color = input$col.MS, size = input$size.line.MS) +
       xlab("m/z") +
@@ -2025,13 +2031,13 @@ server <- function(input, output, session) {
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
   })
-  
-  
+
+
   #Zoomed MS spectrum from txt input----------
   output$plot4 <- renderPlot({
-    
+
     req(input$file1)
-    
+
     ggplot(data = specsumtxt(), aes(x = mz, y = intensum)) +
       geom_line(color = input$col.MS, size = input$size.line.MS) +
       xlab("m/z") +
@@ -2057,62 +2063,62 @@ server <- function(input, output, session) {
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(xlim = c(min(mztxt()), max(mztxt())), expand = FALSE)
   })
-  
+
   #zoom event on MS plot---------
   observeEvent(input$plot3_brush, {
     brush <- input$plot3_brush
     ranges$x <- c(brush$xmin, brush$xmax)
     ranges$y <- c(brush$ymin, brush$ymax)
   })
-  
+
   specsumbrsh.ms <- reactive({
     specsumbrsh.ms <- specsumbrsh() %>%
       filter(mz > min(ranges$x)) %>%
       filter(mz < max(ranges$x))
   })
-  
+
   # Double click event to reset the zoom
   observeEvent(input$plot3_dblclick, {
     brush <- input$plot3_brush
     ranges$x <- mzlimits
     ranges$y <- NULL
   })
-  
+
   #Prints selected scans and time range from brush---------
   output$info <- renderText({
-    
+
     req(input$file1)
-    
+
     paste(round(min(selectedData()$time), 2), "-", round(max(selectedData()$time), 2), " min",
           sep = "")
   })
-  
+
   output$info1 <- renderText({
-    
+
     req(input$file1)
-    
+
     paste(min(selectedData()$scan), "-", max(selectedData()$scan),
           sep = "")
   })
-  
+
   #Prints selected scans at bottom of window-------
   output$info2 <- renderText({
     paste(round(min(ranges$x), 2), " - ", round(max(ranges$x), 2), sep = "")
   })
-  
+
   #Prints selected mz at bottom of window----------
   output$info3 <- renderText({
     paste(round(min(mztxt()), 2), " - ", round(max(mztxt()), 2), sep = "")
   })
-  
-  
+
+
   #MS snapshots------------
   snaps <- data.frame()
-  
+
   inputsnap <- reactive({
     if (isTRUE(input$switch69)) {
       inputsnap <- specsumbrsh.ms() %>%
-        add_column(min.time = min(selectedData()$time), #traceability 
+        add_column(min.time = min(selectedData()$time), #traceability
                    max.time = max(selectedData()$time),
                    min.scan = min(selectedData()$scan),
                    max.scan = max(selectedData()$scan),
@@ -2121,7 +2127,7 @@ server <- function(input, output, session) {
       return(inputsnap)
     } else {
       inputsnap <- specsumtxt() %>%
-        add_column(min.time = "NA", #traceability 
+        add_column(min.time = "NA", #traceability
                    max.time = "NA",
                    min.scan = input$text1,
                    max.scan = input$text2,
@@ -2130,32 +2136,32 @@ server <- function(input, output, session) {
       return(inputsnap)
     }
   })
-  
-  
+
+
   MSsnaps <- eventReactive(input$bttn1, {
     newrow <- data.frame(inputsnap())
     snaps <<- rbind(snaps, newrow)
   })
-  
-  
+
+
   #--------------KINETICS--------------
-  
+
   #Processed data reimport
   kin.old <- reactive({
     if(is.null(input$kin.old))
       return(NULL)
-    
+
     input$kin.old
   })
-  
+
   processed.kin <- reactive({
-    
+
     if(is.null(input$kin.old))
       return(NULL)
-    
+
     processed.kin <- data.frame(read_excel(kin.old()$datapath,
                                            skip = 1))
-    
+
     colnames(processed.kin) <- c('filename.x',
                                  'Species.x',
                                  'name',
@@ -2170,7 +2176,7 @@ server <- function(input, output, session) {
                                  'mean.time',
                                  'mean.raw',
                                  'mean.corr')
-    
+
     processed.kin <- processed.kin %>%
       mutate(group = round(scan/as.numeric(input$text35), 0)) %>%
       group_by(name, group) %>%
@@ -2179,22 +2185,22 @@ server <- function(input, output, session) {
              mean.time = mean(corrected.time)) %>%
       filter(mean.time >= as.numeric(input$text33)) %>%
       filter(mean.time <= as.numeric(input$text34))
-    
+
     return(processed.kin)
-    
+
   })
-  
-  
+
+
   snaps42 <- data.frame()
-  
+
   kin.brsh <- reactive({
-    selecscansbrsh() 
+    selecscansbrsh()
     # group_by(mz, filename) %>%
     # add_column("Species" = input$sample.id)
   })
-  
+
   k.data <- eventReactive(input$bttn42, {
-    
+
     k.init <- data.frame(kin.brsh()) %>%
       filter(mz > min(ranges$x)) %>%
       filter(mz < max(ranges$x)) %>%
@@ -2202,27 +2208,27 @@ server <- function(input, output, session) {
       add_column(mz.range = paste0(round(min(ranges$x),2),"-",round(max(ranges$x), 2))) %>%
       group_by(filename, Species, scan, time, mz.range) %>%
       summarise(intensity = sum(intensity))
-    
+
     newrow42 <-  data.frame(k.init)
-    
+
     snaps42 <<- rbind(snaps42, newrow42)
   })
-  
+
   k.norm <- reactive({
-    
+
     k.standard <- k.data() %>%
       filter(Species == 'Standard')
-    
+
     k.spl <- k.data() %>%
       filter(Species != 'Standard')
-    
-    k.joined <- left_join(k.spl, k.standard, by = "scan") 
-    
+
+    k.joined <- left_join(k.spl, k.standard, by = "scan")
+
     if (is.na(k.joined$intensity.y[1])) {
       k.joined$intensity.y <- 1
     }
-    
-    k.joined <- k.joined %>%  
+
+    k.joined <- k.joined %>%
       filter(Species.x %in% input$Pick1) %>%
       group_by(scan, filename.x, time.x) %>% #filename.x grouping necessary to use proper standard?
       mutate(corr.int = intensity.x/intensity.y) %>%
@@ -2234,16 +2240,16 @@ server <- function(input, output, session) {
              mean.corr = mean(corr.int),
              mean.time = mean(corrected.time)) %>%
       filter(mean.time >= as.numeric(input$text33)) %>%
-      filter(mean.time <= as.numeric(input$text34)) 
-    
+      filter(mean.time <= as.numeric(input$text34))
+
     return(k.joined)
-    
+
   })
-  
+
   k.norm.1 <- reactive({
     return(NULL)
   })
-  
+
   k.norm.1 <- reactive({
     k.norm() %>%
       ungroup() %>%
@@ -2260,7 +2266,7 @@ server <- function(input, output, session) {
       ) %>%
       setcolorder(c(1,2,14,5,3,10,4,9,6,7,8,13,11,12))
   })
-  
+
   # k.norm.0 <- reactive({
   #   if (is.null(kin.brsh())) {
   #     if (is.null(kin.old)) {
@@ -2276,7 +2282,7 @@ server <- function(input, output, session) {
   #     }
   #   }
   # })
-  
+
   k.norm.0 <- reactive({
     if (is.null(kin.old)) {
       return(k.norm.1())
@@ -2284,8 +2290,8 @@ server <- function(input, output, session) {
       rbind.data.frame(k.norm.1(),processed.kin())
     }
   })
-  
-  
+
+
   # Selection of the y axis
   kin.input <- reactive({
     if (input$kin.input == 'raw') {
@@ -2293,8 +2299,8 @@ server <- function(input, output, session) {
     } else {
       k.norm.0()$mean.corr
     }
-  }) 
-  
+  })
+
   # generation of a wide table, easier to work with with other softwares.
   # only a few columns kept.
   k.wide <- eventReactive(input$k.wide.bttn,{
@@ -2312,7 +2318,7 @@ server <- function(input, output, session) {
         round(2)
     }
   })
-  
+
   output$k.table <-  DT::renderDT(server = FALSE, {
     datatable(data = k.norm.0(),
               extensions = c('Buttons', 'Responsive', 'Scroller'),
@@ -2348,11 +2354,11 @@ server <- function(input, output, session) {
               )
     ) %>%
       formatRound(c('TIC Time (min)', 'Time (min)', 'Raw intensity',
-                    "Standard intensity", "Corrected intensity", 
-                    "Mean raw intensity", "Mean Time (min)", 'Mean corrected intensity'), 
+                    "Standard intensity", "Corrected intensity",
+                    "Mean raw intensity", "Mean Time (min)", 'Mean corrected intensity'),
                   digits = 2)
   })
-  
+
   output$k.wide <-  DT::renderDT(server = FALSE, {
     datatable(data = k.wide(),
               extensions = c('Buttons', 'Responsive', 'Scroller'),
@@ -2372,14 +2378,14 @@ server <- function(input, output, session) {
                 dom = 'Bfrtip', #button position
                 buttons = c('copy', 'csv', 'excel')
               )
-    ) 
+    )
   })
-  
+
   output$k.plot <- renderPlot({
-    ggplot(data = k.norm.0(), aes(x = mean.time, y = kin.input(), 
-                                  color = name)) +  
+    ggplot(data = k.norm.0(), aes(x = mean.time, y = kin.input(),
+                                  color = name)) +
       geom_point(size = input$size.dot.kin, alpha = input$transp.kin) +
-      scale_color_manual(name = "Species", 
+      scale_color_manual(name = "Species",
                          values = c(input$col.dot.kin1, input$col.dot.kin2, input$col.dot.kin3, input$col.dot.kin4, input$col.dot.kin5, input$col.dot.kin6, input$col.dot.kin7, input$col.dot.kin8)) +
       xlab("time (min)") +
       ylab("intensity") +
@@ -2398,34 +2404,34 @@ server <- function(input, output, session) {
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold"))  +
       coord_cartesian(expand = T)
-  }) 
-  
+  })
+
   output$k.plot.ui <- renderUI({
     plotOutput("k.plot",
                width = as.numeric(input$k.plot.w),
                height = as.numeric(input$k.plot.h)
     )
   })
-  
+
   #########TITRATION###############
-  
+
   #import processed data
-  
+
   titr.old <- reactive({
-    if(is.null(input$titr.old))     
+    if(is.null(input$titr.old))
       return(NULL)
-    
+
     input$titr.old
   })
-  
+
   processed.titr <- reactive({
-    
-    if(is.null(input$titr.old))     
+
+    if(is.null(input$titr.old))
       return(NULL)
-    
+
     processed.titr <- data.frame(read_excel(titr.old()$datapath,
-                                            col_names = F, skip = 2)) 
-    
+                                            col_names = F, skip = 2))
+
     colnames(processed.titr) <- c('Species',
                                   'lgd.conc',
                                   'filename',
@@ -2438,23 +2444,23 @@ server <- function(input, output, session) {
                                   'Stoich',
                                   'intensity',
                                   'rel.intensity')
-    
+
     return(processed.titr)
-    
+
   })
-  
-  
+
+
   lgd.conc <- reactive({
-    as.numeric(input$lgd.conc) 
+    as.numeric(input$lgd.conc)
   })
-  
+
   MSsnaps24 <- eventReactive(input$bttn24, {
     newrow <- data.frame(inputsnap())
     snaps <<- rbind(snaps, newrow)
   })
-  
+
   eq.raw <- reactive({
-    
+
     if (is.null(input$file1)) {
       return(processed.titr())
     } else {
@@ -2462,31 +2468,31 @@ server <- function(input, output, session) {
         group_by(Species, lgd.conc, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz, Stoich) %>% #replace CFtime by concentration
         summarise(intensity = sum(intensum)) %>%
         group_by(lgd.conc) %>%
-        mutate(rel.intensity = ifelse(Species == 'Standard',  
+        mutate(rel.intensity = ifelse(Species == 'Standard',
                                       '',
                                       intensity/sum(intensity[Species != "Standard"]))
         ) %>%
         mutate(rel.intensity = as.numeric(rel.intensity))
       # the relative intensity does not take into account the SI intensity
-      
-      
+
+
       if (is.null(titr.old)) {
         return(eq.raw)
       } else {
         rbind.data.frame(eq.raw, processed.titr())
       }
     }
-    
-    
+
+
   })
-  
-  
+
+
   output$eq.raw <- DT::renderDT(server = FALSE, {
-    
+
     if (is.null(eq.raw())) {
       return(NULL)
     } else {
-      
+
       datatable(data = eq.raw(),
                 extensions = c('Buttons', 'Responsive', 'Scroller'),
                 selection = 'multiple',
@@ -2522,131 +2528,131 @@ server <- function(input, output, session) {
         formatRound(c('Raw intensity', 'Relative intensity'), digits = 2)
     }
   })
-  
+
   #User inputs
   Mtot <- reactive({ #total target concentration
     as.numeric(input$Mtot)
   })
-  
+
   Std <- reactive({ #SI concentration
     as.numeric(input$Std)
   })
-  
+
   R <- eventReactive(input$bttn55,{
-    
+
     # Calculation of the intensity ratio vs IS (by experiment = by lgd.conc)
     I <- eq.raw() %>%
-      group_by(lgd.conc) %>% 
+      group_by(lgd.conc) %>%
       mutate(I.ratio = intensity/intensity[Species == "Standard"]) %>%
       filter(Species != "Standard") %>% # ratio should be = 1; useless for remainder of script
       dplyr::select(I.ratio, Stoich, lgd.conc) # selection of relevant columns
-    
+
     #Ligand concentrations matrix
     Lgd <- I %>%
       dplyr::select(lgd.conc) %>%
       distinct(lgd.conc, .keep_all = TRUE) %>%
       as.matrix()
-    
-    
+
+
     ### At this point, are the rows order by concentration and stoichio? #####
-    
+
     # pivoting from long to wide format to work with matrices after
-    # allocate a 0 intensity to absent species 
+    # allocate a 0 intensity to absent species
     # remove the stoich column
     I <- I %>%
       pivot_wider(values_from = "I.ratio", names_from = c("lgd.conc")) %>%
-      mutate_all(~replace(., is.na(.), 0)) 
-    
+      mutate_all(~replace(., is.na(.), 0))
+
     Stoich <- as.matrix(I$Stoich)
-    
+
     I <- I %>%
       dplyr::select(-Stoich)
-    
+
     #switching to matrix and transposing to follow the formatting of Anal. Chem.2009,81,6708–6715
     I <- t(as.matrix(I))
-    
-    
-    
+
+
+
     C <- matrix(ncol = 1, nrow = nrow(I))
-    
+
     for (nrowI in 1:nrow(I)) {
       C[nrowI] <- Mtot()/Std()
     }
-    
+
     #I.R = C with R the response factors
-    
+
     #Computes the Moore-Penrose generalized inverse of matrix I
     I.inv = MPinv(I)
     I.inv
-    
+
     #Response factors relative to the IS.
     R <- I.inv%*%C
-    
+
     return(R)
-    
+
   })
-  
+
   corr.C <- eventReactive(input$bttn55,{
-    
+
     # Calculation of the intensity ratio vs IS (by experiment = by lgd.conc)
     I <- eq.raw() %>%
-      group_by(lgd.conc) %>% 
+      group_by(lgd.conc) %>%
       mutate(I.ratio = intensity/intensity[Species == "Standard"]) %>%
       filter(Species != "Standard") %>% # ratio should be = 1; useless for remainder of script
       dplyr::select(I.ratio, Stoich, lgd.conc) # selection of relevant columns
-    
+
     #Ligand concentrations matrix
     Lgd <- I %>%
       dplyr::select(lgd.conc) %>%
       distinct(lgd.conc, .keep_all = TRUE) %>%
       as.matrix()
-    
-    
+
+
     ### At this point, are the rows order by concentration and stoichio? #####
-    
+
     # pivoting from long to wide format to work with matrices after
-    # allocate a 0 intensity to absent species 
+    # allocate a 0 intensity to absent species
     # remove the stoich column
     I <- I %>%
       pivot_wider(values_from = "I.ratio", names_from = c("lgd.conc")) %>%
-      mutate_all(~replace(., is.na(.), 0)) 
-    
+      mutate_all(~replace(., is.na(.), 0))
+
     Stoich <- as.matrix(I$Stoich)
-    
+
     I <- I %>%
       dplyr::select(-Stoich)
-    
+
     #switching to matrix and transposing to follow the formatting of Anal. Chem.2009,81,6708–6715
     I <- t(as.matrix(I))
-    
+
     C <- matrix(ncol = 1, nrow = nrow(I))
-    
+
     for (nrowI in 1:nrow(I)) {
       C[nrowI] <- Mtot()/Std()
     }
-    
+
     #I.R = C with R the response factors
-    
+
     #Computes the Moore-Penrose generalized inverse of matrix I
     I.inv = MPinv(I)
     I.inv
-    
+
     #Response factors relative to the IS.
     R <- I.inv%*%C
-    
+
     # Generalization
-    
-    
+
+
     #RI has the same dimensions as I
     RI <- matrix(ncol = ncol(I), nrow = nrow(I))
-    #RI is obtained by distributing each row of R onto the same numbered column of I 
+    #RI is obtained by distributing each row of R onto the same numbered column of I
     for (nrowR in 1:nrow(R)) {
       for (nrowI in 1:nrow(I)) {
         RI[nrowI,nrowR] <- R[nrowR] * I[nrowI,nrowR]
       }
     }
-    
-    
+
+
     #Final matrix of corrected concentrations
     #Same dimensions as I
     corr.C <- matrix(ncol = ncol(I), nrow = nrow(I))
@@ -2656,29 +2662,29 @@ server <- function(input, output, session) {
         corr.C[nrowI,ncolI] <- Mtot()*RI[nrowI,ncolI]/sum(RI[nrowI,])
       }
     }
-    
+
     return(corr.C)
-    
+
   })
-  
-  
+
+
   output$Rf <- renderDT({
-    
+
     eq.raw() %>%
       filter(Species != 'Standard') %>%
-      group_by(Stoich) %>% 
+      group_by(Stoich) %>%
       filter(row_number() == 1) %>%
       add_column(Rf = R())
-    
+
   })
-  
+
   output$corr.C <- renderDT({
     data.table(corr.C())
   })
-  
-  
+
+
   # output$eq.raw <- DT::renderDT({
-  #   
+  #
   #   datatable(data = eq.raw(),
   #             extensions = c('Buttons', 'Responsive', 'Scroller'),
   #             selection = 'multiple',
@@ -2713,15 +2719,15 @@ server <- function(input, output, session) {
   #   ) %>%
   #     formatRound(c('Raw intensity', 'Relative intensity'), digits = 2)
   # })
-  
-  
+
+
   #snaps plotting---------
-  
+
   MSsnaps1 <- reactive({
     if (isTRUE(input$manu1)) {
       MSsnaps() %>%
         mutate(colorscale = MSsnaps()$CFtime) %>% #creates a variable to scale the color and position the spectrum in the stack based on manual or TIC time
-        group_by(colorscale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>% 
+        group_by(colorscale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
         mutate(intensum = 1-(max(intensum)-intensum)/(max(intensum)-min(intensum))) #Normalization of each spectrum (per time point, per sample)
     } else {
       MSsnaps() %>%
@@ -2730,7 +2736,7 @@ server <- function(input, output, session) {
         mutate(intensum = 1-(max(intensum)-intensum)/(max(intensum)-min(intensum)))
     }
   })
-  
+
   #variable to select a common or independent x axis. Useful to compare across samples with a fixed axis or across adducts/charge states when not fixed
   common.scale <- reactive({
     if (isTRUE(input$com.scale)) {
@@ -2739,7 +2745,7 @@ server <- function(input, output, session) {
       return('free_x')
     }
   })
-  
+
   #variables to define if time indicated by a label or a color guide
   time.label <- reactive({
     if (isTRUE(input$t.indic)) {
@@ -2748,7 +2754,7 @@ server <- function(input, output, session) {
       return(element_text(size = 16, color = "black", face = "bold", angle = 0))
     }
   })
-  
+
   color.guide <- reactive({
     if (isTRUE(input$t.indic)) {
       return('right')
@@ -2756,15 +2762,15 @@ server <- function(input, output, session) {
       return('none')
     }
   })
-  
-  
+
+
   output$plot5 <- renderPlot({
-    ggplot(data = MSsnaps1(), aes(x = mz, y = intensum, 
-                                  color = colorscale)) +  
+    ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
+                                  color = colorscale)) +
       geom_line(size = 1) +
       scale_color_gradient(name = 't (min)', low=input$col.snap1, high=input$col.snap2,
                            guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
-                           # breaks = breaks, 
+                           # breaks = breaks,
                            trans = input$trans.user) +
       xlab("m/z") +
       facet_grid(colorscale ~ Species,
@@ -2793,18 +2799,18 @@ server <- function(input, output, session) {
             legend.text = element_text(size=16, face="bold"))  +
       coord_cartesian(expand = FALSE)
   }
-  ) 
-  
+  )
+
   output$plot5.ui <- renderUI({
     plotOutput("plot5",
                width = as.numeric(input$plot5.w),
                height = as.numeric(input$plot5.h)
     )
   })
-  
-  
+
+
   #download spectra----------
-  
+
   Plot5 <- reactive({
     ggplot(data = MSsnaps(), aes(x = mz, y = intensum)) +
       geom_line(color = "steelblue", size = 1) +
@@ -2834,7 +2840,7 @@ server <- function(input, output, session) {
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(expand = FALSE)
   })
-  
+
   output$dwnspec <- downloadHandler(
     filename = function() { paste("stacked spectra", '.png', sep='') },
     content = function(file) {
@@ -2844,50 +2850,50 @@ server <- function(input, output, session) {
              units = 'mm')
     }
   )
-  
+
   #centroids and NUS--------
-  
+
   centroids <- reactive({
     MSsnaps() %>%
       # group_by(mean.time, Species) %>%
       group_by(mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
       summarise(centroid = weighted.mean(mz, intensum)) #calculation of centroids
   })
-  
-  
+
+
   deltaD <- reactive({
     (as.numeric(input$Di)-as.numeric(input$Dend))/100 #calculation of change in deuterium content
   })
-  
-  
+
+
   NUS <- reactive({
-    
-    centroids() %>% 
+
+    centroids() %>%
       add_column('Reference' = c(1789)) %>% #assignment of reference centroid for each charge state
       mutate(
-        Reference = if_else(Species == "Species 1", as.numeric(input$centroid.ref1), 
+        Reference = if_else(Species == "Species 1", as.numeric(input$centroid.ref1),
                             if_else(Species == "Species 2", as.numeric(input$centroid.ref2),
-                                    if_else(Species == "Species 3", as.numeric(input$centroid.ref3), 
+                                    if_else(Species == "Species 3", as.numeric(input$centroid.ref3),
                                             as.numeric(input$centroid.ref4))))) %>%
       add_column('Charge' = c(5)) %>% #assignment of charge states for each sample
       mutate(
-        Charge = if_else(Species == "Species 1", as.numeric(input$charge.ref1), 
+        Charge = if_else(Species == "Species 1", as.numeric(input$charge.ref1),
                          if_else(Species == "Species 2", as.numeric(input$charge.ref2),
-                                 if_else(Species == "Species 3", as.numeric(input$charge.ref3), 
+                                 if_else(Species == "Species 3", as.numeric(input$charge.ref3),
                                          as.numeric(input$charge.ref4))))) %>%
-      
+
       group_by(Species) %>%
       mutate(
         NUS = (centroid - Reference)*Charge/((as.numeric(input$Di)-as.numeric(input$Dend))/100*(2.013553-1.007825)), #NUS calculation
         mean.time.s = mean.time * 60,
         CFtime.s = CFtime * 60) %>% #creation of a time column in seconds
-      dplyr::select(mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS, 
+      dplyr::select(mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS,
                     Reference, Charge, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz)  #column reordering
     # order_by(Species)
   })
-  
-  
-  
+
+
+
   output$centroids <- DT::renderDT(server = FALSE, {
     datatable(data = centroidscaled(),  #data = NUS(),
               extensions = c('Buttons', 'Responsive', 'Scroller'),
@@ -2922,15 +2928,15 @@ server <- function(input, output, session) {
     ) %>%
       formatRound(c('TIC Time (min)', 'Centroid', 'NUS', "TIC Time (s)"), digits = 2)
   })
-  
+
   # output$centroids <- renderDT({
   #   centroidscaled2()
   # })
-  
-  
+
+
   #Select all lines
   centroids_proxy <- DT::dataTableProxy("centroids")
-  
+
   observeEvent(input$centroids_sel, {
     if (isTRUE(input$centroids_sel)) {
       DT::selectRows(centroids_proxy, input$centroids_rows_all)
@@ -2939,58 +2945,58 @@ server <- function(input, output, session) {
     }
   })
   output$selected_rows <- renderPrint(print(input$centroids_rows_selected))
-  
+
   centroidscaled.init <- reactive({
     if (isTRUE(input$manu2)) {
       NUS() %>%
         add_column(timescale = NUS()$CFtime)
     } else {
       NUS() %>%
-        add_column(timescale = NUS()$mean.time) 
+        add_column(timescale = NUS()$mean.time)
     }
   })
-  
-  
-  
+
+
+
   file.old <- reactive({
-    if(is.null(input$file.old))     
+    if(is.null(input$file.old))
       return(NULL)
-    
+
     input$file.old
   })
-  
+
   processed.data <- reactive({
-    
-    if(is.null(input$file.old))     
+
+    if(is.null(input$file.old))
       return(NULL)
-    
+
     processed.data <- data.frame(read_excel(file.old()$datapath))
-    
-    colnames(processed.data) <- c('Species', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS', 
-                                  'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan', 
+
+    colnames(processed.data) <- c('Species', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS',
+                                  'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan',
                                   'max.scan', 'min.mz', 'max.mz',	"timescale")
-    
+
     return(processed.data)
-    
+
   })
-  
-  
+
+
   centroidscaled <- reactive({
-    
+
     if (is.null(file.old)) {
       return(centroidscaled.init())
     } else {
       rbind.data.frame(centroidscaled.init(),processed.data())
     }
   })
-  
-  
+
+
   output$plot6 <- renderPlot({
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
     ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = centroidscaled()$centroid)) +
       geom_point(color = input$col.kin, size = input$size.kin) +
-      geom_point(data = selected.points, size = input$size.kin, 
+      geom_point(data = selected.points, size = input$size.kin,
                  aes(x = timescale, y = centroid, color = Species), inherit.aes = F) +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
       xlab("time (min)") +
@@ -3018,13 +3024,13 @@ server <- function(input, output, session) {
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(expand = T)
   })
-  
-  
-  
+
+
+
   # fits <- reactive({
   #   s = input$centroids_rows_selected
   #   selected.points <- centroidscaled()[ s,]
-  #   
+  #
   #   fits <- nls(data = selected.points,
   #               formula = selected.points$NUS~a1*exp(-t1*selected.points$timescale)+a2*exp(-t2*selected.points$timescale)+y0,
   #               start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
@@ -3033,12 +3039,12 @@ server <- function(input, output, session) {
   #               control = c(maxiter = 100000, warnOnly = T)
   #   )
   # })
-  
+
   output$plot7 <- renderPlot({
-    
+
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
-    
+
     ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
       geom_point(data = selected.points, size = input$size.kin, aes(x = timescale, y = NUS, color = Species), alpha = as.numeric(input$trans.kin), inherit.aes = F) +
       xlab("time (min)") +
@@ -3057,7 +3063,7 @@ server <- function(input, output, session) {
                 aes(x = timescale, y=NUS, color = Species),
                 alpha = 0.5,
                 size = 1) +
-      # stat_poly_eq(formula = y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0, 
+      # stat_poly_eq(formula = y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
       #              data = selected.points,
       #              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~"), x = timescale, y=NUS, color = Species),
       #              parse = TRUE, rr.digits = 4) +
@@ -3084,32 +3090,32 @@ server <- function(input, output, session) {
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(expand = T)
   })
-  
+
   #Download kinetics plots-----------
   Plot6 <- reactive({
     ggplot(data = centroids(), aes(x = centroids()$mean.time, y = centroids()$centroid)) +
-      geom_point(color = "steelblue", size = 3) 
+      geom_point(color = "steelblue", size = 3)
   })
-  
+
   output$dwnplot <- downloadHandler(
     filename = function() { paste("kinetics-raw", '.png', sep='') },
     content = function(file) {
       ggsave(file, plot = Plot6(), device = "png")
     }
   )
-  
+
   Plot7 <- reactive({
     ggplot(data = NUS(), aes(x = NUS()$mean.time, y = NUS()$NUS)) +
       geom_point(color = "steelblue", size = 3)
   })
-  
+
   output$dwnplot2 <- downloadHandler(
     filename = function() { paste("kinetics-NUS", '.png', sep='') },
     content = function(file) {
       ggsave(file, plot = Plot7(), device = "png")
     }
   )
-  
+
   #PALETTE MODS-------
   palette.modifier <- function(plot = NULL){
     if (input$select.melting.palette.fam == 'd3') {
@@ -3174,72 +3180,72 @@ server <- function(input, output, session) {
       }
     }
   }
-  
+
   #Palette family selector
   output$select.melting.palette.fam <- renderUI({
-    pickerInput("select.melting.palette.fam", 
+    pickerInput("select.melting.palette.fam",
                 label = "Choose palette family",
-                choices = list("d3", 
+                choices = list("d3",
                                "Brewer - qualitative", "Brewer - diverging", "Brewer - sequential",
-                               "AAAS", "IGV", "JAMA", "JCO", "Lancet", 'LocusZoom', 'NEJM', "NPG", 
+                               "AAAS", "IGV", "JAMA", "JCO", "Lancet", 'LocusZoom', 'NEJM', "NPG",
                                "UChicago", "UCSCGB"),
                 multiple = F
-    ) 
+    )
   })
-  
+
   #Palette subcategory selector
   output$select.melting.palette <- renderUI({
-    
+
     if (input$select.melting.palette.fam == 'd3') {
-      pickerInput("select.melting.palette", 
+      pickerInput("select.melting.palette",
                   label = "Choose palette",
                   choices = list("d3a" = "category20",
                                  "d3b" = "category20b",
                                  "d3c" = "category20c"),
                   multiple = F
-      ) 
+      )
     } else {
       if (input$select.melting.palette.fam == 'Brewer - qualitative') {
-        pickerInput("select.melting.palette", 
+        pickerInput("select.melting.palette",
                     label = "Choose palette",
-                    choices = list("Accent", "Dark2", "Paired", 
-                                   "Pastel1", "Pastel2", "Set1", 
+                    choices = list("Accent", "Dark2", "Paired",
+                                   "Pastel1", "Pastel2", "Set1",
                                    "Set2", "Set3"),
                     multiple = F
         )
       } else {
         if (input$select.melting.palette.fam == 'Brewer - diverging') {
-          pickerInput("select.melting.palette", 
+          pickerInput("select.melting.palette",
                       label = "Choose palette",
                       choices = list("BrBG", 'PiYG', 'PRGn',
                                      'PuOr', 'RdBu', 'RdGy',
                                      'RdYlBu', 'RdYlGn', 'Spectral'),
                       multiple = F
-          ) 
+          )
         } else {
           if (input$select.melting.palette.fam == 'Brewer - sequential') {
-            pickerInput("select.melting.palette", 
+            pickerInput("select.melting.palette",
                         label = "Choose palette",
                         choices = list('Blues', 'BuGn', 'BuPu', 'GnBu',
-                                       'Greens', 'Greys', 'Oranges', 'OrRd', 
-                                       'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', 
+                                       'Greens', 'Greys', 'Oranges', 'OrRd',
+                                       'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
                                        'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd'),
                         multiple = F
-            ) 
+            )
           } else {
             if (input$select.melting.palette.fam == 'IGV') {
-              pickerInput("select.melting.palette", 
+              pickerInput("select.melting.palette",
                           label = "Choose palette",
                           choices = list("default", "alternating"),
                           multiple = F
-              ) 
+              )
             } else {
               if (input$select.melting.palette.fam == 'UChicago') {
-                pickerInput("select.melting.palette", 
+                pickerInput("select.melting.palette",
                             label = "Choose palette",
                             choices = list("default", "light", "dark"),
                             multiple = F
-                ) 
+                )
               } else {
                 return(NULL)
               }
@@ -3248,19 +3254,19 @@ server <- function(input, output, session) {
         }
       }
     }
-    
+
   })
-  
-  
-  #MELTR------------------- 
-  
+
+
+  #MELTR-------------------
+
   #melting data import-----
-  
+
   #Selection of raw data path
   Data_file <- reactive({
     input$melting.input
   })
-  
+
   #allows to toggle the blank subtraction on/off
   blk.subtract <- reactive({
     if (input$melt.blank == T) {
@@ -3269,14 +3275,14 @@ server <- function(input, output, session) {
       blk.subtract = 0
     }
   })
-  
+
   #import raw data
   melt <- reactive({
-    
-    melt.buffer <- read_excel(Data_file()$datapath, 
-                              col_types = c("numeric", "numeric",'numeric', "text", "text", "text", 
+
+    melt.buffer <- read_excel(Data_file()$datapath,
+                              col_types = c("numeric", "numeric",'numeric', "text", "text", "text",
                                             "text"),
-                              col_names = c("T.unk", "abs.raw", 'abs.blk', "ramp", "comment", 
+                              col_names = c("T.unk", "abs.raw", 'abs.blk', "ramp", "comment",
                                             "rep", "oligo"),
                               skip = 1) %>%
       filter(!is.na(oligo)) %>% #removes empty lines
@@ -3293,25 +3299,25 @@ server <- function(input, output, session) {
       add_column(blk.sub = blk.subtract()) %>%
       group_by(id) %>%
       #subtract the blank column is values are provided and toggle activated
-      mutate(abs.melt = if_else(is.na(abs.blk), abs.raw, 
+      mutate(abs.melt = if_else(is.na(abs.blk), abs.raw,
                                 if_else(blk.sub == 1, abs.raw - abs.blk, abs.raw))) %>%
       ungroup()
-    
-    return(melt.buffer)   
+
+    return(melt.buffer)
   })
-  
-  
+
+
   #melting data selection-----
-  
+
   output$select.melting.oligo <- renderUI({
     if(is.null(input$melting.input)) {
-      pickerInput("select.melting.oligo", 
+      pickerInput("select.melting.oligo",
                   label = "Choose oligos",
                   choices = "upload data first",
                   multiple = T
-      ) 
+      )
     } else {
-      pickerInput("select.melting.oligo", 
+      pickerInput("select.melting.oligo",
                   label = "Choose oligos",
                   choices = unique(melt()$oligo),
                   selected = unique(melt()$oligo),
@@ -3323,16 +3329,16 @@ server <- function(input, output, session) {
       )
     }
   })
-  
+
   output$select.melting.ramp <- renderUI({
     if(is.null(input$melting.input)) {
-      pickerInput("select.melting.oligo", 
+      pickerInput("select.melting.oligo",
                   label = "Choose ramps",
                   choices = "upload data first",
                   multiple = T
-      ) 
+      )
     } else {
-      pickerInput("select.melting.ramp", 
+      pickerInput("select.melting.ramp",
                   label = "Choose ramps",
                   choices = unique(melt()$ramp),
                   selected = unique(melt()$ramp),
@@ -3344,16 +3350,16 @@ server <- function(input, output, session) {
       )
     }
   })
-  
+
   output$select.melting.comment <- renderUI({
     if(is.null(input$melting.input)) {
-      pickerInput("select.melting.oligo", 
+      pickerInput("select.melting.oligo",
                   label = "Choose comments",
                   choices = "upload data first",
                   multiple = T
-      ) 
+      )
     } else {
-      pickerInput("select.melting.comment", 
+      pickerInput("select.melting.comment",
                   label = "Choose comments",
                   choices = unique(melt()$comment),
                   selected = unique(melt()$comment),
@@ -3365,16 +3371,16 @@ server <- function(input, output, session) {
       )
     }
   })
-  
+
   output$select.melting.rep <- renderUI({
     if(is.null(input$melting.input)) {
-      pickerInput("select.melting.oligo", 
+      pickerInput("select.melting.oligo",
                   label = "Choose replicates",
                   choices = "upload data first",
                   multiple = T
-      )  
+      )
     } else {
-      pickerInput("select.melting.rep", 
+      pickerInput("select.melting.rep",
                   label = "Choose replicates",
                   choices = unique(melt()$rep),
                   selected = unique(melt()$rep),
@@ -3386,16 +3392,16 @@ server <- function(input, output, session) {
       )
     }
   })
-  
+
   output$select.melting.id <- renderUI({
     if(is.null(input$melting.input)) {
-      pickerInput("select.melting.oligo", 
+      pickerInput("select.melting.oligo",
                   label = "Choose id",
                   choices = "upload data first",
                   multiple = T
-      )  
+      )
     } else {
-      pickerInput("select.melting.id", 
+      pickerInput("select.melting.id",
                   label = "Choose id",
                   choices = unique(melt()$id),
                   selected = unique(melt()$id),
@@ -3407,15 +3413,15 @@ server <- function(input, output, session) {
       )
     }
   })
-  
+
   #melting data display----
-  
+
   melt.filtered <- reactive({
-    
+
     if(is.null(input$melting.input)) {
       return(NULL)
     } else {
-      
+
       melt.filtered.buffer <-  melt() %>% #input data filtering
         filter(oligo %in% input$select.melting.oligo) %>%
         filter(ramp %in% input$select.melting.ramp) %>%
@@ -3423,7 +3429,7 @@ server <- function(input, output, session) {
         filter(rep %in% input$select.melting.rep) %>%
         filter(id %in% input$select.melting.id) %>%
         filter(T.K > min(input$slider.therm), T.K < max(input$slider.therm))
-      
+
       if(input$melt.merge.replicates == T){
         melt.filtered.buffer <- melt.filtered.buffer %>%
           mutate(rounded.T.K = RoundTo(T.K, multiple = input$slider.melt.rounder, FUN = round)) %>%
@@ -3433,13 +3439,13 @@ server <- function(input, output, session) {
       }
       return(melt.filtered.buffer)
     }
-    
+
   })
-  
+
   output$melt.filtered <- DT::renderDT({
     melt.filtered()
   })
-  
+
   output$p.melt.filtered <- renderPlot({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
@@ -3450,42 +3456,42 @@ server <- function(input, output, session) {
         theme_pander() +
         xlab("Temperature (K)") +
         ylab("Absorbance")
-      
+
       # p45 <- palette.modifier(plot = p45)
-      
+
       return(p45)
     }
   })
-  
+
   #Derivatives--------
-  
+
   melt.derivative <- eventReactive(input$bttn.deriv.melt,{
-    
+
     melt.derivative.calc <- data.frame() #initialize data frame for loop result collection
-    
+
     for (i in unique(melt.filtered()$id)) {
-      
+
       #extract data per id
       buffer.melt <- melt.filtered() %>%
         filter(i == melt.filtered()$id)
-      
+
       #calculates differences
       diffy <- diff(buffer.melt$abs.melt)
       diffx <- diff(buffer.melt$T.K)
-      
+
       melt.derivative.calc.buffer <- cbind(diffy, diffx) %>%
         as.data.frame() %>%
         mutate(diffyx = diffy/diffx) %>% #calculates derivative
         add_column(id = i) %>% #adds id
         #adds temperatures (and removes first row to match number of rows from differences)
         add_column(T.K = buffer.melt$T.K[2:length(buffer.melt$T.K)],
-                   ramp = buffer.melt$ramp[2:length(buffer.melt$ramp)]) 
-      
+                   ramp = buffer.melt$ramp[2:length(buffer.melt$ramp)])
+
       #result collection
-      melt.derivative.calc <- base::rbind(melt.derivative.calc.buffer, melt.derivative.calc) 
-      
+      melt.derivative.calc <- base::rbind(melt.derivative.calc.buffer, melt.derivative.calc)
+
     }
-    
+
     #switches UI tab automatically to derivative when calculating it
     observeEvent(input$bttn.deriv.melt, {
       updateTabsetPanel(session = session,
@@ -3493,44 +3499,44 @@ server <- function(input, output, session) {
                         selected = 'Derivative plot'
       )
     })
-    
+
     #Smoothing and removal of extrema
     melt.derivative <- melt.derivative.calc %>%
       group_by(id) %>%
       mutate(rM = abs(rollmean(diffyx, input$melt.deriv.smooth.width, fill = NA, align="right"))) %>% #rolling average
       slice((input$melt.deriv.smooth.width+1):(length(rM)-(input$melt.deriv.smooth.width+1))) #removes extrema
-    
+
     return(melt.derivative)
-    
+
   })
-  
+
   #plot derivatives
   output$p.melt.derivative <- renderPlot({
-    
+
     p46 <- ggplot(melt.derivative(), aes(T.K, rM, color = id, shape = ramp)) +
       geom_point(size = input$size.dot.melt, alpha = input$alpha.dot.melt) +
       theme_pander() +
       # scale_color_d3(palette = "category20") +
       xlab("Temperature (K)") +
       ylab("DA/DT")
-    
+
     # p46 <- palette.modifier(plot = p46)
-    
+
     return(p46)
-    
+
   })
-  
+
   Tm.init.deriv <- reactive({
     melt.derivative() %>%
       group_by(id) %>%
       filter(rM == max(rM)) %>%
-      select(id, T.K) 
+      select(id, T.K)
   })
-  
+
   output$melt.derivative <- DT::renderDT({
     Tm.init.deriv()
   })
-  
+
   tm.init0 <- eventReactive(input$bttn.init.melt, {
     tm.init0 <- Tm.init.deriv() %>%
       rename("Tm.init" = "T.K") %>%
@@ -3539,20 +3545,20 @@ server <- function(input, output, session) {
                  P4.init = 0.3,
                  P5.init = 0,
                  P6.init = -0.2)
-    
+
     tm.init0$legend = tm.init0$id
-    
+
     return(tm.init0)
-    
+
   })
-  
-  
+
+
   tm.init.change <- reactive({
     as.data.frame(hot.to.df(input$hotable1))
   })
-  
+
   output$hotable1 <- renderHotable({tm.init0() }, readOnly = F)
-  
+
   #switches UI tab automatically to hottable when initializing it
   observeEvent(input$bttn.init.melt, {
     updateTabsetPanel(session = session,
@@ -3560,7 +3566,7 @@ server <- function(input, output, session) {
                       selected = 'Fit initialization'
     )
   })
-  
+
   #switches UI tab automatically to hottable when initializing it
   observeEvent(input$bttn.fit.melt, {
     updateTabsetPanel(session = session,
@@ -3568,32 +3574,32 @@ server <- function(input, output, session) {
                       selected = 'Fit result'
     )
   })
-  
-  
+
+
   #Fitting----------------------------
-  
+
   nlfit.melt <- eventReactive(input$bttn.fit.melt, {
-    
+
     #initialize the data.frame to collect results
-    fit.melt.results <- data.frame() 
-    
+    fit.melt.results <- data.frame()
+
     #loops across all unique selected ids
-    for (i in unique(melt.filtered()$id)) { 
-      
+    for (i in unique(melt.filtered()$id)) {
+
       #initialize Parameters
-      fit.melt.init.par <- subset(tm.init.change(), id == i) 
-      
+      fit.melt.init.par <- subset(tm.init.change(), id == i)
+
       P1s <- as.vector(fit.melt.init.par$P1.init)
       P2s <- as.vector(fit.melt.init.par$Tm.init)
       P3s <- as.vector(fit.melt.init.par$P3.init)
       P4s <- as.vector(fit.melt.init.par$P4.init)
       P5s <- as.vector(fit.melt.init.par$P5.init)
       P6s <- as.vector(fit.melt.init.par$P6.init)
-      
+
       #buffers the data to fit
       fit.melt.input.buffer <- data.frame(melt.filtered()) %>%
         filter(id == i)
-      
+
       #fit
       ms <- nls(
         data=fit.melt.input.buffer,
@@ -3604,7 +3610,7 @@ server <- function(input, output, session) {
         nls.control(maxiter = input$nb.it.melt.fit,
                     warnOnly = T)
       )
-      
+
       #buffers the fit results
       fit.melt.output.buffer <- data.frame(id = i,
                                            nb.data.pt = nobs(ms),
@@ -3625,27 +3631,27 @@ server <- function(input, output, session) {
                                            P6SD = summary(ms)$coefficient[6,2],
                                            fit.Tm.K = round(as.vector(coef(ms))[2], 2),
                                            fit.Tm.C = round(as.vector(coef(ms))[2] - 273.15, 2),
-                                           DeltaH = -as.vector(coef(ms))[1], 
+                                           DeltaH = -as.vector(coef(ms))[1],
                                            DeltaS = -as.vector(coef(ms))[1]/as.vector(coef(ms))[2]
-                                           # DeltaG = as.vector(coef(ms))[1] - input$slider.therm * as.vector(coef(ms))[1]/as.vector(coef(ms))[2] 
+                                           # DeltaG = as.vector(coef(ms))[1] - input$slider.therm * as.vector(coef(ms))[1]/as.vector(coef(ms))[2]
                                            # DeltaG = -8.314 * input$slider.therm * log(as.vector(coef(ms))[1] * (1 - input$slider.therm/as.vector(coef(ms))[2])/8.314 * input$slider.therm)
       )
-      
-      
+
+
       #row bind the results acroos the loop
       fit.melt.results <- rbind(fit.melt.results, fit.melt.output.buffer)
     }
-    
+
     return(fit.melt.results)
   })
-  
+
   #fit results table output
   output$nlfit.melt.results <- DT::renderDT({
     datatable(
       nlfit.melt(),
       extensions = c('Buttons', 'Responsive', 'Scroller'),
       colnames = c("Data points" = "nb.data.pt",
-                   'Initial Tm' = 'init.Tm', 
+                   'Initial Tm' = 'init.Tm',
                    "P1 sd" = 'P1SD',
                    "P2 sd" = 'P2SD',
                    "P3 sd" = 'P3SD',
@@ -3673,12 +3679,12 @@ server <- function(input, output, session) {
       formatRound(c('P3', 'P3 sd', 'P5', 'P5 sd'), digits = 3) %>%
       formatRound(c('RSS'), digits = 6)
   })
-  
-  
+
+
   fit.melt.result.df <- reactive({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
-      left_join(melt.filtered(),nlfit.melt(), 
+      left_join(melt.filtered(),nlfit.melt(),
                 by = c("id")) %>% #join fit result with raw data (only selected ids)
         mutate(folded.fraction = (1/(1+exp(-P1*(1-T.K/P2)/(8.31451*T.K))))) %>%  #folded fraction
         mutate(folded.fraction.base = (P5+P6*T.K-abs.melt)/(P5+P6*T.K - P3-P4*T.K)) %>% #baseline corrected folded fraction
@@ -3689,7 +3695,7 @@ server <- function(input, output, session) {
         filter(T.K > min(input$slider.therm), T.K < max(input$slider.therm))
     }
   })
-  
+
   fit.melt.result.summary <- reactive({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
@@ -3703,7 +3709,7 @@ server <- function(input, output, session) {
                sd.Tm.K = SD(fit.Tm.K), sd.Tm.C = SD(fit.Tm.C))
     }
   })
-  
+
   #outputs the fitted raw data
   p.raw.melt.fit <- reactive({
     if(is.null(input$melting.input)) {return(NULL)}
@@ -3714,7 +3720,7 @@ server <- function(input, output, session) {
                   size = input$size.line.melt, alpha = input$alpha.line.melt) +
         ylab(bquote(bold("modeled folded fraction"))) + #modifies axes titles
         xlab("Temperature (K)") +
-        # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) + 
+        # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) +
         labs(color="id") +
         # scale_color_d3(palette = "category20") +
         theme(axis.text=element_text(size=12), axis.title=element_text(size=16,face="bold")) + #axis style
@@ -3726,7 +3732,7 @@ server <- function(input, output, session) {
                                           face="bold"),
               legend.key = element_rect(fill = "white"),
               legend.text = element_text(size=12,
-                                         face="bold")) + 
+                                         face="bold")) +
         theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm")) + #adds margins (top, right, bottom, left)
         theme(
           panel.border = element_blank(),
@@ -3738,7 +3744,7 @@ server <- function(input, output, session) {
         theme(axis.ticks = element_line(size = 0.75))  + #Set tick thickness +
         theme(axis.text.x = element_text(colour="black"), axis.text.y = element_text(colour="black")) +
         coord_cartesian(clip = "off")  #no clipping
-      
+
       #toggles baselines on and off
       if (input$toggle.baseline == T) {
         p0 <-  p0 + geom_line(aes(x = T.K, y = low.T.baseline, color = id),
@@ -3746,31 +3752,31 @@ server <- function(input, output, session) {
           geom_line(aes(x = T.K, y = high.T.baseline, color = id),
                     size = input$size.baseline.melt, alpha = input$alpha.baseline.melt, linetype = "dashed")
       } else { p0 }
-      
+
       p0 <- palette.modifier(plot = p0)
-      
+
       return(p0)
     }
   })
-  
+
   output$p.raw.melt.fit <- renderPlot({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
       p.raw.melt.fit()
     }
-  }) 
-  
+  })
+
   #outputs a plot of the modeled folded fraction
   p.folded.modeled <- reactive({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
       p44 <- ggplot(fit.melt.result.df()) +
-        geom_point(aes(T.K, folded.fraction, color = id), 
-                   size = input$size.dot.melt-2, alpha = input$alpha.dot.melt, 
+        geom_point(aes(T.K, folded.fraction, color = id),
+                   size = input$size.dot.melt-2, alpha = input$alpha.dot.melt,
                    shape = 16) + #plots the experimental data
         ylab(bquote(bold("folded fraction"))) + #modifies axes titles
         xlab("Temperature (K)") +
-        # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) + 
+        # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) +
         labs(color="id") +
         # scale_color_d3(palette = "category20") +
         theme(axis.text=element_text(size=12), axis.title=element_text(size=16,face="bold")) + #axis style
@@ -3782,7 +3788,7 @@ server <- function(input, output, session) {
                                           face="bold"),
               legend.key = element_rect(fill = "white"),
               legend.text = element_text(size=12,
-                                         face="bold")) + 
+                                         face="bold")) +
         theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm")) + #adds margins (top, right, bottom, left)
         theme(
           panel.border = element_blank(),
@@ -3794,31 +3800,31 @@ server <- function(input, output, session) {
         theme(axis.ticks = element_line(size = 0.75))  + #Set tick thickness +
         theme(axis.text.x = element_text(colour="black"), axis.text.y = element_text(colour="black")) +
         coord_cartesian(clip = "off")  #no clipping
-      
+
       p44 <- palette.modifier(plot = p44)
-      
+
       return(p44)
     }
   })
-  
+
   output$p.folded.modeled <- renderPlotly({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
       p.folded.modeled()
     }
-  }) 
-  
+  })
+
   #plots the baseline subtracted data
   p.folded.melt.fit <- reactive({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
       p43 <- ggplot(fit.melt.result.df()) +
-        geom_point(aes(T.K, folded.fraction.base, color = id), 
-                   size = input$size.dot.melt, alpha = input$alpha.dot.melt, 
+        geom_point(aes(T.K, folded.fraction.base, color = id),
+                   size = input$size.dot.melt, alpha = input$alpha.dot.melt,
                    shape = 16) + #plots the experimental data
         ylab(bquote(bold("folded fraction"))) + #modifies axes titles
         xlab("Temperature (K)") +
-        # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) + 
+        # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) +
         labs(color="id") +
         # scale_color_d3(palette = "category20") +
         theme(axis.text=element_text(size=12), axis.title=element_text(size=16,face="bold")) + #axis style
@@ -3830,7 +3836,7 @@ server <- function(input, output, session) {
                                           face="bold"),
               legend.key = element_rect(fill = "white"),
               legend.text = element_text(size=12,
-                                         face="bold")) + 
+                                         face="bold")) +
         theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm")) + #adds margins (top, right, bottom, left)
         theme(
           panel.border = element_blank(),
@@ -3842,20 +3848,20 @@ server <- function(input, output, session) {
         theme(axis.ticks = element_line(size = 0.75))  + #Set tick thickness +
         theme(axis.text.x = element_text(colour="black"), axis.text.y = element_text(colour="black")) +
         coord_cartesian(clip = "off")  #no clipping
-      
+
       p43 <- palette.modifier(plot = p43)
-      
+
       return(p43)
     }
-  }) 
-  
+  })
+
   output$p.folded.melt.fit <- renderPlot({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
       p.folded.melt.fit()
     }
-  }) 
-  
+  })
+
   #summary table output
   output$fit.melt.result.summary <- DT::renderDT({
     if(is.null(input$melting.input)) {return(NULL)}
@@ -3886,11 +3892,11 @@ server <- function(input, output, session) {
       ) %>%
         formatRound(c("Tm (K)", "Tm (°C)", "DeltaH", "DeltaS", "DeltaG",
                       "Mean Tm (K)", "Mean Tm (°C)", "SD Tm (K)", "SD Tm (°C)",
-                      "SD Tm (fit)"), 
+                      "SD Tm (fit)"),
                     digits = 2)
     }
   })
-  
+
   #output boxplot of summary
   fit.melt.result.plot <- reactive({
     if(is.null(input$melting.input)) {return(NULL)}
@@ -3903,60 +3909,60 @@ server <- function(input, output, session) {
         theme_pander() +
         xlab("") +
         ylab("Melting temperature (°C)")
-      
+
       p47 <- palette.modifier(plot = p47)
-      
+
       p47 <- p47 + scale_color_discrete(labels = c("cooling", "heating"))
-      
+
       return(p47)
     }
   })
-  
+
   output$fit.melt.result.plot <- renderPlot({
     if(is.null(input$melting.input)) {return(NULL)}
     else {
       fit.melt.result.plot()
     }
   })
-  
+
   #Download melt plots------
-  
+
   output$dwn.melt.fit <- downloadHandler(
     filename = function() { paste("fit", '.png', sep='') },
     content = function(file) {
       ggsave(file, plot = p.raw.melt.fit(), device = "png")
     }
   )
-  
+
   output$dwn.melt.model <- downloadHandler(
     filename = function() { paste("model", '.png', sep='') },
     content = function(file) {
       ggsave(file, plot = p.folded.modeled(), device = "png")
     }
   )
-  
+
   output$dwn.melt.folded <- downloadHandler(
     filename = function() { paste("folded", '.png', sep='') },
     content = function(file) {
       ggsave(file, plot = p.folded.melt.fit(), device = "png")
     }
   )
-  
+
   output$dwn.melt.Tm <- downloadHandler(
     filename = function() { paste("Tm", '.png', sep='') },
     content = function(file) {
       ggsave(file, plot = fit.melt.result.plot(), device = "png")
     }
   )
-  
-  
-  
+
+
+
   #output options-----------
   outputOptions(output, "plot5", suspendWhenHidden = FALSE)
   outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
   outputOptions(output, "eq.raw", suspendWhenHidden = FALSE)
-  
-  
+
+
 }
 
 # Run the application
