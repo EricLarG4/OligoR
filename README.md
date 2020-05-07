@@ -7,7 +7,7 @@ In R (e.g. the console of RStudio), run:
 
 ```{r install_online}
 install.packages("devtools")
-devtools::install_github('g4db-team/g4dbr', build_vignettes = T, build_manual = T)
+devtools::install_github('EricLarG4/OligoR', build_vignettes = T, build_manual = T)
 ```
 Restart your R session before use.
 
