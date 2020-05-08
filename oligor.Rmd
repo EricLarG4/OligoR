@@ -1,0 +1,880 @@
+---
+title: "OligoR"
+author: "Eric Largy"
+date: "07/12/2019"
+output:
+  pdf_document:
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  html_notebook:
+    highlight: zenburn
+    theme: darkly
+    number_sections: yes
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    math: katex
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '3'
+    theme: darkly
+    highlight: zenburn
+---
+
+*NB: to get the interactive Shiny document, run with **runtime: shiny** in the YAML*
+
+# OligoR features and functioning
+
+Since the software is normally interactive, but this is a static document, the code description of the key calculations shown below was made non-interactive, and the user input was manually set to a given example, so that the code output could be demonstrated. Specifically, we chose the T30177TT oligonucleotide d[TTGTGGTGGGTGGGTGGGT]^4-^ binding 2 potassium cations, studied by HDX/MS of a 90%D solution exchanged to a final 9% solution. Other user inputs are described where necessary. 
+
+As a result, not all of the code is explicitely described. However, the full code is shown at the end of the document (albeit without output).
+
+## General features
+
+OligoR is a software coded in R and Shiny for interactivity purposes that can be used in RStudio or deployed in a simple web browser. It is dedicated to the native MS of oligonucleotides, and in particular to the use of HDX/MS. Binding equilibrium and kinetics experiments will be implemented in the near future.
+
+The software is divided in 4 tabs:
+
+* MSxploR, to import MS files, combine scans from the TIC or by text input, and select mass spectra of interest to be used in other tabs.
+* MSstackR, to generate stacked-spectrum figures of selected spectra.
+* OligoR, to obtain key theoretical characteristics of an oligonucleotide ion, the centroid of reference selected mass spectra, and compared these to one another.
+* HDXplotR, to plot the centroid of the selected spectra as a function of the exchange time, and convert the centroid to the number of unexchanged sites *NUS*.
+
+The left sidebar is collapsable, and mostly contains user input tools that pertain to the currently opened tab.
+The right sidebar can be accessed by clicking on the palette symbol, and contains a drop-down menu of interface themes.
+
+All boxes that contain inputs and outputs are collapsable (or even closable) so that only the relevant information can be displayed. Some boxes are collapsed by default.
+
+The appearance of the graphs (colors, sizes) can be customised using the customisation floating menu.
+All tables and plots update in real-time with the user input.
+
+## Raw data
+
+The only file format currently accepted is `.ms1`. Proprietary file formats from MS vendors can be converted using MSconvert from the [ProteoWizard suite](http://proteowizard.sourceforge.net/index.shtml), via either the GUI or by command line. Converting only the m/z range of interest is advised to reduce both the file size and pre-processing times in MSxploR. Further filtering can be carried out within the MSxploR tab, but that does not affect the input file.
+
+For instance, to convert the file filename.raw and filter the m/z over a 1500-1550 range, one can run:
+
+```{shell}
+msconvert filename.fileextension --ms1 --filter "mzWindow [mzmin,mzmax]" -o  outputdirectory
+```
+
+where `filename` must contain the full filepath if the file is not in the directory containing msconvert, `fileextension` is the file extention (e.g. .RAW for Thermo), `mzmin` and `mzmax` must be replaced by the min and max m/z of interest, and `outputdirectory` allows to select a different output directory.
+
+To get rid of the drift time dimension from IMS files, add `--combineIonMobilitySpectra`. OligoR does not handle IMS data yet.
+
+## OligoR
+
+### Purpose
+
+The aim of OligoR is to compute key oligonucleotide characteristics for native and HDX/MS applications, from basic information: 
+
+* sequence 
+* charge state
+* potassium adducts number
+* percentage of deuterium in solution
+* number of exchanging sites
+
+In particular, high accuracy masses as well as isotopic distributions can be obtained. For HDX/MS, OligoR allows to generate isotopic distributions for a given solution deuterium content, which is useful to obtain fully exchanged references and/or verify experimentally acquired ones.
+
+Alternatively, it can be used to determine the number of exchange sites from the mass spectrum of a fully-exhanged oligonucleotide, by empirically changing the value until the experimental and theoretical centroids match. In the same vein, the percentage of deuterium in a solution can be determinded empirically using the %D slider until the centroids match (assuming the number of sites is known).
+
+### Principle
+
+The oligonucleotide monoisotopic and averages masses and m/z are obtained by summing the masses of individual nucleotides, with 5'- and 3'-OH termini. For a charge of 0, all phosphates are protonated, and each increment of the charge is accompanied by the removal of one hydrogen from the mass.
+
+To calculate deuterated isotopic distributions *D*, the natural oligonucleotide distribution *N* is convoluted with the deuterium distribution *B* by fast Fourier Transform. 
+
+$D = N\circ B$ \hfill [Eq. 1]
+
+*B* is obtained using the binomial law, assuming all sites are available for exchange and exchange independently from their neighbour:
+
+$B = \frac {n!}{k!(n-k)!}p^k(1-p)^{n-k}$ \hfill [Eq. 2]
+
+where *n* is the total number of available exchangeable protons in a peptide, *k* is the number of hydrogens that are exchanged, and *p* is the probability of exchange.
+
+### Features
+
+#### User input
+
+The main user input is located in the sidebar and includes:
+
+1. *Oligonucleotide sequence*
+2. *Charge*
+3. *Number of potassium adducts*
+4. *Percentage of deuterium in solution*. This is a slider input allowing values from 0 to 100%
+5. *Number of exchaning sites*. 
+    * This can be set to any value by the user. If let void, a preset will be used from:
+    * A preset dropdown menu, with the options to exchange all possible sites, all sites minus phosphates, and all sites minus phosphates and termini. The latter is the default value.
+
+#### Output
+
+The *chemical formula* (including potassium adducts, and phosphate protonation) is given in the sidebar.
+
+All remaining outputs are shown in the main window:
+
+1. The analyte characteristics table, containing:
+    * The number of phosphates
+    * The number of neutralized (protonated) phosphates
+    * The number of exchangeable sites 
+    * The monoisotopic mass of the ion (i.e. it is not the mass of the neutral or fully deprotonated oligonucleotide)
+    * The average (centroid) mass (idem)
+    * The monoisotopic m/z (if z > 0)
+    * The average m/z (if z > 0)
+    
+    Compared to Mongo Oligo, it gives access to higher stoichiometries of potassium binding (Mongo is limited to 1), and outputs more accurate masses. For instance, the 16-mer oligonucleotide d[(AGCT)~4~]^4-^ that has a monositopic m/z of 1218.70632 according to ChemDraw (explicit sketch of the molecule), yields 1218.704 in Mongo Oligo (-1.90 ppm) and 1218.70577 in OligoR (-0.45 ppm).   
+    
+2. The theoretical distribution table, that is the results of Eq.1.
+    
+Both tables can be searched, filtered, and exported in the clipboard or as csv and Excel files.
+
+3. The theoretical distribution plot, that is the results of Eq.1.
+    * The number of calculated points can be set up from the right sidebar, opened with the *i* icon. More points are necessary for larger deuteration. The default is 72, which is enough to cover a 28-mer oligonucleotide such as d[(AGCT)~7~].
+
+4. The experimental data imported and selected by the user (see the MSxploR module) superimposed on the theoretical distributin plot
+    * The experimental centroid value and its accuracy versus the reference is given on the plot.
+
+### Code
+
+#### Libraries
+
+Below are the necessary libraries for the entire code, except anythnig pertaining to Shiny
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+#libraries------------
+library(readr)
+library(tidyverse)
+library(DescTools)
+library(ggpubr)
+library(DT)
+library(stringr)
+library(formattable)
+library(ggrepel)
+library(pracma)
+```
+
+
+#### Manual example input
+
+Below are the user input set manually
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+  z <- 4 #charge
+  
+  K <- 2 #potassium adduct
+  
+  # sequence
+  seq2 <- data.frame(number=1:1, string=c("TTGTGGTGGGTGGGTGGGT"), stringsAsFactors = F) 
+  
+  nX.user <- '' #number of exchanging sites unknown
+  
+  DC <- 9 #%D
+```
+
+
+#### Sequence, phosphates and chemical formula
+
+The numbers of each nucleotide are extracted from the sequence, then the total number of nucleotide `nb_nt` is calculated, which gives access to the number of phosphates `nb_PO`. This could be calculated from the sequence string length, but the nucleotide composition must be determined to determine the chemical formula anyway.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}  
+
+  nbA <- str_count(seq2$string, "A")
+  
+  nbT <- str_count(seq2$string, "T")
+
+  nbG <- str_count(seq2$string, "G")
+
+  nbC <- str_count(seq2$string, "C")
+  
+  #Number of nucleotides
+  nb_nt <- nbA + nbT + nbG + nbC 
+  
+  #Number of phosphates
+  nb_PO <- nb_nt - 1  
+ 
+  print(paste('the number of phosphates is ', nb_PO))
+```
+
+The number of neutralized phosphates can be determined from `nb_P0`, the charge `z`, and the number of potassium adducts (that bring a postive charge each).
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE} 
+  
+  #Neutralized phosphate 
+  nb_POH <- nb_PO - z - K
+  
+print(paste('the number of neutralized phosphates is ', nb_POH))
+```
+  
+The number of each atom is readily calculated from the elemental composition of each nucleotide, having already determined the base composition from the sequence. Note that the number of hydrogen takes into account the charge and number of potassium adducts, and therefore the chemical formula is the one of the ion in the mass spectrometer.  
+  
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}   
+  nC <- nbA*10 + nbG*10 + nbC*9 + nbT*10
+
+  nH <- nH <- nbA*12 + nbG*12 + nbC*12 + nbT*13 + 1 - z - K
+ 
+  nO <- nbA*5 + nbG*6 + nbC*6 + nbT*7 - 2
+
+  nN <- nbA*5 + nbG*5 + nbC*3 + nbT*2
+ 
+  nP <- nb_PO
+  
+  nK <- K
+  
+  chem.formula <- paste('Chemical formula: ', 
+                        "C", nC, "H", nH, "O", nO, 
+                        "N",nN, "P", nP, "K", nK, 
+                        sep = '')
+  chem.formula
+```
+    
+#### Exchangeable sites
+
+The number of exchangeable sites can be set manually, or via preset values calculated from the sequence. We use here the default preset (`nX.select <- 'A'`), that is no exchanging sites on phosphates and termini.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}  
+#manual preset selection
+nX.select <- 'A'
+
+nX <- if(nX.user == ''){
+  if(nX.select == 'A'){
+    nb_PO + 2 + nbA*2 + nbT*1 + nbG*3 + nbC*2 - z
+  } else {
+    if(nX.select == 'B'){
+      2 + nbA*2 + nbT*1 + nbG*3 + nbC*2
+    } else {
+      nbA*2 + nbT*1 + nbG*3 + nbC*2
+    }
+  }
+} else {
+  nX.user
+}
+
+print(paste('the number of exchanging sites is ', nX))
+```
+
+#### Mass calculations
+
+The masses and abundances were obtained on the [website of the CIAWW](https://www.ciaaw.org/). 
+The abundance of deuterium is calculated from the content given by the user `DC`.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}  
+#Isotope abundances (averaged). 
+#Source: Isotopic compositions of the elements 2017. Available online at www.ciaaw.org.
+  listIso <- list(
+      H = c(0.999855, 0.000145), #Natural 1H ``and 2H isotope abundances
+      C = c(0.9894, 0.0106),
+      N = c(0.996205, 0.003795),
+      O = c(0.99757, 0.0003835, 0.002045),
+      D = c(100-DC, DC)/100,     
+      #computed 1H and 2H isotope abundances for exchangeable
+      #sites depending on the deuterium content DC
+      P = c(1),
+      K = c(0.93258144, 0.0001171, 0.06730244)
+    )
+
+#Atomic masses. 
+#Current atomic masses available online at www.ciaaw.org 
+#Based on Wang,M., Audi,G., Kondev,F.G., Huang,W.J., Naimi,S., et al. (2017) 
+#Chinese Phys. C, 41, 030003.
+  listMass <- list(
+    H = c(1.0078250322, 2.0141017781),
+    C = c(12, 13.003354835),
+    N = c(14.003074004, 15.000108899),
+    O = c(15.994914619, 16.999131757, 17.999159613),
+    D = c(1.0078250322, 2.0141017781),
+    P = c(30.973761998),
+    K = c(38.96370649, 39.9639982, 40.96182526)
+  )
+```
+
+The monoisotopic mass `MonoMW` is calculated from the chemical formula and the lightest isotope mass for each atom. The corresponding m/z `Monomz` is obtained by only dividing by the charge `z` (the *z* protons are already subtracted in the `Chem.formula`)
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}  
+MonoMW <- nC*listMass$C[1] + nH*listMass$H[1] + 
+  nN*listMass$N[1] + nO*listMass$O[1] + 
+  nP*listMass$P[1] + nK*listMass$K[1]
+
+print(paste('the monoisotopic mass is ', MonoMW))
+
+Monomz <- if (z>0) {
+  MonoMW/z
+} else {
+  MonoMW
+}
+
+print(paste('the monoisotopic m/z is ', Monomz))
+```
+
+Similarly, the average mass `AveMW` and m/z `Avemz` are calculated, this time by adding all isotopes multiplied by their abundances.
+Note that the number of exchanging sites `nX` is subtracted from `nH` because `nH` is the total number of H, including the exchangeable ones.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE} 
+ #Average mass calculation from number of atoms, isotopic masses and abundances. 
+AveMW <- nC*(listIso$C[1]*listMass$C[1] + listIso$C[2]*listMass$C[2]) + 
+         (nH-nX)*(listIso$H[1]*listMass$H[1] + listIso$H[2]*listMass$H[2]) + 
+         nN*(listIso$N[1]*listMass$N[1] + listIso$N[2]*listMass$N[2]) + 
+         nO*(listIso$O[1]*listMass$O[1] + listIso$O[2]*listMass$O[2] + 
+         listIso$O[3]*listMass$O[3]) + 
+         nX*(listIso$D[1]*listMass$D[1] + listIso$D[2]*listMass$D[2]) + 
+         nP*(listIso$P[1]*listMass$P[1]) + 
+         nK*(listIso$K[1]*listMass$K[1] + listIso$K[2]*listMass$K[2] + 
+         listIso$K[3]*listMass$K[3])
+
+print(paste('the average mass is ', AveMW))
+  
+  Avemz <- if (z>0) {
+    AveMW/z
+  } else {
+    AveMW/z
+  }
+  
+print(paste('the average m/z is ', Avemz))
+
+```
+
+#### Summary of basic oligonucleotide properties
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+oligo.data <- data.frame(
+      "Parameters" = c('phosphates', 'neutralized phosphates', 
+                       'exchangeable sites', 'monoisotopic mass',
+                       'average mass', 'monoisotopic m/z', 'average m/z'),
+      "Values" = c(nb_PO, nb_POH, nX, MonoMW, AveMW, Monomz, Avemz))
+oligo.data
+```
+    
+#### Isotopic distribution
+
+The number of peaks `nrPeaks` to compute is defined by the user. Hereafter, we use the default value of 72.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+nrPeaks <- 72
+```
+
+The isotope abundances are redefined to make the use of FFT easier. It takes into account `DC` and `nrPeaks`.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+Iso_Pattern <- c12 <- rep(0, nrPeaks); h1 <- rep(0, nrPeaks); n14 <- rep(0, nrPeaks);
+o16 <- rep(0, nrPeaks); p31 <- rep(0, nrPeaks); k39 <- rep(0,nrPeaks);
+h2 <- rep(0, nrPeaks);
+
+#Isotope abundances
+h1[1] = 0.999855; h1[2] = 0.000145 ;#Natural abundances of H isotopes
+h2[1] = (1-DC/100); h2[2] = DC/100; #Calculated abundances for exchangeable sites              
+c12[1] = listIso$C[1]; c12[2] = listIso$C[2];
+n14[1] = listIso$N[1]; n14[2] = listIso$N[2];
+o16[1] = listIso$O[1]; o16[2] = listIso$O[2]; o16[3] = listIso$O[3];
+p31[1] = 1.0;
+k39[1] = listIso$K[1]; k39[2] = listIso$K[2]; k39[3] = listIso$K[3];
+```
+
+The abundances of the isotopic peaks are computed from the atomic abundances and the `Chem.formula`, by Fast Fourier Transform (FFT). This approach is based on Based on J. Proteome Res. 2018 Jan 5; 17(1): 751–758.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+Iso_Pattern <- Re(fft(fft(c12)^nC*fft(h1)^(nH-nX)*fft(n14)^nN * fft(o16)^nO * fft(p31)^nP * fft(k39)^nK * fft(h2)^nX,
+                          inverse=TRUE))/length(c12)
+Iso_Pattern
+```
+
+The corresponding x-axis, i.e. the m/z axis, is generated from the monoisotopic m/z `MonoMW`, following the number of peaks wanted by the user `nrPeaks`.
+The data frame `peaks` contains the final distribution.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+nbPeaks <- 1:nrPeaks
+  
+peaks <- data.frame("nbPeaks1" = unlist(nbPeaks), 'MonoMW1' = MonoMW) %>%
+      mutate('mass.th' = MonoMW1 + (nbPeaks1-1)*1.0078250321) %>%
+      mutate('mz.th' = mass.th/z) %>%
+      select(mz.th) %>%
+      cbind('Iso.Pattern' = Iso_Pattern) %>%
+      mutate(Iso.Pattern = 1 - (max(Iso.Pattern)-Iso.Pattern)/(max(Iso.Pattern)-min(Iso.Pattern)))
+
+p.peaks <- ggplot(data = peaks, aes(x = mz.th, y = Iso.Pattern)) +
+      geom_line(color = 'tomato', size = 1) +
+      geom_point(color = 'tomato', size = 3) +
+      geom_vline(xintercept = Avemz, linetype = 'dashed', color = 'steelblue', size = 1) +
+      xlab("m/z") +
+      ylab('normalized abundance') +
+      theme(strip.text.y = element_blank(),
+            strip.background = element_blank(),
+            panel.border = element_blank(),
+            panel.grid.major = element_line(colour = "grey50"),
+            panel.grid.minor = element_line(colour = "grey"),
+            panel.background = element_blank(),
+            plot.background = element_blank(),
+            axis.line.x = element_line(colour = "black", size = 0.75),
+            axis.line.y = element_line(colour = "black", size = 0.75),
+            axis.ticks.length=unit(0.1, "in"),
+            axis.ticks.x = element_line(size = 0.75, colour = "black"),
+            axis.ticks.y = element_line(size = 0.75, colour = "black"),
+            axis.text.y = element_text(size = 16, color = "black", angle = 0),
+            axis.text.x = element_text(size = 16, color = "black", angle = 0),
+            axis.title.x = element_text(size=18,face="bold", color = 'black'),
+            axis.title.y = element_text(size=18,face="bold", color = 'black'),
+            plot.margin = margin(25, 0.5, 0.5, 0.5),
+            legend.position="right",
+            legend.box = "vertical",
+            legend.title = element_text(size=18, face="bold", color = "black"),
+            legend.key = element_rect(fill = "white"),
+            legend.text = element_text(size=16, face="bold", color = "black"),
+      ) 
+
+p.peaks
+```
+
+## MSxploR
+
+### Purpose
+
+The aim of this module is to:
+1. Import MS data (in the ms1 format),
+2. Combine the desired scans (either by brushing the TIC, or manually specifying scan numbers), 
+3. Zooming on the desired m/z range (also by brushing or text input).
+4. Exporting the obtained mass spectra to either the OligoR module (as a reference point) or the MSstackR and HDXplotR as an HDX time point. 
+It also allows the user to manually specify the mixing time of each selected spectra, or use the TIC time scale (modulo a user specified void time)
+
+### Principle
+
+The MSxploR module allows the summing of scans selected either by manual input or brushing of the TIC. 
+
+To do so, the data must first be preprocessed to extract the scan numbers and corresponding time, then binned (by default it is rounded to 0.01 m/z) so that MS detectors that output variable m/z scales (e.g. Orbitraps) can be processed. The abundances are summed by bins, and the time points associated to each set of scans is the mean of their time range. 
+
+### Features
+
+#### User input
+
+The sidebar contains numerous user inputs:
+
+1. A *file importer*. It only accepts .ms1 file so far (see the Raw data section).
+2. A *m/z range* slider, to narrow the data to process. This only impacts the speed of data summing, not the pre-processing occuring upon data import. To decrease data import speeds, the m/z range must be narrowed during conversion to the '.ms1' format. 
+3. An *m/z binning* slider, to define the width of data binning before summing.
+4. A data selection box that contains
+    * A *data selection switch* to select whether to select the scan range by brushing the TIC, or text input
+    * A *select reference* button, to send the data currently displayed in the MS spectrum window into the OligoR tab.
+    * A *select data point* button, to send the data to the MSstackR and HDXplotR tabs
+    * A *species* dropdown menu, to assign a species number (1 to 4) to the species currently processed. This allows to plot spectra and kinetics data per sample in the MSstackR and HDXplotR modules.
+    * A *kinetics dead time* text field, to correct the time assigned from the TIC time scale, if the acquisition was not initiated at the same time as the kinetics (which is usually the case)
+    * A *manual time* text field, to assign a time regardless of the TIC time scale. This is useful for continuous-flow experiments. It is expressed in seconds as it is more adapted to the time range of continuous flow experiments.
+    * A scan range and an m/z range text inputs, to accurately specify these ranges rather than selecting with a brush (see below).
+    
+In the main window, the user can use:
+
+1. The *scan range brush* to combine the desired TIC region.
+    * The brush window remain visible at all time which allows the user to resize and/or move it across the TIC. 
+    * The latter is very practical to combine the same number of spectra at different time points.
+    * The time range of the brush is also kept constant when opening a new file (even if the TIC time range is different), facilitating the summing of the same number of scans across several experiments. 
+2. The *m/z range brush* to zoom in the desired m/z region.
+    * The scale can be reset by double-ckicking on the spectrum.
+
+#### Output
+
+The sidebar has two output, namely:
+
+* A *progress bar* for the file import (that doesn't cover the pre-processing time however)
+* The *manual time in min*, because the input is in seconds but all other time variables are expressed in minutes.
+
+In the main window can be found:
+
+1. The *TIC*, with the x-axis expressed in units of time.
+  * Two text fields informing on the scan and time range selected with the brush are located on the right. This can be useful to tune the selection and/or latter replicating it accurately by manual input.
+2. The *MS spectrum*, obtained from the TIC brush input.
+  * One field informing on the selected m/z is located on the right, useful to tune or manually replicate the selection.
+3. The *MS spectrum (text input)*, obtained from the manual text input. It is a separate instance from the brush-input spectrum, which allows to compare them.
+
+### Code
+
+#### Data import and pre-processing
+
+For this part of the work, we will use an example file acquired during a XXX HDX/MS experiment.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+#to redo
+```
+
+#### TIC
+
+The TIC is generated by XXX
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+#to redo
+```
+
+#### Spectrum selection and summing
+
+Because the brush input cannot be replicated on a static document, the manual m/z selection will be used here. However, the data handling is the same after the selection input itself.
+
+The summing is performed by grouping the data by m/z values, hence the need for binning first. After summing, the scan range average time, species number and continuous flow time are assigned as new columns.
+
+The scans `scanstxt` and m/z `mztxt` to select were manually assigned below, as are the dead time `deadtxt` and the species number `Species`. The first 10 lines of the resulting data.frame are presented below.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+
+# scanstxt <- c(200, 800)
+# mztxt <- c(1520, 1532)
+# 
+# deadtxt <- 1
+# 
+# selecscanstxt <- inputms %>%
+#       filter(scan %in% scanstxt)
+# 
+# specsumtxt <- selecscanstxt %>%
+#       filter(mz > min(mztxt)) %>%
+#       filter(mz < max(mztxt)) %>%
+#       group_by(mz) %>%
+#       summarise("intensum" = sum(intensity)) %>%
+#       add_column("mean.time" = mean(selecscanstxt$time) + as.numeric(deadtxt)) %>%
+#       add_column("Species" = 'Species 1') %>%
+#       add_column('CFtime' = '')
+# 
+# specsumtxt[1:10,]
+```  
+
+The continuous flow time `CFtime` was let void here but would be assigned here if a value had been provided. It is expressed in min as `time.min` by converting the user input `time.sec` given in seconds. Below is an example for 60 seconds.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+time.sec <- 60
+
+time.min <- as.numeric(time.sec) / 60
+
+time.min
+```
+
+The resulting mass spectrum is then plotted.
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+# p.specsumtxt <- ggplot(data = specsumtxt, aes(x = mz, y = intensum)) +
+#       geom_line(color = 'steelblue', size = 1) +
+#       xlab("m/z") +
+#       theme(strip.text.y = element_blank(),
+#             strip.background = element_blank(),
+#             panel.border = element_blank(),
+#             panel.grid.major = element_line(colour = "grey"),
+#             panel.grid.minor = element_line(colour = "grey50"),
+#             panel.background = element_blank(),
+#             axis.line.x = element_line(colour = "black", size = 0.75),
+#             axis.ticks.length=unit(0.1, "in"),
+#             axis.ticks.x = element_line(size = 0.75),
+#             axis.ticks.y = element_blank(),
+#             axis.text.y = element_blank(),
+#             axis.text.x = element_text(colour="black", size = 16, color = "black", angle = 0),
+#             axis.title.x = element_text(size=18,face="bold"),
+#             axis.title.y = element_blank(),
+#             plot.margin = margin(25, 0.5, 0.5, 0.5),
+#             legend.position="right",
+#             legend.box = "vertical",
+#             legend.title = element_text(size=18, face="bold"),
+#             legend.key = element_rect(fill = "white"),
+#             legend.text = element_text(size=16, face="bold")) +
+#       coord_cartesian(xlim = c(min(mztxt), max(mztxt)), expand = FALSE)
+# 
+# p.specsumtxt
+
+```
+
+## MSstackR
+
+### Purpose
+
+The MSstackR module is used to create a figure from the spectra selected in the MSxploR tab, stacked by exchanging time and species
+
+### Features
+
+#### User input
+
+The sidebar contains a single input, that is a switch between the TIC time scale (modulo the dead time) and the manual time (for e.g. continuous flow).
+
+Besides the coloring and size parameters, the customisation widget also contains two switches:
+
+1. A choice of whether using a common m/z scale across samples or not
+2. A choice of whether using a color guide or text label for the time points
+    * The gradient of the color guide can be set to a linear or log~10~ scale
+    
+#### Output
+
+The output is a figure where spectra are intensity-normalized, then stacked and colored by increasing mixing time (either automatically from the TIC or manually provided values). Different species are stacked in different columns and can be displayed with common or individual scales.
+
+There graph can be downloaded as a .png file by clicking on the sidebar button.
+
+### Code
+
+There is no data transformation to be discussed here, except for the intensity `intensum` normalization that is: `1-(max(intensum)-intensum)/(max(intensum)-min(intensum))`
+
+## HDXplotR
+
+### Purpose
+
+The HDXplotR tab is used to plot the centroids as a function of time, convert said centroids to number of unexchanged sites *NUS* using the deuterium content, charge, and reference centroid m/z, and plot the results. Non-linear fitting of the results can also be achieved.
+
+### Principle
+
+Centroid masses *(m/z)~t~* are extracted from the selected spectra by calculating the average isotopic mass *m~i~* weighted by the abudance *a~i~*:
+
+$(m/z)_t = \frac {\sum_i{m_ia_i}}{\sum_i{a_i}}$
+
+The *NUS* is defined as the measured mass shift between the sample centroid mass *(m/z)~t~* at a time t calculated abovce and that of the fully-exchanged reference centroid *(m/z)~\infty~* (user supplied, can be determined in OligoR), converted to mass units by multiplying by |*z*| (user-supplied), and divided by the apparent isotopic mass shift for a single site (\Delta ms):
+
+$NUS_t = \frac{[(m/z)_t-(m/z)_\infty ]|z|}{\Delta m_s}$
+
+### Features
+
+#### User input
+
+In the sidebar, the user can input:
+
+1. Already processed data to visualize (and possibly save) along the data being processed
+2. The choice of timescale (manual or TIC)
+3. The deuterium content pre- and post-exchange
+4. Non-linear fitting parameter initial values, for a double exponential decay
+
+In the main window, the user can use the kinetics data box to:
+1. Fill in the NUS calculation parameters in the _centroid calculation tab_
+  - reference centroid values (in _m/z_),
+  - charge states (in absolute value),
+  - initial and final deuterium content (`D.initial` and `D.final`)
+2. Name the species in that same tab,
+3. Review and select the data points to be displayed in the figures by clicking on the corresponding table lines, or simply tick the _select all_ box. 
+
+#### Output
+
+The output is composed of two plots and on table:
+
+1. The raw exchange plot displays the centroid values as a function of time
+    * The time axis depends on the selected timescale (manual or TIC)
+    * All species are displayed in the same color (gray by default)
+2. The data table that presents the centroid and NUS values for each data point, alongside the time (for all timescales), the species number, the reference centroid and charge used in the NUS calculation, and the selected timescale (hidden by default)
+    * The user-selected lines are colored in orange
+    * The table is sortable, searchable and exportable in the clipboard or csv/Excel files
+3. The *NUS* exchange plot, which is the same as the raw plot, except for the y-axis that is now *NUS* values
+    * Species are colored differently
+    * Non-linear fitting is also displayed there
+    
+## TitratoR
+
+### Purpose
+
+TitratoR is used for the data treatment of MS titration of oligonucleotides (although it can be used for other analytes) from raw MS data to final titration plot. It is capable of calculating the corrected concentrations of free and complexed species even with non-equivalent response factors. It does not handle multimeric species yet (but several ligands are ok).
+
+### Principle
+
+Intensities of species are calculated by summing the intensities across the selected m/z ranges. Correction with the response factor of each species requires the use of an internal standard *IS*, as described in *Anal. Chem.* **2009**, *81*, 6708-6715. It is not described herein, but the code section below illustrates the correction principle.
+
+### Features
+#### User input
+#### Output
+
+### Code
+
+The example used hereafter is the titration of $M$ (10 µM) by $L$ (0, 5, 10 or 20 µM), forming $ML$ and $ML_2$ sequentially. A set of response factors, concentrations *C* and corresponding MS intensities *I* were made up:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+matrix2 <- readxl::read_excel("matrix2.xlsx")
+matrix2
+```
+
+In a real experiment, the concentration and response factors are unknown and must be determined.
+
+From the user input is gathered key information on the experiment, i.e. the total concentration in target `Mtot`, of *IS* `Std`, of ligand for each titration point `Lgd`, and the ligand stoichiometry in each of the formed complex (0 for the free target).  
+
+```{r, echo=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+Mtot <- 10 #total target
+
+Std <- 2 #Internal standard
+
+Lgd <- rbind( #Added ligand concentrations for 4 experiments
+  0, 5, 10, 20
+)
+Stoich <- cbind( #Ligand stoichiometry in cplxs
+  0, 1, 2
+)
+
+print('Total ligand concentration in each experiment')
+Lgd
+
+print('Stoichiometry of the ligand in each of the formed complex')
+Stoich
+```
+
+The mass spectra themselves give access to the intensities of the different species and *IS* in the different experiments, which are collected in the matrices `I0` and `IS`. The analytes' intensities are then normalized by the *IS* intensity of the corresponding experiment into the matrix `A`.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+#Each row is an independent experiment (increasing lgd concentration)
+#Each column is a different species (M, ML, ML2)
+#The values are raw intensities
+I0 = rbind(
+  c(10, 0, 0),
+  c(7, 2, 0.25),
+  c(4.8, 2.92, 0.775),
+  c(2.05, 3.08, 2.05)
+)
+
+IS = rbind(
+  6,
+  6,
+  6,
+  6
+)
+
+#The size of the I matrix depends on the number of experiments and species
+I <- matrix(ncol = length(Stoich), nrow = length(Lgd))
+
+for (i in 1:nrow(I0)) {
+  for (j in 1:ncol(I0)) {
+    I[i,j] <- I0[i,j]/IS[i] 
+  }
+}
+
+I
+```
+
+
+The matrix `C` contains the ratio between the total target `Mtot` and internal standard `Std`. It is a single column matrix with as many rows as `I`.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+
+C <- matrix(ncol = 1, nrow = nrow(I))
+
+for (nrowI in 1:nrow(I)) {
+  C[nrowI] <- Mtot/Std
+}
+
+C
+```
+
+The reponse factors R relative to the *IS* are defined in: $ I \cdot R = C  $. They can be determined from $ R = I^+ \cdot C$, where $I^+$ is the inverse matrix of I. Here we use the Moore-Penrose generalized inverse of a matrix to generate $I^+$, noted `I.inv`:
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+I.inv = pinv(I)
+I.inv
+```
+
+To work, it is required that there are at least as many experiments as species. The relative response factors R can then be calculated:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+#Response factors relative to the IS.
+R <- I.inv%*%C
+R
+```
+
+The concentration corrected by the relative response factors `corr.C` can finally be determined, following:
+
+$ \displaystyle[M_xL_y]_{corr} = R_{xy}[M]_{tot} \frac{\displaystyle\frac{I_{(M_xL_y)}}{I_{(Std)}}}{\displaystyle\sum_{x=1}^{x_{max}}\sum_{y=0}^{y_{max}} xR_{xy}\frac{I_{(M_xL_y)}}{I_{(Std)}}} $
+
+where $ \frac{I_{(M_xL_y)}}{I_{(Std)}} $ is contained in `I`, and $R_{xy}$ in `R`. Note that $ x $ is kept equal to 1 so far (i.e. no targer multimerization possible).
+
+The calculation is made in two steps: first the `R` and `I` components are multiplied, then the resulting `RI` matrix is incorporated in the final equation to get `corr.C`. Both matrices have the same dimensions as `I`.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+
+#RI has the same dimensions as I
+RI <- matrix(ncol = ncol(I), nrow = nrow(I))
+#RI is obtained by distributing each row of R onto the same numbered column of I 
+for (nrowR in 1:nrow(R)) {
+  for (nrowI in 1:nrow(I)) {
+    RI[nrowI,nrowR] <- R[nrowR] * I[nrowI,nrowR]
+  }
+}
+
+
+#Final matrix of corrected concentrations
+#Same dimensions as I
+corr.C <- matrix(ncol = ncol(I), nrow = nrow(I))
+#Product of Mtot on RI, divided by the sum of RI across species for a given experiment
+for (nrowI in 1:nrow(I)) {
+  for (ncolI in 1:ncol(I)) {
+    corr.C[nrowI,ncolI] <- Mtot*RI[nrowI,ncolI]/sum(RI[nrowI,])
+  }
+}
+
+corr.C
+
+```
+
+From the analytes corrected concentration, one can infer the concentration of free (unbound) ligand:
+
+$ [L]_{free} = [L]_{tot} - \displaystyle\sum_{x=1}^{x_{max}}\sum_{y=1}^{y_{max}}y[M_xL_y] $
+
+First, the total amount of bound ligand `cplx.L` is calculated from `corr.C`, taking into account the stoichiometries `Stoich`.
+
+The `L.free` matrix is a single column that has many rows as there are experiments to receive the results.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+
+#Total amount of complexed ligand
+cplx.L <- matrix(ncol = ncol(I), nrow = nrow(I))
+
+for (i in 1:ncol(I)) {
+  for (j in 1:nrow(I)) {
+    cplx.L[j,i] <- Stoich[i] * corr.C[j,i]
+  }
+}
+
+L.free <- matrix(ncol = 1, nrow = nrow(Lgd))
+
+#Free ligand (unbound)
+free.L <- matrix(nrow = nrow(cplx.L))
+
+for (k in 1:nrow(cplx.L)) {
+  free.L[k] <- Lgd[k] - sum(cplx.L[k,])
+}
+
+free.L
+
+```
+
+All the information to calculate binding constants at each ligand concentration are now gathered. Below is the corresponding equation for *consecutive* binding of the ligand:
+
+$ K_{d(n)} = \frac{[L]_{free}[DNA\cdot L_{n-1}]_{corr}}{[DNA + L_n]_{corr}}$
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+
+#kd contains all Kds for all species in every experiment
+kd <- matrix(ncol = ncol(I)-1, nrow = nrow(I))
+
+for (j in 2:ncol(I)) {
+  for (i in 1:nrow(kd)) {
+    kd[i-1,j-1] <- free.L[i] * corr.C[i,j-1] / corr.C[i,j]
+  }
+}
+
+#clean up
+kd <- kd[1:nrow(kd)-1, 1:ncol(kd)]
+kd
+```
+
+Finally, Kds can be averaged across experiments.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+#a vector to gather mean Kds
+kd.mean <- vector()
+
+if (is.null(ncol(kd))) {
+  kd.mean <- mean(kd)
+} else{
+  for (i in 1:ncol(kd)) {
+    kd.mean[i] <- mean(kd[,i]) 
+  }
+  
+}
+
+kd
+
+```
+
+
+
+
+
+
+
+
+
+
+

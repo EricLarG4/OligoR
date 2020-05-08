@@ -7,6 +7,8 @@
 
 oligor <- function(){
 
+
+
   #libraries------------
   library(BiocManager)
   options(repos = BiocManager::repositories())
@@ -305,7 +307,7 @@ ui <- dashboardPagePlus(
         dropdown_icon = 'upload',
         fileInput(
           'file.old',
-          'Select csv file'
+          'Select Excel file'
         )
       ),
       boxPlus(
@@ -325,71 +327,6 @@ ui <- dashboardPagePlus(
           size = 'normal',
           onStatus = 'danger',
           offStatus = 'info'
-        )
-      ),
-      boxPlus(
-        width = "100%",
-        title = "NUS calculation",
-        status = "primary",
-        solidHeader = F,
-        collapsible = T,
-        collapsed = F,
-        splitLayout(
-          cellWidths = "50%",
-          textInput(inputId = "Di", "initial %D", "90"),
-          textInput(inputId = "Dend", "final %D", "9")),
-        splitLayout(
-          textInput(
-            inputId = "centroid.ref1",
-            label = "Reference centroid 1",
-            value = 1500,
-            width = "100%"
-          ),textInput(
-            inputId = "centroid.ref2",
-            label = "Reference centroid 2",
-            value = 1510,
-            width = "100%"
-          )
-        ),
-        splitLayout(
-          textInput(
-            inputId = "charge.ref1",
-            label = "Charge 1",
-            value = 4,
-            width = "100%"
-          ),textInput(
-            inputId = "charge.ref2",
-            label = "Charge 2",
-            value = 4,
-            width = "100%"
-          )
-        ),
-        splitLayout(
-          textInput(
-            inputId = "centroid.ref3",
-            label = "Reference centroid 3",
-            value = 1500,
-            width = "100%"
-          ),textInput(
-            inputId = "centroid.ref4",
-            label = "Reference centroid 4",
-            value = 1510,
-            width = "100%"
-          )
-        ),
-        splitLayout(
-          textInput(
-            inputId = "charge.ref3",
-            label = "Charge 3",
-            value = 4,
-            width = "100%"
-          ),
-          textInput(
-            inputId = "charge.ref4",
-            label = "Charge 4",
-            value = 4,
-            width = "100%"
-          )
         )
       ),
       boxPlus(
@@ -1192,14 +1129,23 @@ ui <- dashboardPagePlus(
                tabPanel("HDXplotR",
                         icon = icon('stopwatch'),
                         fluidRow(
-                          boxPlus(
-                            title = "Kinetics data",
-                            width = 12,
-                            status = "info",
-                            solidHeader = T,
-                            collapsible = T,
-                            DTOutput("centroids"),
-                            checkboxInput("centroids_sel", "select all")
+                          column(12,
+                                 collapsible_tabBox(
+                                   id = 'kinetic.hdx',
+                                   title = 'Kinetics data',
+                                   width = 12,
+                                   tabPanel(
+                                     title = 'NUS calculation',
+                                     icon = icon('calculation'),
+                                     hotable("hotable2"),
+                                   ),
+                                   tabPanel(
+                                     title = 'Kinetics data',
+                                     icon = icon('table'),
+                                     DTOutput("centroids"),
+                                     checkboxInput("centroids_sel", "select all")
+                                   )
+                                 )
                           ),
                           boxPlus(
                             title = "Exchange plot (raw)",
@@ -2853,6 +2799,7 @@ server <- function(input, output, session) {
 
   #centroids and NUS--------
 
+  #centroid calculation
   centroids <- reactive({
     MSsnaps() %>%
       # group_by(mean.time, Species) %>%
@@ -2860,39 +2807,77 @@ server <- function(input, output, session) {
       summarise(centroid = weighted.mean(mz, intensum)) #calculation of centroids
   })
 
-
-  deltaD <- reactive({
-    (as.numeric(input$Di)-as.numeric(input$Dend))/100 #calculation of change in deuterium content
+  #hot table
+  NUS.init0 <- reactive({
+    NUS.init0 <- data.frame(Species = unique(centroids()$Species),
+                            Name = unique(centroids()$Species),
+                            Reference = rep(1500, length(unique(centroids()$Species))),
+                            Charge = rep(4, length(unique(centroids()$Species))),
+                            D.initial = rep(90, length(unique(centroids()$Species))),
+                            D.final = rep(9, length(unique(centroids()$Species)))
+    )
   })
 
+  NUS.change <- reactive({
+    as.data.frame(hot.to.df(input$hotable2))
+  })
 
+  output$hotable2 <- renderHotable({NUS.init0() }, readOnly = F)
+
+  #NUS calculation
   NUS <- reactive({
-
     centroids() %>%
-      add_column('Reference' = c(1789)) %>% #assignment of reference centroid for each charge state
-      mutate(
-        Reference = if_else(Species == "Species 1", as.numeric(input$centroid.ref1),
-                            if_else(Species == "Species 2", as.numeric(input$centroid.ref2),
-                                    if_else(Species == "Species 3", as.numeric(input$centroid.ref3),
-                                            as.numeric(input$centroid.ref4))))) %>%
-      add_column('Charge' = c(5)) %>% #assignment of charge states for each sample
-      mutate(
-        Charge = if_else(Species == "Species 1", as.numeric(input$charge.ref1),
-                         if_else(Species == "Species 2", as.numeric(input$charge.ref2),
-                                 if_else(Species == "Species 3", as.numeric(input$charge.ref3),
-                                         as.numeric(input$charge.ref4))))) %>%
-
-      group_by(Species) %>%
-      mutate(
-        NUS = (centroid - Reference)*Charge/((as.numeric(input$Di)-as.numeric(input$Dend))/100*(2.013553-1.007825)), #NUS calculation
+      left_join(NUS.change(), by = "Species") %>%
+      group_by(mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
+      mutate(#NUS calculation
+        NUS = (centroid - Reference)*Charge/((D.initial - D.final)/100*(2.013553-1.007825)),
         mean.time.s = mean.time * 60,
         CFtime.s = CFtime * 60) %>% #creation of a time column in seconds
-      dplyr::select(mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS,
-                    Reference, Charge, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz)  #column reordering
-    # order_by(Species)
+      dplyr::select(Species, Name, mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS,
+                    Reference, Charge, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz)
   })
 
+  #time scaling
+  centroidscaled.init <- reactive({
+    if (isTRUE(input$manu2)) {
+      NUS() %>%
+        add_column(timescale = NUS()$CFtime)
+    } else {
+      NUS() %>%
+        add_column(timescale = NUS()$mean.time)
+    }
+  })
 
+  #upload already processed data
+  file.old <- reactive({
+    if(is.null(input$file.old))
+      return(NULL)
+
+    input$file.old
+  })
+
+  processed.data <- reactive({
+
+    if(is.null(input$file.old))
+      return(NULL)
+
+    processed.data <- data.frame(read_excel(file.old()$datapath,
+                                            skip = 1))
+
+    colnames(processed.data) <- c('Species', 'Name', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS',
+                                  'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan',
+                                  'max.scan', 'min.mz', 'max.mz',	"timescale")
+
+    return(processed.data)
+  })
+
+  centroidscaled <- reactive({
+    if (is.null(file.old)) {
+      return(centroidscaled.init())
+    } else {
+      rbind(centroidscaled.init(),processed.data())
+    }
+  })
 
   output$centroids <- DT::renderDT(server = FALSE, {
     datatable(data = centroidscaled(),  #data = NUS(),
@@ -2909,7 +2894,9 @@ server <- function(input, output, session) {
                            'Start scan' = 'min.scan',
                            'End scan' = 'max.scan',
                            'Start m/z' = 'min.mz',
-                           'End m/z'= 'max.mz'),
+                           'End m/z'= 'max.mz',
+                           'Species number' = 'Species',
+                           'Species name' = 'Name'),
               editable = T,
               rownames = F,
               escape = T,
@@ -2923,16 +2910,11 @@ server <- function(input, output, session) {
                 autoWidth = F,
                 dom = 'Bfrtip', #button position
                 buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
-                columnDefs = list(list(visible=FALSE, targets=c(8, 9, 10, 11, 12, 13, 14, 15, 16)))
+                columnDefs = list(list(visible=FALSE, targets=c(11, 12, 13, 14, 15, 16, 17)))
               )
     ) %>%
       formatRound(c('TIC Time (min)', 'Centroid', 'NUS', "TIC Time (s)"), digits = 2)
   })
-
-  # output$centroids <- renderDT({
-  #   centroidscaled2()
-  # })
-
 
   #Select all lines
   centroids_proxy <- DT::dataTableProxy("centroids")
@@ -2946,58 +2928,13 @@ server <- function(input, output, session) {
   })
   output$selected_rows <- renderPrint(print(input$centroids_rows_selected))
 
-  centroidscaled.init <- reactive({
-    if (isTRUE(input$manu2)) {
-      NUS() %>%
-        add_column(timescale = NUS()$CFtime)
-    } else {
-      NUS() %>%
-        add_column(timescale = NUS()$mean.time)
-    }
-  })
-
-
-
-  file.old <- reactive({
-    if(is.null(input$file.old))
-      return(NULL)
-
-    input$file.old
-  })
-
-  processed.data <- reactive({
-
-    if(is.null(input$file.old))
-      return(NULL)
-
-    processed.data <- data.frame(read_excel(file.old()$datapath))
-
-    colnames(processed.data) <- c('Species', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS',
-                                  'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan',
-                                  'max.scan', 'min.mz', 'max.mz',	"timescale")
-
-    return(processed.data)
-
-  })
-
-
-  centroidscaled <- reactive({
-
-    if (is.null(file.old)) {
-      return(centroidscaled.init())
-    } else {
-      rbind.data.frame(centroidscaled.init(),processed.data())
-    }
-  })
-
-
   output$plot6 <- renderPlot({
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
     ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = centroidscaled()$centroid)) +
       geom_point(color = input$col.kin, size = input$size.kin) +
       geom_point(data = selected.points, size = input$size.kin,
-                 aes(x = timescale, y = centroid, color = Species), inherit.aes = F) +
+                 aes(x = timescale, y = centroid, color = Name), inherit.aes = F) +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
       xlab("time (min)") +
       ylab("centroid (m/z)") +
@@ -3019,7 +2956,7 @@ server <- function(input, output, session) {
             # plot.margin = margin(25, 0.5, 0.5, 0.5),
             legend.position="right",
             legend.box = "vertical",
-            legend.title = element_text(size=18, face="bold"),
+            legend.title = element_blank(),
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(expand = T)
@@ -3046,7 +2983,7 @@ server <- function(input, output, session) {
     selected.points <- centroidscaled()[ s,]
 
     ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
-      geom_point(data = selected.points, size = input$size.kin, aes(x = timescale, y = NUS, color = Species), alpha = as.numeric(input$trans.kin), inherit.aes = F) +
+      geom_point(data = selected.points, size = input$size.kin, aes(x = timescale, y = NUS, color = Name), alpha = as.numeric(input$trans.kin), inherit.aes = F) +
       xlab("time (min)") +
       ylab("NUS") +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
@@ -3967,6 +3904,9 @@ server <- function(input, output, session) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
+
+
 
 
 
