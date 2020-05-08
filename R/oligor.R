@@ -2983,7 +2983,10 @@ server <- function(input, output, session) {
     selected.points <- centroidscaled()[ s,]
 
     ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
-      geom_point(data = selected.points, size = input$size.kin, aes(x = timescale, y = NUS, color = Name), alpha = as.numeric(input$trans.kin), inherit.aes = F) +
+      geom_point(data = selected.points,
+                 size = input$size.kin, aes(x = timescale, y = NUS, color = Name),
+                 alpha = as.numeric(input$trans.kin),
+                 inherit.aes = F) +
       xlab("time (min)") +
       ylab("NUS") +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
@@ -2997,7 +3000,7 @@ server <- function(input, output, session) {
                                    nls.control(maxiter = 100000, warnOnly = T)),
                 se=F,
                 inherit.aes = T,
-                aes(x = timescale, y=NUS, color = Species),
+                aes(x = timescale, y = NUS, color = Name),
                 alpha = 0.5,
                 size = 1) +
       # stat_poly_eq(formula = y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
