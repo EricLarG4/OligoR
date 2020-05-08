@@ -116,7 +116,7 @@ ui <- dashboardPagePlus(
   sidebar_fullCollapse = TRUE,
   #header--------------
   dashboardHeaderPlus(
-    title = "OligoR 0.37",
+    title = "OligoR 0.48",
     enable_rightsidebar = TRUE,
     rightSidebarIcon = "palette"
   ),
