@@ -366,7 +366,13 @@ ui <- dashboardPagePlus(
         br(),
         downloadBttn(
           outputId = "dwnplot2",
-          label = "NUS plot",
+          label = "NUS plot png",
+          style = "material-flat",
+          size = 'sm'
+        ),
+        downloadBttn(
+          outputId = "dwnplot3",
+          label = "NUS plot pdf",
           style = "material-flat",
           size = 'sm'
         )
@@ -401,7 +407,13 @@ ui <- dashboardPagePlus(
         width = '100%',
         downloadBttn(
           outputId = "dwnspec",
-          label = "Spectra",
+          label = "png",
+          style = "material-flat",
+          size = 'sm'
+        ),
+        downloadBttn(
+          outputId = "dwnspec.pdf",
+          label = "pdf",
           style = "material-flat",
           size = 'sm'
         )
@@ -553,11 +565,11 @@ ui <- dashboardPagePlus(
                  no_outline = TRUE)
     ),
     conditionalPanel(
-      condition = "input.tabs == 'OligoR'",
+      condition = "input.tabs == 'OligoRef'",
       boxPlus(id = "boxseq",
               title = "Analyte information",
               status = "primary",
-              solidHeader = T,
+              solidHeader = F,
               collapsible = T,
               width = '100%',
               textInput(
@@ -602,6 +614,18 @@ ui <- dashboardPagePlus(
                           width = "100%",
                           choices = list("all sites" = 'A', "no phosphates" = 'B', "no phosphates nor termini" = 'C'),
                           selected = "C")
+      ),
+      downloadBttn(
+        outputId = "ref.accu.png",
+        label = "png",
+        style = "material-flat",
+        size = 'sm'
+      ),
+      downloadBttn(
+        outputId = "ref.accu.pdf",
+        label = "pdf",
+        style = "material-flat",
+        size = 'sm'
       )
     ),
     conditionalPanel(
@@ -903,8 +927,8 @@ ui <- dashboardPagePlus(
                           style = "opacity: 0.9"
                         )
                ),
-               #panel oligoR------------
-               tabPanel("OligoR",
+               #panel oligoRef------------
+               tabPanel("OligoRef",
                         icon = icon("dna"),
                         fluidRow(
                           boxPlus(id = 'Oligoutput69',
@@ -961,7 +985,7 @@ ui <- dashboardPagePlus(
                           )
                         ),
                         absolutePanel(
-                          bottom = 200, right = 40, width = 200,
+                          top = 300, right = 40, width = 200,
                           draggable = TRUE,
                           wellPanel(h3("Customisation"),
                                     colourInput("col.dot.th", "Theory  dot colour", "tomato"),
@@ -1605,6 +1629,8 @@ server <- function(input, output, session) {
       escape = T,
       filter = 'top',
       autoHideNavigation = T,
+      colnames = c('m/z' = 'mz.th',
+                   'Abundance' = 'Iso.Pattern'),
       options = list(
         deferRender = TRUE,
         scrollY = 200,
@@ -1615,8 +1641,8 @@ server <- function(input, output, session) {
         buttons = c('copy', 'csv', 'excel') #buttons
       )
     ) %>%
-      formatRound(c('mz.th'), digits = 5) %>%
-      formatRound(c('Iso.Pattern'), digits = 3)
+      formatRound(c('m/z'), digits = 5) %>%
+      formatRound(c('Abundance'), digits = 3)
 
   })
 
@@ -1656,7 +1682,7 @@ server <- function(input, output, session) {
       )
   })
 
-  output$plot98 <- renderPlot({
+  plot98 <- reactive({
     ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
       geom_line(color = input$col.line.th, size = input$size.line.th) +
       geom_point(color = input$col.dot.th, size = input$size.dot.th) +
@@ -1702,6 +1728,31 @@ server <- function(input, output, session) {
       )
   })
 
+  output$plot98 <- renderPlot({
+    plot98()
+  })
+
+  output$ref.accu.pdf <- downloadHandler(
+    filename = function() { paste("stacked spectra", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(file, plot = plot98(), device = "pdf",
+             width = 200,
+             height = 100,
+             units = 'mm',
+             dpi = 600)
+    }
+  )
+
+  output$ref.accu.png <- downloadHandler(
+    filename = function() { paste("stacked spectra", '.png', sep='') },
+    content = function(file) {
+      ggsave(file, plot = plot98(), device = "png",
+             # width = 25,
+             # height = 8,
+             # units = 'mm',
+             dpi = 300)
+    }
+  )
 
 
 
@@ -2711,6 +2762,21 @@ server <- function(input, output, session) {
 
 
   output$plot5 <- renderPlot({
+   Plot5()
+  }
+  )
+
+  output$plot5.ui <- renderUI({
+    plotOutput("plot5",
+               width = as.numeric(input$plot5.w),
+               height = as.numeric(input$plot5.h)
+    )
+  })
+
+
+  #download spectra----------
+
+  Plot5 <- reactive({
     ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
                                   color = colorscale)) +
       geom_line(size = 1) +
@@ -2744,53 +2810,22 @@ server <- function(input, output, session) {
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold"))  +
       coord_cartesian(expand = FALSE)
-  }
-  )
-
-  output$plot5.ui <- renderUI({
-    plotOutput("plot5",
-               width = as.numeric(input$plot5.w),
-               height = as.numeric(input$plot5.h)
-    )
-  })
-
-
-  #download spectra----------
-
-  Plot5 <- reactive({
-    ggplot(data = MSsnaps(), aes(x = mz, y = intensum)) +
-      geom_line(color = "steelblue", size = 1) +
-      xlab("m/z") +
-      facet_wrap(~mean.time,
-                 dir = "v",
-                 ncol = 1) +
-      theme(strip.text.y = element_blank(),
-            strip.background = element_blank(),
-            panel.border = element_blank(),
-            panel.grid.major = element_line(colour = "black"),
-            panel.grid.minor = element_line(colour = "grey"),
-            panel.background = element_blank(),
-            axis.line.x = element_line(colour = "black", size = 0.75),
-            axis.ticks.length=unit(0.1, "in"),
-            axis.ticks.x = element_line(size = 0.75),
-            axis.ticks.y = element_blank(),
-            axis.text.y = element_blank(),
-            axis.text.x = element_text(colour="black", size = 16, color = "black", angle = 0),
-            axis.title.x = element_text(size=18,face="bold"),
-            axis.title.y = element_blank(),
-            plot.margin = margin(25, 0.5, 0.5, 0.5),
-            legend.position="right",
-            legend.box = "vertical",
-            legend.title = element_text(size=18, face="bold"),
-            legend.key = element_rect(fill = "white"),
-            legend.text = element_text(size=16, face="bold")) +
-      coord_cartesian(expand = FALSE)
   })
 
   output$dwnspec <- downloadHandler(
     filename = function() { paste("stacked spectra", '.png', sep='') },
     content = function(file) {
       ggsave(file, plot = Plot5(), device = "png",
+             width = as.numeric(input$plot5.w),
+             height = as.numeric(input$plot5.h),
+             units = 'mm')
+    }
+  )
+
+  output$dwnspec.pdf <- downloadHandler(
+    filename = function() { paste("stacked spectra", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(file, plot = Plot5(), device = "pdf",
              width = as.numeric(input$plot5.w),
              height = as.numeric(input$plot5.h),
              units = 'mm')
@@ -2977,7 +3012,7 @@ server <- function(input, output, session) {
   #   )
   # })
 
-  output$plot7 <- renderPlot({
+  plot7 <- reactive({
 
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
@@ -3025,7 +3060,7 @@ server <- function(input, output, session) {
             # plot.margin = margin(25, 0.5, 0.5, 0.5),
             legend.position="right",
             legend.box = "vertical",
-            legend.title = element_text(size=18, face="bold"),
+            legend.title = element_blank(),
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(expand = T)
@@ -3044,15 +3079,29 @@ server <- function(input, output, session) {
     }
   )
 
-  Plot7 <- reactive({
-    ggplot(data = NUS(), aes(x = NUS()$mean.time, y = NUS()$NUS)) +
-      geom_point(color = "steelblue", size = 3)
+  output$plot7 <- renderPlot({
+    plot7()
   })
 
   output$dwnplot2 <- downloadHandler(
     filename = function() { paste("kinetics-NUS", '.png', sep='') },
     content = function(file) {
-      ggsave(file, plot = Plot7(), device = "png")
+      gggsave(file, plot = plot7(), device = "png",
+              width = 200,
+              height = 125,
+              units = 'mm',
+              dpi = 600)
+    }
+  )
+
+  output$dwnplot3 <- downloadHandler(
+    filename = function() { paste("kinetics-NUS", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(file, plot = plot7(), device = "pdf",
+             width = 200,
+             height = 125,
+             units = 'mm',
+             dpi = 600)
     }
   )
 

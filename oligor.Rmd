@@ -38,7 +38,7 @@ As a result, not all of the code is explicitely described. However, the full cod
 
 ## General features
 
-OligoR is a software coded in R and Shiny for interactivity purposes that can be used in RStudio or deployed in a simple web browser. It is dedicated to the native MS of oligonucleotides, and in particular to the use of HDX/MS. Binding equilibrium and kinetics experiments will be implemented in the near future.
+OligoR is a software coded in R and Shiny for interactivity purposes that can be used in RStudio or deployed in a simple web browser. It is dedicated to the analysis of oligonucleotides by native mass spectrometry, and in particular to the use of HDX/MS. Binding equilibrium and kinetics experiments will be implemented in the near future.
 
 The software is divided in 4 tabs:
 
