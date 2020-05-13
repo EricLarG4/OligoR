@@ -9,4 +9,46 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+Imports:
+  assertive.types,
+  colourpicker,
+  data.table,
+  DescTools,
+  devtools,
+  DT,
+  formattable,
+  ggpmisc,
+  ggpubr,
+  ggrepel,
+  ggsci,
+  ggthemes,
+  gnm,
+  hablar,
+  plotly,
+  QWUtils,
+  readr,
+  readxl,
+  shiny,
+  shinydashboard,
+  shinydashboardPlus,
+  shinyWidgets,
+  shinyBS,
+  shinysky,
+  shinyjs,
+  stringr,
+  tidyverse,
+  V8,
+  waiter,
+  writexl,
+  zoo
+Remotes:
+  github::AnalytixWare/ShinySky,
+  github::DavidBarke/QWUtils,
+  github::nik01010/dashboardthemes,
+Depends: 
+    R (>= 2.10)
 RoxygenNote: 7.1.0
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

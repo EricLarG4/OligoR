@@ -44,6 +44,7 @@ oligor <- function(){
   library(shinysky)
   library(ggthemes)
   library(ggsci)
+  library(ggpmisc)
   library(zoo)
   # install.packages("remotes")
   # remotes::install_github("DavidBarke/QWUtils")
@@ -2762,7 +2763,7 @@ server <- function(input, output, session) {
 
 
   output$plot5 <- renderPlot({
-   Plot5()
+    Plot5()
   }
   )
 
@@ -2998,25 +2999,46 @@ server <- function(input, output, session) {
   })
 
 
-
-  # fits <- reactive({
-  #   s = input$centroids_rows_selected
-  #   selected.points <- centroidscaled()[ s,]
-  #
-  #   fits <- nls(data = selected.points,
-  #               formula = selected.points$NUS~a1*exp(-t1*selected.points$timescale)+a2*exp(-t2*selected.points$timescale)+y0,
-  #               start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
-  #                       a2=as.numeric(input$a2), t2=as.numeric(input$t2),
-  #                       y0=as.numeric(input$y0)),
-  #               control = c(maxiter = 100000, warnOnly = T)
-  #   )
-  # })
-
   plot7 <- reactive({
 
+    #data selection
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
 
+
+    #fitting
+    fit.list <- data.frame()
+
+    for (i in unique(selected.points$Name)) {
+
+      selected.species <- selected.points %>% filter(Name == i)
+
+      fit <- nls(data = selected.species ,
+                 formula = selected.species$NUS~a1*exp(-t1*selected.species$timescale)+a2*exp(-t2*selected.species$timescale)+y0,
+                 start=c(a1=5, t1=0.5,
+                         a2=9, t2=0.06,
+                         y0= 0),
+                 control = c(maxiter = 100000))
+
+      buffer <- as.data.frame(coef(fit)) %>%
+        rownames_to_column('coefficient') %>%
+        add_column(species = i,
+                   position.y = max(selected.points$NUS))
+
+      fit.list <- rbind(fit.list, buffer)
+    }
+
+    fit.list <- fit.list %>%
+      set_colnames(c('coeff.name', 'coeff.value', "Name", "position.y"))
+
+
+    fit.list <- left_join(selected.points, fit.list) %>%
+      # group_by('species') %>%
+      filter(timescale == min(timescale)) %>%
+      filter(coeff.name == "a1")
+
+
+    #plot
     ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
       geom_point(data = selected.points,
                  size = input$size.kin, aes(x = timescale, y = NUS, color = Name),
@@ -3026,22 +3048,25 @@ server <- function(input, output, session) {
       ylab("NUS") +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
       geom_line(stat = "smooth", #This instead of geom_smooth to be able to apply alpha on fit line
-                method="nls",
-                data=selected.points,
+                method = "nls",
+                data = selected.points,
                 formula=y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
                 method.args = list(start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
                                            a2=as.numeric(input$a2), t2=as.numeric(input$t2),
                                            y0=as.numeric(input$y0)),
                                    nls.control(maxiter = 100000, warnOnly = T)),
-                se=F,
+                se = F,
                 inherit.aes = T,
                 aes(x = timescale, y = NUS, color = Name),
                 alpha = 0.5,
                 size = 1) +
-      # stat_poly_eq(formula = y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
-      #              data = selected.points,
-      #              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~"), x = timescale, y=NUS, color = Species),
-      #              parse = TRUE, rr.digits = 4) +
+      geom_text_repel(data = fit.list %>% filter(timescale),
+                      aes(x = min(timescale),
+                          y = NUS,
+                          colour = Name,
+                          label = paste("k1 =", coeff.value)
+                      )
+      ) +
       theme(strip.text.y = element_blank(),
             strip.background = element_blank(),
             panel.border = element_blank(),
