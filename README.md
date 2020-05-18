@@ -27,7 +27,7 @@ The HDX workflow and main features are presented below:
 
 ![HDX workflow](https://github.com/EricLarG4/OligoR/blob/master/man/ressources/HDX_workflow.png)
 
-![Download source pdf](https://github.com/EricLarG4/OligoR/blob/master/man/ressources/HDX_workflow.png)
+![Download source pdf](https://github.com/EricLarG4/OligoR/blob/master/man/ressources/HDX_workflow.pdf)
 
 ## License
 
