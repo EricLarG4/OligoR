@@ -350,7 +350,14 @@ ui <- dashboardPagePlus(
           label = "y0",
           value = 5,
           width = "100%"
-        )
+        ),
+        switchInput(inputId = "fit.hdx", #toggles baseline on/off
+                    label = "fit HDX plots",
+                    onLabel = 'fit',
+                    offLabel = 'no fit',
+                    value = FALSE,
+                    size = 'normal',
+                    width = 'auto')
       ),
       boxPlus(
         title = "Downloads",
@@ -2894,24 +2901,30 @@ server <- function(input, output, session) {
 
   processed.data <- reactive({
 
-    if(is.null(input$file.old))
+    if(is.null(input$file.old)) {
       return(NULL)
+    } else {
+      processed.data <- data.frame(read_excel(file.old()$datapath,
+                                              skip = 1))
 
-    processed.data <- data.frame(read_excel(file.old()$datapath,
-                                            skip = 1))
+      colnames(processed.data) <- c('Species', 'Name', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS',
+                                    'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan',
+                                    'max.scan', 'min.mz', 'max.mz',	"timescale")
 
-    colnames(processed.data) <- c('Species', 'Name', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS',
-                                  'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan',
-                                  'max.scan', 'min.mz', 'max.mz',	"timescale")
-
-    return(processed.data)
+      return(processed.data)
+    }
   })
 
   centroidscaled <- reactive({
     if (is.null(file.old)) {
       return(centroidscaled.init())
     } else {
-      rbind(centroidscaled.init(),processed.data())
+      if (is.null(input$file1)) {
+        return(processed.data())
+      } else{
+        processed.data() %>%
+          rbind(centroidscaled.init())
+      }
     }
   })
 
@@ -3006,40 +3019,32 @@ server <- function(input, output, session) {
     selected.points <- centroidscaled()[ s,]
 
 
-    #fitting
-    fit.list <- data.frame()
+    #fitting (for labeling only, fit lines are calculated directly in the plot)
+    if (isTRUE(input$fit.hdx)) { #calculates fit labeling is requested by user
+      fit.list <- data.frame()
 
-    for (i in unique(selected.points$Name)) {
+      for (i in unique(selected.points$Name)) {
 
-      selected.species <- selected.points %>% filter(Name == i)
+        selected.species <- selected.points %>% filter(Name == i)
 
-      fit <- nls(data = selected.species ,
-                 formula = selected.species$NUS~a1*exp(-t1*selected.species$timescale)+a2*exp(-t2*selected.species$timescale)+y0,
-                 start=c(a1=5, t1=0.5,
-                         a2=9, t2=0.06,
-                         y0= 0),
-                 control = c(maxiter = 100000))
+        fit <- nls(data = selected.species ,
+                   formula = selected.species$NUS~a1*exp(-t1*selected.species$timescale)+a2*exp(-t2*selected.species$timescale)+y0,
+                   start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
+                           a2=as.numeric(input$a2), t2=as.numeric(input$t2),
+                           y0=as.numeric(input$y0)),
+                   control = nls.control(maxiter = 100000, warnOnly = T))
 
-      buffer <- as.data.frame(coef(fit)) %>%
-        rownames_to_column('coefficient') %>%
-        add_column(species = i,
-                   position.y = max(selected.points$NUS))
+        buffer <- data.frame(label = paste0('k1 = ', round(coef(fit)[2], 5), ', k2 = ', round(coef(fit)[4], 5)),
+                             species.name = i,
+                             position.x = min(selected.species$timescale),
+                             position.y = max(selected.species$NUS))
 
-      fit.list <- rbind(fit.list, buffer)
+        fit.list <- rbind(fit.list, buffer)
+      }
     }
 
-    fit.list <- fit.list %>%
-      set_colnames(c('coeff.name', 'coeff.value', "Name", "position.y"))
-
-
-    fit.list <- left_join(selected.points, fit.list) %>%
-      # group_by('species') %>%
-      filter(timescale == min(timescale)) %>%
-      filter(coeff.name == "a1")
-
-
     #plot
-    ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
+    p7 <- ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
       geom_point(data = selected.points,
                  size = input$size.kin, aes(x = timescale, y = NUS, color = Name),
                  alpha = as.numeric(input$trans.kin),
@@ -3047,26 +3052,6 @@ server <- function(input, output, session) {
       xlab("time (min)") +
       ylab("NUS") +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
-      geom_line(stat = "smooth", #This instead of geom_smooth to be able to apply alpha on fit line
-                method = "nls",
-                data = selected.points,
-                formula=y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
-                method.args = list(start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
-                                           a2=as.numeric(input$a2), t2=as.numeric(input$t2),
-                                           y0=as.numeric(input$y0)),
-                                   nls.control(maxiter = 100000, warnOnly = T)),
-                se = F,
-                inherit.aes = T,
-                aes(x = timescale, y = NUS, color = Name),
-                alpha = 0.5,
-                size = 1) +
-      geom_text_repel(data = fit.list %>% filter(timescale),
-                      aes(x = min(timescale),
-                          y = NUS,
-                          colour = Name,
-                          label = paste("k1 =", coeff.value)
-                      )
-      ) +
       theme(strip.text.y = element_blank(),
             strip.background = element_blank(),
             panel.border = element_blank(),
@@ -3089,6 +3074,34 @@ server <- function(input, output, session) {
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(expand = T)
+
+    if (isTRUE(input$fit.hdx)) { #displays fit lines and labeling is requested by user
+      p7 <- p7 + geom_line(stat = "smooth", #This instead of geom_smooth to be able to apply alpha on fit line
+                           method = "nls",
+                           data = selected.points,
+                           formula=y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
+                           method.args = list(start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
+                                                      a2=as.numeric(input$a2), t2=as.numeric(input$t2),
+                                                      y0=as.numeric(input$y0)),
+                                              nls.control(maxiter = 100000, warnOnly = T)),
+                           se = F,
+                           inherit.aes = T,
+                           aes(x = timescale, y = NUS, color = Name),
+                           alpha = 0.5,
+                           size = 1) +
+        geom_label_repel(data = fit.list,
+                        inherit.aes = F,
+                        aes(x = position.x,
+                            y = position.y,
+                            colour = species.name,
+                            label = label),
+                        show.legend = F,
+                        force = 3
+        )
+    }
+
+    return(p7)
+
   })
 
   #Download kinetics plots-----------
