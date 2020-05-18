@@ -25,7 +25,7 @@ When working in R without IDE, OligoR will open in the default web browser. Olig
 
 The HDX workflow and main features are presented below:
 
-![blabla](https://github.com/EricLarG4/OligoR/man/ressources/HDX_workflow.pdf)
+![blabla](https://github.com/EricLarG4/OligoR/blob/master/man/ressources/HDX_workflow.pdf)
 
 ## License
 
