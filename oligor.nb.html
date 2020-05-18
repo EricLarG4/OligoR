@@ -1556,27 +1556,26 @@ window.initializeSourceEmbed = function(filename) {
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
 @media screen {
 div.sourceCode { overflow: auto; }
 }
 @media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -1586,7 +1585,7 @@ pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   { color: #cccccc; background-color: #303030; }
 @media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+a.sourceLine::before { text-decoration: underline; }
 }
 code span.al { color: #ffcfaf; } /* Alert */
 code span.an { color: #7f9f7f; font-weight: bold; } /* Annotation */
@@ -1841,11 +1840,11 @@ summary {
 <!-- rnb-text-begin -->
 <p><em>NB: to get the interactive Shiny document, run with <strong>runtime: shiny</strong> in the YAML</em></p>
 <div id="oligor-features-and-functioning" class="section level1">
-<h1 number="1"><span class="header-section-number">1</span> OligoR features and functioning</h1>
+<h1><span class="header-section-number">1</span> OligoR features and functioning</h1>
 <p>Since the software is normally interactive, but this is a static document, the code description of the key calculations shown below was made non-interactive, and the user input was manually set to a given example, so that the code output could be demonstrated. Specifically, we chose the T30177TT oligonucleotide d[TTGTGGTGGGTGGGTGGGT]<sup>4-</sup> binding 2 potassium cations, studied by HDX/MS of a 90%D solution exchanged to a final 9% solution. Other user inputs are described where necessary.</p>
 <p>As a result, not all of the code is explicitely described. However, the full code is shown at the end of the document (albeit without output).</p>
 <div id="general-features" class="section level2">
-<h2 number="1.1"><span class="header-section-number">1.1</span> General features</h2>
+<h2><span class="header-section-number">1.1</span> General features</h2>
 <p>OligoR is a software coded in R and Shiny for interactivity purposes that can be used in RStudio or deployed in a simple web browser. It is dedicated to the analysis of oligonucleotides by native mass spectrometry, and in particular to the use of HDX/MS. Binding equilibrium and kinetics experiments will be implemented in the near future.</p>
 <p>The software is divided in 4 tabs:</p>
 <ul>
@@ -1859,7 +1858,7 @@ summary {
 <p>The appearance of the graphs (colors, sizes) can be customised using the customisation floating menu. All tables and plots update in real-time with the user input.</p>
 </div>
 <div id="raw-data" class="section level2">
-<h2 number="1.2"><span class="header-section-number">1.2</span> Raw data</h2>
+<h2><span class="header-section-number">1.2</span> Raw data</h2>
 <p>The only file format currently accepted is <code>.ms1</code>. Proprietary file formats from MS vendors can be converted using MSconvert from the <a href="http://proteowizard.sourceforge.net/index.shtml">ProteoWizard suite</a>, via either the GUI or by command line. Converting only the m/z range of interest is advised to reduce both the file size and pre-processing times in MSxploR. Further filtering can be carried out within the MSxploR tab, but that does not affect the input file.</p>
 <p>For instance, to convert the file filename.raw and filter the m/z over a 1500-1550 range, one can run:</p>
 <!-- rnb-text-end -->
@@ -1873,9 +1872,9 @@ summary {
 <p>To get rid of the drift time dimension from IMS files, add <code>--combineIonMobilitySpectra</code>. OligoR does not handle IMS data yet.</p>
 </div>
 <div id="oligor" class="section level2">
-<h2 number="1.3"><span class="header-section-number">1.3</span> OligoR</h2>
+<h2><span class="header-section-number">1.3</span> OligoR</h2>
 <div id="purpose" class="section level3">
-<h3 number="1.3.1"><span class="header-section-number">1.3.1</span> Purpose</h3>
+<h3><span class="header-section-number">1.3.1</span> Purpose</h3>
 <p>The aim of OligoR is to compute key oligonucleotide characteristics for native and HDX/MS applications, from basic information:</p>
 <ul>
 <li>sequence</li>
@@ -1888,7 +1887,7 @@ summary {
 <p>Alternatively, it can be used to determine the number of exchange sites from the mass spectrum of a fully-exhanged oligonucleotide, by empirically changing the value until the experimental and theoretical centroids match. In the same vein, the percentage of deuterium in a solution can be determinded empirically using the %D slider until the centroids match (assuming the number of sites is known).</p>
 </div>
 <div id="principle" class="section level3">
-<h3 number="1.3.2"><span class="header-section-number">1.3.2</span> Principle</h3>
+<h3><span class="header-section-number">1.3.2</span> Principle</h3>
 <p>The oligonucleotide monoisotopic and averages masses and m/z are obtained by summing the masses of individual nucleotides, with 5’- and 3’-OH termini. For a charge of 0, all phosphates are protonated, and each increment of the charge is accompanied by the removal of one hydrogen from the mass.</p>
 <p>To calculate deuterated isotopic distributions <em>D</em>, the natural oligonucleotide distribution <em>N</em> is convoluted with the deuterium distribution <em>B</em> by fast Fourier Transform.</p>
 <p><span class="math inline">\(D = N\circ B\)</span> </p>
@@ -1897,9 +1896,9 @@ summary {
 <p>where <em>n</em> is the total number of available exchangeable protons in a peptide, <em>k</em> is the number of hydrogens that are exchanged, and <em>p</em> is the probability of exchange.</p>
 </div>
 <div id="features" class="section level3">
-<h3 number="1.3.3"><span class="header-section-number">1.3.3</span> Features</h3>
+<h3><span class="header-section-number">1.3.3</span> Features</h3>
 <div id="user-input" class="section level4">
-<h4 number="1.3.3.1"><span class="header-section-number">1.3.3.1</span> User input</h4>
+<h4><span class="header-section-number">1.3.3.1</span> User input</h4>
 <p>The main user input is located in the sidebar and includes:</p>
 <ol style="list-style-type: decimal">
 <li><em>Oligonucleotide sequence</em></li>
@@ -1914,7 +1913,7 @@ summary {
 </ol>
 </div>
 <div id="output" class="section level4">
-<h4 number="1.3.3.2"><span class="header-section-number">1.3.3.2</span> Output</h4>
+<h4><span class="header-section-number">1.3.3.2</span> Output</h4>
 <p>The <em>chemical formula</em> (including potassium adducts, and phosphate protonation) is given in the sidebar.</p>
 <p>All remaining outputs are shown in the main window:</p>
 <ol style="list-style-type: decimal">
@@ -1945,69 +1944,69 @@ summary {
 </div>
 </div>
 <div id="code" class="section level3">
-<h3 number="1.3.4"><span class="header-section-number">1.3.4</span> Code</h3>
+<h3><span class="header-section-number">1.3.4</span> Code</h3>
 <div id="libraries" class="section level4">
-<h4 number="1.3.4.1"><span class="header-section-number">1.3.4.1</span> Libraries</h4>
+<h4><span class="header-section-number">1.3.4.1</span> Libraries</h4>
 <p>Below are the necessary libraries for the entire code, except anythnig pertaining to Shiny</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2xpYnJhcmllcy0tLS0tLS0tLS0tLVxubGlicmFyeShyZWFkcilcbmxpYnJhcnkodGlkeXZlcnNlKVxubGlicmFyeShEZXNjVG9vbHMpXG5saWJyYXJ5KGdncHVicilcbmxpYnJhcnkoRFQpXG5saWJyYXJ5KHN0cmluZ3IpXG5saWJyYXJ5KGZvcm1hdHRhYmxlKVxubGlicmFyeShnZ3JlcGVsKVxubGlicmFyeShwcmFjbWEpXG5gYGAifQ== -->
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co">#libraries------------</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">library</span>(readr)</span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">library</span>(tidyverse)</span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">library</span>(DescTools)</span>
-<span id="cb2-5"><a href="#cb2-5"></a><span class="kw">library</span>(ggpubr)</span>
-<span id="cb2-6"><a href="#cb2-6"></a><span class="kw">library</span>(DT)</span>
-<span id="cb2-7"><a href="#cb2-7"></a><span class="kw">library</span>(stringr)</span>
-<span id="cb2-8"><a href="#cb2-8"></a><span class="kw">library</span>(formattable)</span>
-<span id="cb2-9"><a href="#cb2-9"></a><span class="kw">library</span>(ggrepel)</span>
-<span id="cb2-10"><a href="#cb2-10"></a><span class="kw">library</span>(pracma)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="co">#libraries------------</span></a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="kw">library</span>(readr)</a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="kw">library</span>(tidyverse)</a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="kw">library</span>(DescTools)</a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="kw">library</span>(ggpubr)</a>
+<a class="sourceLine" id="cb2-6" title="6"><span class="kw">library</span>(DT)</a>
+<a class="sourceLine" id="cb2-7" title="7"><span class="kw">library</span>(stringr)</a>
+<a class="sourceLine" id="cb2-8" title="8"><span class="kw">library</span>(formattable)</a>
+<a class="sourceLine" id="cb2-9" title="9"><span class="kw">library</span>(ggrepel)</a>
+<a class="sourceLine" id="cb2-10" title="10"><span class="kw">library</span>(pracma)</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
 <div id="manual-example-input" class="section level4">
-<h4 number="1.3.4.2"><span class="header-section-number">1.3.4.2</span> Manual example input</h4>
+<h4><span class="header-section-number">1.3.4.2</span> Manual example input</h4>
 <p>Below are the user input set manually</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICB6IDwtIDQgI2NoYXJnZVxuICBcbiAgSyA8LSAyICNwb3Rhc3NpdW0gYWRkdWN0XG4gIFxuICAjIHNlcXVlbmNlXG4gIHNlcTIgPC0gZGF0YS5mcmFtZShudW1iZXI9MToxLCBzdHJpbmc9YyhcIlRUR1RHR1RHR0dUR0dHVEdHR1RcIiksIHN0cmluZ3NBc0ZhY3RvcnMgPSBGKSBcbiAgXG4gIG5YLnVzZXIgPC0gJycgI251bWJlciBvZiBleGNoYW5naW5nIHNpdGVzIHVua25vd25cbiAgXG4gIERDIDwtIDkgIyVEXG5gYGAifQ== -->
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>  z &lt;-<span class="st"> </span><span class="dv">4</span> <span class="co">#charge</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>  </span>
-<span id="cb3-3"><a href="#cb3-3"></a>  K &lt;-<span class="st"> </span><span class="dv">2</span> <span class="co">#potassium adduct</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>  </span>
-<span id="cb3-5"><a href="#cb3-5"></a>  <span class="co"># sequence</span></span>
-<span id="cb3-6"><a href="#cb3-6"></a>  seq2 &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">number=</span><span class="dv">1</span><span class="op">:</span><span class="dv">1</span>, <span class="dt">string=</span><span class="kw">c</span>(<span class="st">&quot;TTGTGGTGGGTGGGTGGGT&quot;</span>), <span class="dt">stringsAsFactors =</span> F) </span>
-<span id="cb3-7"><a href="#cb3-7"></a>  </span>
-<span id="cb3-8"><a href="#cb3-8"></a>  nX.user &lt;-<span class="st"> &#39;&#39;</span> <span class="co">#number of exchanging sites unknown</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a>  </span>
-<span id="cb3-10"><a href="#cb3-10"></a>  DC &lt;-<span class="st"> </span><span class="dv">9</span> <span class="co">#%D</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">  z &lt;-<span class="st"> </span><span class="dv">4</span> <span class="co">#charge</span></a>
+<a class="sourceLine" id="cb3-2" title="2">  </a>
+<a class="sourceLine" id="cb3-3" title="3">  K &lt;-<span class="st"> </span><span class="dv">2</span> <span class="co">#potassium adduct</span></a>
+<a class="sourceLine" id="cb3-4" title="4">  </a>
+<a class="sourceLine" id="cb3-5" title="5">  <span class="co"># sequence</span></a>
+<a class="sourceLine" id="cb3-6" title="6">  seq2 &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">number=</span><span class="dv">1</span><span class="op">:</span><span class="dv">1</span>, <span class="dt">string=</span><span class="kw">c</span>(<span class="st">&quot;TTGTGGTGGGTGGGTGGGT&quot;</span>), <span class="dt">stringsAsFactors =</span> F) </a>
+<a class="sourceLine" id="cb3-7" title="7">  </a>
+<a class="sourceLine" id="cb3-8" title="8">  nX.user &lt;-<span class="st"> &#39;&#39;</span> <span class="co">#number of exchanging sites unknown</span></a>
+<a class="sourceLine" id="cb3-9" title="9">  </a>
+<a class="sourceLine" id="cb3-10" title="10">  DC &lt;-<span class="st"> </span><span class="dv">9</span> <span class="co">#%D</span></a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
 <div id="sequence-phosphates-and-chemical-formula" class="section level4">
-<h4 number="1.3.4.3"><span class="header-section-number">1.3.4.3</span> Sequence, phosphates and chemical formula</h4>
+<h4><span class="header-section-number">1.3.4.3</span> Sequence, phosphates and chemical formula</h4>
 <p>The numbers of each nucleotide are extracted from the sequence, then the total number of nucleotide <code>nb_nt</code> is calculated, which gives access to the number of phosphates <code>nb_PO</code>. This could be calculated from the sequence string length, but the nucleotide composition must be determined to determine the chemical formula anyway.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4gIG5iQSA8LSBzdHJfY291bnQoc2VxMiRzdHJpbmcsIFwiQVwiKVxuICBcbiAgbmJUIDwtIHN0cl9jb3VudChzZXEyJHN0cmluZywgXCJUXCIpXG5cbiAgbmJHIDwtIHN0cl9jb3VudChzZXEyJHN0cmluZywgXCJHXCIpXG5cbiAgbmJDIDwtIHN0cl9jb3VudChzZXEyJHN0cmluZywgXCJDXCIpXG4gIFxuICAjTnVtYmVyIG9mIG51Y2xlb3RpZGVzXG4gIG5iX250IDwtIG5iQSArIG5iVCArIG5iRyArIG5iQyBcbiAgXG4gICNOdW1iZXIgb2YgcGhvc3BoYXRlc1xuICBuYl9QTyA8LSBuYl9udCAtIDEgIFxuIFxuICBwcmludChwYXN0ZSgndGhlIG51bWJlciBvZiBwaG9zcGhhdGVzIGlzICcsIG5iX1BPKSlcbmBgYCJ9 -->
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a></span>
-<span id="cb4-2"><a href="#cb4-2"></a>  nbA &lt;-<span class="st"> </span><span class="kw">str_count</span>(seq2<span class="op">$</span>string, <span class="st">&quot;A&quot;</span>)</span>
-<span id="cb4-3"><a href="#cb4-3"></a>  </span>
-<span id="cb4-4"><a href="#cb4-4"></a>  nbT &lt;-<span class="st"> </span><span class="kw">str_count</span>(seq2<span class="op">$</span>string, <span class="st">&quot;T&quot;</span>)</span>
-<span id="cb4-5"><a href="#cb4-5"></a></span>
-<span id="cb4-6"><a href="#cb4-6"></a>  nbG &lt;-<span class="st"> </span><span class="kw">str_count</span>(seq2<span class="op">$</span>string, <span class="st">&quot;G&quot;</span>)</span>
-<span id="cb4-7"><a href="#cb4-7"></a></span>
-<span id="cb4-8"><a href="#cb4-8"></a>  nbC &lt;-<span class="st"> </span><span class="kw">str_count</span>(seq2<span class="op">$</span>string, <span class="st">&quot;C&quot;</span>)</span>
-<span id="cb4-9"><a href="#cb4-9"></a>  </span>
-<span id="cb4-10"><a href="#cb4-10"></a>  <span class="co">#Number of nucleotides</span></span>
-<span id="cb4-11"><a href="#cb4-11"></a>  nb_nt &lt;-<span class="st"> </span>nbA <span class="op">+</span><span class="st"> </span>nbT <span class="op">+</span><span class="st"> </span>nbG <span class="op">+</span><span class="st"> </span>nbC </span>
-<span id="cb4-12"><a href="#cb4-12"></a>  </span>
-<span id="cb4-13"><a href="#cb4-13"></a>  <span class="co">#Number of phosphates</span></span>
-<span id="cb4-14"><a href="#cb4-14"></a>  nb_PO &lt;-<span class="st"> </span>nb_nt <span class="op">-</span><span class="st"> </span><span class="dv">1</span>  </span>
-<span id="cb4-15"><a href="#cb4-15"></a> </span>
-<span id="cb4-16"><a href="#cb4-16"></a>  <span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the number of phosphates is &#39;</span>, nb_PO))</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"></a>
+<a class="sourceLine" id="cb4-2" title="2">  nbA &lt;-<span class="st"> </span><span class="kw">str_count</span>(seq2<span class="op">$</span>string, <span class="st">&quot;A&quot;</span>)</a>
+<a class="sourceLine" id="cb4-3" title="3">  </a>
+<a class="sourceLine" id="cb4-4" title="4">  nbT &lt;-<span class="st"> </span><span class="kw">str_count</span>(seq2<span class="op">$</span>string, <span class="st">&quot;T&quot;</span>)</a>
+<a class="sourceLine" id="cb4-5" title="5"></a>
+<a class="sourceLine" id="cb4-6" title="6">  nbG &lt;-<span class="st"> </span><span class="kw">str_count</span>(seq2<span class="op">$</span>string, <span class="st">&quot;G&quot;</span>)</a>
+<a class="sourceLine" id="cb4-7" title="7"></a>
+<a class="sourceLine" id="cb4-8" title="8">  nbC &lt;-<span class="st"> </span><span class="kw">str_count</span>(seq2<span class="op">$</span>string, <span class="st">&quot;C&quot;</span>)</a>
+<a class="sourceLine" id="cb4-9" title="9">  </a>
+<a class="sourceLine" id="cb4-10" title="10">  <span class="co">#Number of nucleotides</span></a>
+<a class="sourceLine" id="cb4-11" title="11">  nb_nt &lt;-<span class="st"> </span>nbA <span class="op">+</span><span class="st"> </span>nbT <span class="op">+</span><span class="st"> </span>nbG <span class="op">+</span><span class="st"> </span>nbC </a>
+<a class="sourceLine" id="cb4-12" title="12">  </a>
+<a class="sourceLine" id="cb4-13" title="13">  <span class="co">#Number of phosphates</span></a>
+<a class="sourceLine" id="cb4-14" title="14">  nb_PO &lt;-<span class="st"> </span>nb_nt <span class="op">-</span><span class="st"> </span><span class="dv">1</span>  </a>
+<a class="sourceLine" id="cb4-15" title="15"> </a>
+<a class="sourceLine" id="cb4-16" title="16">  <span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the number of phosphates is &#39;</span>, nb_PO))</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2015,11 +2014,11 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICBcbiAgI05ldXRyYWxpemVkIHBob3NwaGF0ZSBcbiAgbmJfUE9IIDwtIG5iX1BPIC0geiAtIEtcbiAgXG5wcmludChwYXN0ZSgndGhlIG51bWJlciBvZiBuZXV0cmFsaXplZCBwaG9zcGhhdGVzIGlzICcsIG5iX1BPSCkpXG5gYGAifQ== -->
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>  </span>
-<span id="cb5-2"><a href="#cb5-2"></a>  <span class="co">#Neutralized phosphate </span></span>
-<span id="cb5-3"><a href="#cb5-3"></a>  nb_POH &lt;-<span class="st"> </span>nb_PO <span class="op">-</span><span class="st"> </span>z <span class="op">-</span><span class="st"> </span>K</span>
-<span id="cb5-4"><a href="#cb5-4"></a>  </span>
-<span id="cb5-5"><a href="#cb5-5"></a><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the number of neutralized phosphates is &#39;</span>, nb_POH))</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">  </a>
+<a class="sourceLine" id="cb5-2" title="2">  <span class="co">#Neutralized phosphate </span></a>
+<a class="sourceLine" id="cb5-3" title="3">  nb_POH &lt;-<span class="st"> </span>nb_PO <span class="op">-</span><span class="st"> </span>z <span class="op">-</span><span class="st"> </span>K</a>
+<a class="sourceLine" id="cb5-4" title="4">  </a>
+<a class="sourceLine" id="cb5-5" title="5"><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the number of neutralized phosphates is &#39;</span>, nb_POH))</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2027,88 +2026,88 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICBuQyA8LSBuYkEqMTAgKyBuYkcqMTAgKyBuYkMqOSArIG5iVCoxMFxuXG4gIG5IIDwtIG5IIDwtIG5iQSoxMiArIG5iRyoxMiArIG5iQyoxMiArIG5iVCoxMyArIDEgLSB6IC0gS1xuIFxuICBuTyA8LSBuYkEqNSArIG5iRyo2ICsgbmJDKjYgKyBuYlQqNyAtIDJcblxuICBuTiA8LSBuYkEqNSArIG5iRyo1ICsgbmJDKjMgKyBuYlQqMlxuIFxuICBuUCA8LSBuYl9QT1xuICBcbiAgbksgPC0gS1xuICBcbiAgY2hlbS5mb3JtdWxhIDwtIHBhc3RlKCdDaGVtaWNhbCBmb3JtdWxhOiAnLCBcbiAgICAgICAgICAgICAgICAgICAgICAgIFwiQ1wiLCBuQywgXCJIXCIsIG5ILCBcIk9cIiwgbk8sIFxuICAgICAgICAgICAgICAgICAgICAgICAgXCJOXCIsbk4sIFwiUFwiLCBuUCwgXCJLXCIsIG5LLCBcbiAgICAgICAgICAgICAgICAgICAgICAgIHNlcCA9ICcnKVxuICBjaGVtLmZvcm11bGFcbmBgYCJ9 -->
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>  nC &lt;-<span class="st"> </span>nbA<span class="op">*</span><span class="dv">10</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">10</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">9</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">10</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a></span>
-<span id="cb6-3"><a href="#cb6-3"></a>  nH &lt;-<span class="st"> </span>nH &lt;-<span class="st"> </span>nbA<span class="op">*</span><span class="dv">12</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">12</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">12</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">13</span> <span class="op">+</span><span class="st"> </span><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>z <span class="op">-</span><span class="st"> </span>K</span>
-<span id="cb6-4"><a href="#cb6-4"></a> </span>
-<span id="cb6-5"><a href="#cb6-5"></a>  nO &lt;-<span class="st"> </span>nbA<span class="op">*</span><span class="dv">5</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">6</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">6</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">7</span> <span class="op">-</span><span class="st"> </span><span class="dv">2</span></span>
-<span id="cb6-6"><a href="#cb6-6"></a></span>
-<span id="cb6-7"><a href="#cb6-7"></a>  nN &lt;-<span class="st"> </span>nbA<span class="op">*</span><span class="dv">5</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">5</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">3</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">2</span></span>
-<span id="cb6-8"><a href="#cb6-8"></a> </span>
-<span id="cb6-9"><a href="#cb6-9"></a>  nP &lt;-<span class="st"> </span>nb_PO</span>
-<span id="cb6-10"><a href="#cb6-10"></a>  </span>
-<span id="cb6-11"><a href="#cb6-11"></a>  nK &lt;-<span class="st"> </span>K</span>
-<span id="cb6-12"><a href="#cb6-12"></a>  </span>
-<span id="cb6-13"><a href="#cb6-13"></a>  chem.formula &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="st">&#39;Chemical formula: &#39;</span>, </span>
-<span id="cb6-14"><a href="#cb6-14"></a>                        <span class="st">&quot;C&quot;</span>, nC, <span class="st">&quot;H&quot;</span>, nH, <span class="st">&quot;O&quot;</span>, nO, </span>
-<span id="cb6-15"><a href="#cb6-15"></a>                        <span class="st">&quot;N&quot;</span>,nN, <span class="st">&quot;P&quot;</span>, nP, <span class="st">&quot;K&quot;</span>, nK, </span>
-<span id="cb6-16"><a href="#cb6-16"></a>                        <span class="dt">sep =</span> <span class="st">&#39;&#39;</span>)</span>
-<span id="cb6-17"><a href="#cb6-17"></a>  chem.formula</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">  nC &lt;-<span class="st"> </span>nbA<span class="op">*</span><span class="dv">10</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">10</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">9</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb6-2" title="2"></a>
+<a class="sourceLine" id="cb6-3" title="3">  nH &lt;-<span class="st"> </span>nH &lt;-<span class="st"> </span>nbA<span class="op">*</span><span class="dv">12</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">12</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">12</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">13</span> <span class="op">+</span><span class="st"> </span><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>z <span class="op">-</span><span class="st"> </span>K</a>
+<a class="sourceLine" id="cb6-4" title="4"> </a>
+<a class="sourceLine" id="cb6-5" title="5">  nO &lt;-<span class="st"> </span>nbA<span class="op">*</span><span class="dv">5</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">6</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">6</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">7</span> <span class="op">-</span><span class="st"> </span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb6-6" title="6"></a>
+<a class="sourceLine" id="cb6-7" title="7">  nN &lt;-<span class="st"> </span>nbA<span class="op">*</span><span class="dv">5</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">5</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">3</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb6-8" title="8"> </a>
+<a class="sourceLine" id="cb6-9" title="9">  nP &lt;-<span class="st"> </span>nb_PO</a>
+<a class="sourceLine" id="cb6-10" title="10">  </a>
+<a class="sourceLine" id="cb6-11" title="11">  nK &lt;-<span class="st"> </span>K</a>
+<a class="sourceLine" id="cb6-12" title="12">  </a>
+<a class="sourceLine" id="cb6-13" title="13">  chem.formula &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="st">&#39;Chemical formula: &#39;</span>, </a>
+<a class="sourceLine" id="cb6-14" title="14">                        <span class="st">&quot;C&quot;</span>, nC, <span class="st">&quot;H&quot;</span>, nH, <span class="st">&quot;O&quot;</span>, nO, </a>
+<a class="sourceLine" id="cb6-15" title="15">                        <span class="st">&quot;N&quot;</span>,nN, <span class="st">&quot;P&quot;</span>, nP, <span class="st">&quot;K&quot;</span>, nK, </a>
+<a class="sourceLine" id="cb6-16" title="16">                        <span class="dt">sep =</span> <span class="st">&#39;&#39;</span>)</a>
+<a class="sourceLine" id="cb6-17" title="17">  chem.formula</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
 <div id="exchangeable-sites" class="section level4">
-<h4 number="1.3.4.4"><span class="header-section-number">1.3.4.4</span> Exchangeable sites</h4>
+<h4><span class="header-section-number">1.3.4.4</span> Exchangeable sites</h4>
 <p>The number of exchangeable sites can be set manually, or via preset values calculated from the sequence. We use here the default preset (<code>nX.select &lt;- &#39;A&#39;</code>), that is no exchanging sites on phosphates and termini.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI21hbnVhbCBwcmVzZXQgc2VsZWN0aW9uXG5uWC5zZWxlY3QgPC0gJ0EnXG5cbm5YIDwtIGlmKG5YLnVzZXIgPT0gJycpe1xuICBpZihuWC5zZWxlY3QgPT0gJ0EnKXtcbiAgICBuYl9QTyArIDIgKyBuYkEqMiArIG5iVCoxICsgbmJHKjMgKyBuYkMqMiAtIHpcbiAgfSBlbHNlIHtcbiAgICBpZihuWC5zZWxlY3QgPT0gJ0InKXtcbiAgICAgIDIgKyBuYkEqMiArIG5iVCoxICsgbmJHKjMgKyBuYkMqMlxuICAgIH0gZWxzZSB7XG4gICAgICBuYkEqMiArIG5iVCoxICsgbmJHKjMgKyBuYkMqMlxuICAgIH1cbiAgfVxufSBlbHNlIHtcbiAgblgudXNlclxufVxuXG5wcmludChwYXN0ZSgndGhlIG51bWJlciBvZiBleGNoYW5naW5nIHNpdGVzIGlzICcsIG5YKSlcbmBgYCJ9 -->
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co">#manual preset selection</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a>nX.select &lt;-<span class="st"> &#39;A&#39;</span></span>
-<span id="cb7-3"><a href="#cb7-3"></a></span>
-<span id="cb7-4"><a href="#cb7-4"></a>nX &lt;-<span class="st"> </span><span class="cf">if</span>(nX.user <span class="op">==</span><span class="st"> &#39;&#39;</span>){</span>
-<span id="cb7-5"><a href="#cb7-5"></a>  <span class="cf">if</span>(nX.select <span class="op">==</span><span class="st"> &#39;A&#39;</span>){</span>
-<span id="cb7-6"><a href="#cb7-6"></a>    nb_PO <span class="op">+</span><span class="st"> </span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbA<span class="op">*</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">3</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span>z</span>
-<span id="cb7-7"><a href="#cb7-7"></a>  } <span class="cf">else</span> {</span>
-<span id="cb7-8"><a href="#cb7-8"></a>    <span class="cf">if</span>(nX.select <span class="op">==</span><span class="st"> &#39;B&#39;</span>){</span>
-<span id="cb7-9"><a href="#cb7-9"></a>      <span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbA<span class="op">*</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">3</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">2</span></span>
-<span id="cb7-10"><a href="#cb7-10"></a>    } <span class="cf">else</span> {</span>
-<span id="cb7-11"><a href="#cb7-11"></a>      nbA<span class="op">*</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">3</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">2</span></span>
-<span id="cb7-12"><a href="#cb7-12"></a>    }</span>
-<span id="cb7-13"><a href="#cb7-13"></a>  }</span>
-<span id="cb7-14"><a href="#cb7-14"></a>} <span class="cf">else</span> {</span>
-<span id="cb7-15"><a href="#cb7-15"></a>  nX.user</span>
-<span id="cb7-16"><a href="#cb7-16"></a>}</span>
-<span id="cb7-17"><a href="#cb7-17"></a></span>
-<span id="cb7-18"><a href="#cb7-18"></a><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the number of exchanging sites is &#39;</span>, nX))</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="co">#manual preset selection</span></a>
+<a class="sourceLine" id="cb7-2" title="2">nX.select &lt;-<span class="st"> &#39;A&#39;</span></a>
+<a class="sourceLine" id="cb7-3" title="3"></a>
+<a class="sourceLine" id="cb7-4" title="4">nX &lt;-<span class="st"> </span><span class="cf">if</span>(nX.user <span class="op">==</span><span class="st"> &#39;&#39;</span>){</a>
+<a class="sourceLine" id="cb7-5" title="5">  <span class="cf">if</span>(nX.select <span class="op">==</span><span class="st"> &#39;A&#39;</span>){</a>
+<a class="sourceLine" id="cb7-6" title="6">    nb_PO <span class="op">+</span><span class="st"> </span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbA<span class="op">*</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">3</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span>z</a>
+<a class="sourceLine" id="cb7-7" title="7">  } <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb7-8" title="8">    <span class="cf">if</span>(nX.select <span class="op">==</span><span class="st"> &#39;B&#39;</span>){</a>
+<a class="sourceLine" id="cb7-9" title="9">      <span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbA<span class="op">*</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">3</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb7-10" title="10">    } <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb7-11" title="11">      nbA<span class="op">*</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>nbT<span class="op">*</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>nbG<span class="op">*</span><span class="dv">3</span> <span class="op">+</span><span class="st"> </span>nbC<span class="op">*</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb7-12" title="12">    }</a>
+<a class="sourceLine" id="cb7-13" title="13">  }</a>
+<a class="sourceLine" id="cb7-14" title="14">} <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb7-15" title="15">  nX.user</a>
+<a class="sourceLine" id="cb7-16" title="16">}</a>
+<a class="sourceLine" id="cb7-17" title="17"></a>
+<a class="sourceLine" id="cb7-18" title="18"><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the number of exchanging sites is &#39;</span>, nX))</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
 <div id="mass-calculations" class="section level4">
-<h4 number="1.3.4.5"><span class="header-section-number">1.3.4.5</span> Mass calculations</h4>
+<h4><span class="header-section-number">1.3.4.5</span> Mass calculations</h4>
 <p>The masses and abundances were obtained on the <a href="https://www.ciaaw.org/">website of the CIAWW</a>. The abundance of deuterium is calculated from the content given by the user <code>DC</code>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0lzb3RvcGUgYWJ1bmRhbmNlcyAoYXZlcmFnZWQpLiBcbiNTb3VyY2U6IElzb3RvcGljIGNvbXBvc2l0aW9ucyBvZiB0aGUgZWxlbWVudHMgMjAxNy4gQXZhaWxhYmxlIG9ubGluZSBhdCB3d3cuY2lhYXcub3JnLlxuICBsaXN0SXNvIDwtIGxpc3QoXG4gICAgICBIID0gYygwLjk5OTg1NSwgMC4wMDAxNDUpLCAjTmF0dXJhbCAxSCBgYGFuZCAySCBpc290b3BlIGFidW5kYW5jZXNcbiAgICAgIEMgPSBjKDAuOTg5NCwgMC4wMTA2KSxcbiAgICAgIE4gPSBjKDAuOTk2MjA1LCAwLjAwMzc5NSksXG4gICAgICBPID0gYygwLjk5NzU3LCAwLjAwMDM4MzUsIDAuMDAyMDQ1KSxcbiAgICAgIEQgPSBjKDEwMC1EQywgREMpLzEwMCwgICAgIFxuICAgICAgI2NvbXB1dGVkIDFIIGFuZCAySCBpc290b3BlIGFidW5kYW5jZXMgZm9yIGV4Y2hhbmdlYWJsZVxuICAgICAgI3NpdGVzIGRlcGVuZGluZyBvbiB0aGUgZGV1dGVyaXVtIGNvbnRlbnQgRENcbiAgICAgIFAgPSBjKDEpLFxuICAgICAgSyA9IGMoMC45MzI1ODE0NCwgMC4wMDAxMTcxLCAwLjA2NzMwMjQ0KVxuICAgIClcblxuI0F0b21pYyBtYXNzZXMuIFxuI0N1cnJlbnQgYXRvbWljIG1hc3NlcyBhdmFpbGFibGUgb25saW5lIGF0IHd3dy5jaWFhdy5vcmcgXG4jQmFzZWQgb24gV2FuZyxNLiwgQXVkaSxHLiwgS29uZGV2LEYuRy4sIEh1YW5nLFcuSi4sIE5haW1pLFMuLCBldCBhbC4gKDIwMTcpIFxuI0NoaW5lc2UgUGh5cy4gQywgNDEsIDAzMDAwMy5cbiAgbGlzdE1hc3MgPC0gbGlzdChcbiAgICBIID0gYygxLjAwNzgyNTAzMjIsIDIuMDE0MTAxNzc4MSksXG4gICAgQyA9IGMoMTIsIDEzLjAwMzM1NDgzNSksXG4gICAgTiA9IGMoMTQuMDAzMDc0MDA0LCAxNS4wMDAxMDg4OTkpLFxuICAgIE8gPSBjKDE1Ljk5NDkxNDYxOSwgMTYuOTk5MTMxNzU3LCAxNy45OTkxNTk2MTMpLFxuICAgIEQgPSBjKDEuMDA3ODI1MDMyMiwgMi4wMTQxMDE3NzgxKSxcbiAgICBQID0gYygzMC45NzM3NjE5OTgpLFxuICAgIEsgPSBjKDM4Ljk2MzcwNjQ5LCAzOS45NjM5OTgyLCA0MC45NjE4MjUyNilcbiAgKVxuYGBgIn0= -->
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">#Isotope abundances (averaged). </span></span>
-<span id="cb8-2"><a href="#cb8-2"></a><span class="co">#Source: Isotopic compositions of the elements 2017. Available online at www.ciaaw.org.</span></span>
-<span id="cb8-3"><a href="#cb8-3"></a>  listIso &lt;-<span class="st"> </span><span class="kw">list</span>(</span>
-<span id="cb8-4"><a href="#cb8-4"></a>      <span class="dt">H =</span> <span class="kw">c</span>(<span class="fl">0.999855</span>, <span class="fl">0.000145</span>), <span class="co">#Natural 1H ``and 2H isotope abundances</span></span>
-<span id="cb8-5"><a href="#cb8-5"></a>      <span class="dt">C =</span> <span class="kw">c</span>(<span class="fl">0.9894</span>, <span class="fl">0.0106</span>),</span>
-<span id="cb8-6"><a href="#cb8-6"></a>      <span class="dt">N =</span> <span class="kw">c</span>(<span class="fl">0.996205</span>, <span class="fl">0.003795</span>),</span>
-<span id="cb8-7"><a href="#cb8-7"></a>      <span class="dt">O =</span> <span class="kw">c</span>(<span class="fl">0.99757</span>, <span class="fl">0.0003835</span>, <span class="fl">0.002045</span>),</span>
-<span id="cb8-8"><a href="#cb8-8"></a>      <span class="dt">D =</span> <span class="kw">c</span>(<span class="dv">100</span><span class="op">-</span>DC, DC)<span class="op">/</span><span class="dv">100</span>,     </span>
-<span id="cb8-9"><a href="#cb8-9"></a>      <span class="co">#computed 1H and 2H isotope abundances for exchangeable</span></span>
-<span id="cb8-10"><a href="#cb8-10"></a>      <span class="co">#sites depending on the deuterium content DC</span></span>
-<span id="cb8-11"><a href="#cb8-11"></a>      <span class="dt">P =</span> <span class="kw">c</span>(<span class="dv">1</span>),</span>
-<span id="cb8-12"><a href="#cb8-12"></a>      <span class="dt">K =</span> <span class="kw">c</span>(<span class="fl">0.93258144</span>, <span class="fl">0.0001171</span>, <span class="fl">0.06730244</span>)</span>
-<span id="cb8-13"><a href="#cb8-13"></a>    )</span>
-<span id="cb8-14"><a href="#cb8-14"></a></span>
-<span id="cb8-15"><a href="#cb8-15"></a><span class="co">#Atomic masses. </span></span>
-<span id="cb8-16"><a href="#cb8-16"></a><span class="co">#Current atomic masses available online at www.ciaaw.org </span></span>
-<span id="cb8-17"><a href="#cb8-17"></a><span class="co">#Based on Wang,M., Audi,G., Kondev,F.G., Huang,W.J., Naimi,S., et al. (2017) </span></span>
-<span id="cb8-18"><a href="#cb8-18"></a><span class="co">#Chinese Phys. C, 41, 030003.</span></span>
-<span id="cb8-19"><a href="#cb8-19"></a>  listMass &lt;-<span class="st"> </span><span class="kw">list</span>(</span>
-<span id="cb8-20"><a href="#cb8-20"></a>    <span class="dt">H =</span> <span class="kw">c</span>(<span class="fl">1.0078250322</span>, <span class="fl">2.0141017781</span>),</span>
-<span id="cb8-21"><a href="#cb8-21"></a>    <span class="dt">C =</span> <span class="kw">c</span>(<span class="dv">12</span>, <span class="fl">13.003354835</span>),</span>
-<span id="cb8-22"><a href="#cb8-22"></a>    <span class="dt">N =</span> <span class="kw">c</span>(<span class="fl">14.003074004</span>, <span class="fl">15.000108899</span>),</span>
-<span id="cb8-23"><a href="#cb8-23"></a>    <span class="dt">O =</span> <span class="kw">c</span>(<span class="fl">15.994914619</span>, <span class="fl">16.999131757</span>, <span class="fl">17.999159613</span>),</span>
-<span id="cb8-24"><a href="#cb8-24"></a>    <span class="dt">D =</span> <span class="kw">c</span>(<span class="fl">1.0078250322</span>, <span class="fl">2.0141017781</span>),</span>
-<span id="cb8-25"><a href="#cb8-25"></a>    <span class="dt">P =</span> <span class="kw">c</span>(<span class="fl">30.973761998</span>),</span>
-<span id="cb8-26"><a href="#cb8-26"></a>    <span class="dt">K =</span> <span class="kw">c</span>(<span class="fl">38.96370649</span>, <span class="fl">39.9639982</span>, <span class="fl">40.96182526</span>)</span>
-<span id="cb8-27"><a href="#cb8-27"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1"><span class="co">#Isotope abundances (averaged). </span></a>
+<a class="sourceLine" id="cb8-2" title="2"><span class="co">#Source: Isotopic compositions of the elements 2017. Available online at www.ciaaw.org.</span></a>
+<a class="sourceLine" id="cb8-3" title="3">  listIso &lt;-<span class="st"> </span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb8-4" title="4">      <span class="dt">H =</span> <span class="kw">c</span>(<span class="fl">0.999855</span>, <span class="fl">0.000145</span>), <span class="co">#Natural 1H ``and 2H isotope abundances</span></a>
+<a class="sourceLine" id="cb8-5" title="5">      <span class="dt">C =</span> <span class="kw">c</span>(<span class="fl">0.9894</span>, <span class="fl">0.0106</span>),</a>
+<a class="sourceLine" id="cb8-6" title="6">      <span class="dt">N =</span> <span class="kw">c</span>(<span class="fl">0.996205</span>, <span class="fl">0.003795</span>),</a>
+<a class="sourceLine" id="cb8-7" title="7">      <span class="dt">O =</span> <span class="kw">c</span>(<span class="fl">0.99757</span>, <span class="fl">0.0003835</span>, <span class="fl">0.002045</span>),</a>
+<a class="sourceLine" id="cb8-8" title="8">      <span class="dt">D =</span> <span class="kw">c</span>(<span class="dv">100</span><span class="op">-</span>DC, DC)<span class="op">/</span><span class="dv">100</span>,     </a>
+<a class="sourceLine" id="cb8-9" title="9">      <span class="co">#computed 1H and 2H isotope abundances for exchangeable</span></a>
+<a class="sourceLine" id="cb8-10" title="10">      <span class="co">#sites depending on the deuterium content DC</span></a>
+<a class="sourceLine" id="cb8-11" title="11">      <span class="dt">P =</span> <span class="kw">c</span>(<span class="dv">1</span>),</a>
+<a class="sourceLine" id="cb8-12" title="12">      <span class="dt">K =</span> <span class="kw">c</span>(<span class="fl">0.93258144</span>, <span class="fl">0.0001171</span>, <span class="fl">0.06730244</span>)</a>
+<a class="sourceLine" id="cb8-13" title="13">    )</a>
+<a class="sourceLine" id="cb8-14" title="14"></a>
+<a class="sourceLine" id="cb8-15" title="15"><span class="co">#Atomic masses. </span></a>
+<a class="sourceLine" id="cb8-16" title="16"><span class="co">#Current atomic masses available online at www.ciaaw.org </span></a>
+<a class="sourceLine" id="cb8-17" title="17"><span class="co">#Based on Wang,M., Audi,G., Kondev,F.G., Huang,W.J., Naimi,S., et al. (2017) </span></a>
+<a class="sourceLine" id="cb8-18" title="18"><span class="co">#Chinese Phys. C, 41, 030003.</span></a>
+<a class="sourceLine" id="cb8-19" title="19">  listMass &lt;-<span class="st"> </span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb8-20" title="20">    <span class="dt">H =</span> <span class="kw">c</span>(<span class="fl">1.0078250322</span>, <span class="fl">2.0141017781</span>),</a>
+<a class="sourceLine" id="cb8-21" title="21">    <span class="dt">C =</span> <span class="kw">c</span>(<span class="dv">12</span>, <span class="fl">13.003354835</span>),</a>
+<a class="sourceLine" id="cb8-22" title="22">    <span class="dt">N =</span> <span class="kw">c</span>(<span class="fl">14.003074004</span>, <span class="fl">15.000108899</span>),</a>
+<a class="sourceLine" id="cb8-23" title="23">    <span class="dt">O =</span> <span class="kw">c</span>(<span class="fl">15.994914619</span>, <span class="fl">16.999131757</span>, <span class="fl">17.999159613</span>),</a>
+<a class="sourceLine" id="cb8-24" title="24">    <span class="dt">D =</span> <span class="kw">c</span>(<span class="fl">1.0078250322</span>, <span class="fl">2.0141017781</span>),</a>
+<a class="sourceLine" id="cb8-25" title="25">    <span class="dt">P =</span> <span class="kw">c</span>(<span class="fl">30.973761998</span>),</a>
+<a class="sourceLine" id="cb8-26" title="26">    <span class="dt">K =</span> <span class="kw">c</span>(<span class="fl">38.96370649</span>, <span class="fl">39.9639982</span>, <span class="fl">40.96182526</span>)</a>
+<a class="sourceLine" id="cb8-27" title="27">  )</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2116,19 +2115,19 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTW9ub01XIDwtIG5DKmxpc3RNYXNzJENbMV0gKyBuSCpsaXN0TWFzcyRIWzFdICsgXG4gIG5OKmxpc3RNYXNzJE5bMV0gKyBuTypsaXN0TWFzcyRPWzFdICsgXG4gIG5QKmxpc3RNYXNzJFBbMV0gKyBuSypsaXN0TWFzcyRLWzFdXG5cbnByaW50KHBhc3RlKCd0aGUgbW9ub2lzb3RvcGljIG1hc3MgaXMgJywgTW9ub01XKSlcblxuTW9ub216IDwtIGlmICh6PjApIHtcbiAgTW9ub01XL3pcbn0gZWxzZSB7XG4gIE1vbm9NV1xufVxuXG5wcmludChwYXN0ZSgndGhlIG1vbm9pc290b3BpYyBtL3ogaXMgJywgTW9ub216KSlcbmBgYCJ9 -->
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>MonoMW &lt;-<span class="st"> </span>nC<span class="op">*</span>listMass<span class="op">$</span>C[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>nH<span class="op">*</span>listMass<span class="op">$</span>H[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span></span>
-<span id="cb9-2"><a href="#cb9-2"></a><span class="st">  </span>nN<span class="op">*</span>listMass<span class="op">$</span>N[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>nO<span class="op">*</span>listMass<span class="op">$</span>O[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span></span>
-<span id="cb9-3"><a href="#cb9-3"></a><span class="st">  </span>nP<span class="op">*</span>listMass<span class="op">$</span>P[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>nK<span class="op">*</span>listMass<span class="op">$</span>K[<span class="dv">1</span>]</span>
-<span id="cb9-4"><a href="#cb9-4"></a></span>
-<span id="cb9-5"><a href="#cb9-5"></a><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the monoisotopic mass is &#39;</span>, MonoMW))</span>
-<span id="cb9-6"><a href="#cb9-6"></a></span>
-<span id="cb9-7"><a href="#cb9-7"></a>Monomz &lt;-<span class="st"> </span><span class="cf">if</span> (z<span class="op">&gt;</span><span class="dv">0</span>) {</span>
-<span id="cb9-8"><a href="#cb9-8"></a>  MonoMW<span class="op">/</span>z</span>
-<span id="cb9-9"><a href="#cb9-9"></a>} <span class="cf">else</span> {</span>
-<span id="cb9-10"><a href="#cb9-10"></a>  MonoMW</span>
-<span id="cb9-11"><a href="#cb9-11"></a>}</span>
-<span id="cb9-12"><a href="#cb9-12"></a></span>
-<span id="cb9-13"><a href="#cb9-13"></a><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the monoisotopic m/z is &#39;</span>, Monomz))</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">MonoMW &lt;-<span class="st"> </span>nC<span class="op">*</span>listMass<span class="op">$</span>C[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>nH<span class="op">*</span>listMass<span class="op">$</span>H[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-2" title="2"><span class="st">  </span>nN<span class="op">*</span>listMass<span class="op">$</span>N[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>nO<span class="op">*</span>listMass<span class="op">$</span>O[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-3" title="3"><span class="st">  </span>nP<span class="op">*</span>listMass<span class="op">$</span>P[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>nK<span class="op">*</span>listMass<span class="op">$</span>K[<span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb9-4" title="4"></a>
+<a class="sourceLine" id="cb9-5" title="5"><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the monoisotopic mass is &#39;</span>, MonoMW))</a>
+<a class="sourceLine" id="cb9-6" title="6"></a>
+<a class="sourceLine" id="cb9-7" title="7">Monomz &lt;-<span class="st"> </span><span class="cf">if</span> (z<span class="op">&gt;</span><span class="dv">0</span>) {</a>
+<a class="sourceLine" id="cb9-8" title="8">  MonoMW<span class="op">/</span>z</a>
+<a class="sourceLine" id="cb9-9" title="9">} <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb9-10" title="10">  MonoMW</a>
+<a class="sourceLine" id="cb9-11" title="11">}</a>
+<a class="sourceLine" id="cb9-12" title="12"></a>
+<a class="sourceLine" id="cb9-13" title="13"><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the monoisotopic m/z is &#39;</span>, Monomz))</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2136,52 +2135,52 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICNBdmVyYWdlIG1hc3MgY2FsY3VsYXRpb24gZnJvbSBudW1iZXIgb2YgYXRvbXMsIGlzb3RvcGljIG1hc3NlcyBhbmQgYWJ1bmRhbmNlcy4gXG5BdmVNVyA8LSBuQyoobGlzdElzbyRDWzFdKmxpc3RNYXNzJENbMV0gKyBsaXN0SXNvJENbMl0qbGlzdE1hc3MkQ1syXSkgKyBcbiAgICAgICAgIChuSC1uWCkqKGxpc3RJc28kSFsxXSpsaXN0TWFzcyRIWzFdICsgbGlzdElzbyRIWzJdKmxpc3RNYXNzJEhbMl0pICsgXG4gICAgICAgICBuTioobGlzdElzbyROWzFdKmxpc3RNYXNzJE5bMV0gKyBsaXN0SXNvJE5bMl0qbGlzdE1hc3MkTlsyXSkgKyBcbiAgICAgICAgIG5PKihsaXN0SXNvJE9bMV0qbGlzdE1hc3MkT1sxXSArIGxpc3RJc28kT1syXSpsaXN0TWFzcyRPWzJdICsgXG4gICAgICAgICBsaXN0SXNvJE9bM10qbGlzdE1hc3MkT1szXSkgKyBcbiAgICAgICAgIG5YKihsaXN0SXNvJERbMV0qbGlzdE1hc3MkRFsxXSArIGxpc3RJc28kRFsyXSpsaXN0TWFzcyREWzJdKSArIFxuICAgICAgICAgblAqKGxpc3RJc28kUFsxXSpsaXN0TWFzcyRQWzFdKSArIFxuICAgICAgICAgbksqKGxpc3RJc28kS1sxXSpsaXN0TWFzcyRLWzFdICsgbGlzdElzbyRLWzJdKmxpc3RNYXNzJEtbMl0gKyBcbiAgICAgICAgIGxpc3RJc28kS1szXSpsaXN0TWFzcyRLWzNdKVxuXG5wcmludChwYXN0ZSgndGhlIGF2ZXJhZ2UgbWFzcyBpcyAnLCBBdmVNVykpXG4gIFxuICBBdmVteiA8LSBpZiAoej4wKSB7XG4gICAgQXZlTVcvelxuICB9IGVsc2Uge1xuICAgIEF2ZU1XL3pcbiAgfVxuICBcbnByaW50KHBhc3RlKCd0aGUgYXZlcmFnZSBtL3ogaXMgJywgQXZlbXopKVxuXG5gYGAifQ== -->
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a> <span class="co">#Average mass calculation from number of atoms, isotopic masses and abundances. </span></span>
-<span id="cb10-2"><a href="#cb10-2"></a>AveMW &lt;-<span class="st"> </span>nC<span class="op">*</span>(listIso<span class="op">$</span>C[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>C[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>C[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>C[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="st">         </span>(nH<span class="op">-</span>nX)<span class="op">*</span>(listIso<span class="op">$</span>H[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>H[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>H[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>H[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span></span>
-<span id="cb10-4"><a href="#cb10-4"></a><span class="st">         </span>nN<span class="op">*</span>(listIso<span class="op">$</span>N[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>N[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>N[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>N[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span></span>
-<span id="cb10-5"><a href="#cb10-5"></a><span class="st">         </span>nO<span class="op">*</span>(listIso<span class="op">$</span>O[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>O[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>O[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>O[<span class="dv">2</span>] <span class="op">+</span><span class="st"> </span></span>
-<span id="cb10-6"><a href="#cb10-6"></a><span class="st">         </span>listIso<span class="op">$</span>O[<span class="dv">3</span>]<span class="op">*</span>listMass<span class="op">$</span>O[<span class="dv">3</span>]) <span class="op">+</span><span class="st"> </span></span>
-<span id="cb10-7"><a href="#cb10-7"></a><span class="st">         </span>nX<span class="op">*</span>(listIso<span class="op">$</span>D[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>D[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>D[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>D[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span></span>
-<span id="cb10-8"><a href="#cb10-8"></a><span class="st">         </span>nP<span class="op">*</span>(listIso<span class="op">$</span>P[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>P[<span class="dv">1</span>]) <span class="op">+</span><span class="st"> </span></span>
-<span id="cb10-9"><a href="#cb10-9"></a><span class="st">         </span>nK<span class="op">*</span>(listIso<span class="op">$</span>K[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>K[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>K[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>K[<span class="dv">2</span>] <span class="op">+</span><span class="st"> </span></span>
-<span id="cb10-10"><a href="#cb10-10"></a><span class="st">         </span>listIso<span class="op">$</span>K[<span class="dv">3</span>]<span class="op">*</span>listMass<span class="op">$</span>K[<span class="dv">3</span>])</span>
-<span id="cb10-11"><a href="#cb10-11"></a></span>
-<span id="cb10-12"><a href="#cb10-12"></a><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the average mass is &#39;</span>, AveMW))</span>
-<span id="cb10-13"><a href="#cb10-13"></a>  </span>
-<span id="cb10-14"><a href="#cb10-14"></a>  Avemz &lt;-<span class="st"> </span><span class="cf">if</span> (z<span class="op">&gt;</span><span class="dv">0</span>) {</span>
-<span id="cb10-15"><a href="#cb10-15"></a>    AveMW<span class="op">/</span>z</span>
-<span id="cb10-16"><a href="#cb10-16"></a>  } <span class="cf">else</span> {</span>
-<span id="cb10-17"><a href="#cb10-17"></a>    AveMW<span class="op">/</span>z</span>
-<span id="cb10-18"><a href="#cb10-18"></a>  }</span>
-<span id="cb10-19"><a href="#cb10-19"></a>  </span>
-<span id="cb10-20"><a href="#cb10-20"></a><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the average m/z is &#39;</span>, Avemz))</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1"> <span class="co">#Average mass calculation from number of atoms, isotopic masses and abundances. </span></a>
+<a class="sourceLine" id="cb10-2" title="2">AveMW &lt;-<span class="st"> </span>nC<span class="op">*</span>(listIso<span class="op">$</span>C[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>C[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>C[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>C[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-3" title="3"><span class="st">         </span>(nH<span class="op">-</span>nX)<span class="op">*</span>(listIso<span class="op">$</span>H[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>H[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>H[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>H[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-4" title="4"><span class="st">         </span>nN<span class="op">*</span>(listIso<span class="op">$</span>N[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>N[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>N[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>N[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-5" title="5"><span class="st">         </span>nO<span class="op">*</span>(listIso<span class="op">$</span>O[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>O[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>O[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>O[<span class="dv">2</span>] <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-6" title="6"><span class="st">         </span>listIso<span class="op">$</span>O[<span class="dv">3</span>]<span class="op">*</span>listMass<span class="op">$</span>O[<span class="dv">3</span>]) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-7" title="7"><span class="st">         </span>nX<span class="op">*</span>(listIso<span class="op">$</span>D[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>D[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>D[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>D[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-8" title="8"><span class="st">         </span>nP<span class="op">*</span>(listIso<span class="op">$</span>P[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>P[<span class="dv">1</span>]) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-9" title="9"><span class="st">         </span>nK<span class="op">*</span>(listIso<span class="op">$</span>K[<span class="dv">1</span>]<span class="op">*</span>listMass<span class="op">$</span>K[<span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>listIso<span class="op">$</span>K[<span class="dv">2</span>]<span class="op">*</span>listMass<span class="op">$</span>K[<span class="dv">2</span>] <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-10" title="10"><span class="st">         </span>listIso<span class="op">$</span>K[<span class="dv">3</span>]<span class="op">*</span>listMass<span class="op">$</span>K[<span class="dv">3</span>])</a>
+<a class="sourceLine" id="cb10-11" title="11"></a>
+<a class="sourceLine" id="cb10-12" title="12"><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the average mass is &#39;</span>, AveMW))</a>
+<a class="sourceLine" id="cb10-13" title="13">  </a>
+<a class="sourceLine" id="cb10-14" title="14">  Avemz &lt;-<span class="st"> </span><span class="cf">if</span> (z<span class="op">&gt;</span><span class="dv">0</span>) {</a>
+<a class="sourceLine" id="cb10-15" title="15">    AveMW<span class="op">/</span>z</a>
+<a class="sourceLine" id="cb10-16" title="16">  } <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb10-17" title="17">    AveMW<span class="op">/</span>z</a>
+<a class="sourceLine" id="cb10-18" title="18">  }</a>
+<a class="sourceLine" id="cb10-19" title="19">  </a>
+<a class="sourceLine" id="cb10-20" title="20"><span class="kw">print</span>(<span class="kw">paste</span>(<span class="st">&#39;the average m/z is &#39;</span>, Avemz))</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
 <div id="summary-of-basic-oligonucleotide-properties" class="section level4">
-<h4 number="1.3.4.6"><span class="header-section-number">1.3.4.6</span> Summary of basic oligonucleotide properties</h4>
+<h4><span class="header-section-number">1.3.4.6</span> Summary of basic oligonucleotide properties</h4>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub2xpZ28uZGF0YSA8LSBkYXRhLmZyYW1lKFxuICAgICAgXCJQYXJhbWV0ZXJzXCIgPSBjKCdwaG9zcGhhdGVzJywgJ25ldXRyYWxpemVkIHBob3NwaGF0ZXMnLCBcbiAgICAgICAgICAgICAgICAgICAgICAgJ2V4Y2hhbmdlYWJsZSBzaXRlcycsICdtb25vaXNvdG9waWMgbWFzcycsXG4gICAgICAgICAgICAgICAgICAgICAgICdhdmVyYWdlIG1hc3MnLCAnbW9ub2lzb3RvcGljIG0veicsICdhdmVyYWdlIG0veicpLFxuICAgICAgXCJWYWx1ZXNcIiA9IGMobmJfUE8sIG5iX1BPSCwgblgsIE1vbm9NVywgQXZlTVcsIE1vbm9teiwgQXZlbXopKVxub2xpZ28uZGF0YVxuYGBgIn0= -->
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>oligo.data &lt;-<span class="st"> </span><span class="kw">data.frame</span>(</span>
-<span id="cb11-2"><a href="#cb11-2"></a>      <span class="st">&quot;Parameters&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&#39;phosphates&#39;</span>, <span class="st">&#39;neutralized phosphates&#39;</span>, </span>
-<span id="cb11-3"><a href="#cb11-3"></a>                       <span class="st">&#39;exchangeable sites&#39;</span>, <span class="st">&#39;monoisotopic mass&#39;</span>,</span>
-<span id="cb11-4"><a href="#cb11-4"></a>                       <span class="st">&#39;average mass&#39;</span>, <span class="st">&#39;monoisotopic m/z&#39;</span>, <span class="st">&#39;average m/z&#39;</span>),</span>
-<span id="cb11-5"><a href="#cb11-5"></a>      <span class="st">&quot;Values&quot;</span> =<span class="st"> </span><span class="kw">c</span>(nb_PO, nb_POH, nX, MonoMW, AveMW, Monomz, Avemz))</span>
-<span id="cb11-6"><a href="#cb11-6"></a>oligo.data</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1">oligo.data &lt;-<span class="st"> </span><span class="kw">data.frame</span>(</a>
+<a class="sourceLine" id="cb11-2" title="2">      <span class="st">&quot;Parameters&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&#39;phosphates&#39;</span>, <span class="st">&#39;neutralized phosphates&#39;</span>, </a>
+<a class="sourceLine" id="cb11-3" title="3">                       <span class="st">&#39;exchangeable sites&#39;</span>, <span class="st">&#39;monoisotopic mass&#39;</span>,</a>
+<a class="sourceLine" id="cb11-4" title="4">                       <span class="st">&#39;average mass&#39;</span>, <span class="st">&#39;monoisotopic m/z&#39;</span>, <span class="st">&#39;average m/z&#39;</span>),</a>
+<a class="sourceLine" id="cb11-5" title="5">      <span class="st">&quot;Values&quot;</span> =<span class="st"> </span><span class="kw">c</span>(nb_PO, nb_POH, nX, MonoMW, AveMW, Monomz, Avemz))</a>
+<a class="sourceLine" id="cb11-6" title="6">oligo.data</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
 <div id="isotopic-distribution" class="section level4">
-<h4 number="1.3.4.7"><span class="header-section-number">1.3.4.7</span> Isotopic distribution</h4>
+<h4><span class="header-section-number">1.3.4.7</span> Isotopic distribution</h4>
 <p>The number of peaks <code>nrPeaks</code> to compute is defined by the user. Hereafter, we use the default value of 72.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubnJQZWFrcyA8LSA3MlxuYGBgIn0= -->
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>nrPeaks &lt;-<span class="st"> </span><span class="dv">72</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1">nrPeaks &lt;-<span class="st"> </span><span class="dv">72</span></a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2189,18 +2188,18 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuSXNvX1BhdHRlcm4gPC0gYzEyIDwtIHJlcCgwLCBuclBlYWtzKTsgaDEgPC0gcmVwKDAsIG5yUGVha3MpOyBuMTQgPC0gcmVwKDAsIG5yUGVha3MpO1xubzE2IDwtIHJlcCgwLCBuclBlYWtzKTsgcDMxIDwtIHJlcCgwLCBuclBlYWtzKTsgazM5IDwtIHJlcCgwLG5yUGVha3MpO1xuaDIgPC0gcmVwKDAsIG5yUGVha3MpO1xuXG4jSXNvdG9wZSBhYnVuZGFuY2VzXG5oMVsxXSA9IDAuOTk5ODU1OyBoMVsyXSA9IDAuMDAwMTQ1IDsjTmF0dXJhbCBhYnVuZGFuY2VzIG9mIEggaXNvdG9wZXNcbmgyWzFdID0gKDEtREMvMTAwKTsgaDJbMl0gPSBEQy8xMDA7ICNDYWxjdWxhdGVkIGFidW5kYW5jZXMgZm9yIGV4Y2hhbmdlYWJsZSBzaXRlcyAgICAgICAgICAgICAgXG5jMTJbMV0gPSBsaXN0SXNvJENbMV07IGMxMlsyXSA9IGxpc3RJc28kQ1syXTtcbm4xNFsxXSA9IGxpc3RJc28kTlsxXTsgbjE0WzJdID0gbGlzdElzbyROWzJdO1xubzE2WzFdID0gbGlzdElzbyRPWzFdOyBvMTZbMl0gPSBsaXN0SXNvJE9bMl07IG8xNlszXSA9IGxpc3RJc28kT1szXTtcbnAzMVsxXSA9IDEuMDtcbmszOVsxXSA9IGxpc3RJc28kS1sxXTsgazM5WzJdID0gbGlzdElzbyRLWzJdOyBrMzlbM10gPSBsaXN0SXNvJEtbM107XG5gYGAifQ== -->
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>Iso_Pattern &lt;-<span class="st"> </span>c12 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks); h1 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks); n14 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks);</span>
-<span id="cb13-2"><a href="#cb13-2"></a>o16 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks); p31 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks); k39 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>,nrPeaks);</span>
-<span id="cb13-3"><a href="#cb13-3"></a>h2 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks);</span>
-<span id="cb13-4"><a href="#cb13-4"></a></span>
-<span id="cb13-5"><a href="#cb13-5"></a><span class="co">#Isotope abundances</span></span>
-<span id="cb13-6"><a href="#cb13-6"></a>h1[<span class="dv">1</span>] =<span class="st"> </span><span class="fl">0.999855</span>; h1[<span class="dv">2</span>] =<span class="st"> </span><span class="fl">0.000145</span> ;<span class="co">#Natural abundances of H isotopes</span></span>
-<span id="cb13-7"><a href="#cb13-7"></a>h2[<span class="dv">1</span>] =<span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>DC<span class="op">/</span><span class="dv">100</span>); h2[<span class="dv">2</span>] =<span class="st"> </span>DC<span class="op">/</span><span class="dv">100</span>; <span class="co">#Calculated abundances for exchangeable sites              </span></span>
-<span id="cb13-8"><a href="#cb13-8"></a>c12[<span class="dv">1</span>] =<span class="st"> </span>listIso<span class="op">$</span>C[<span class="dv">1</span>]; c12[<span class="dv">2</span>] =<span class="st"> </span>listIso<span class="op">$</span>C[<span class="dv">2</span>];</span>
-<span id="cb13-9"><a href="#cb13-9"></a>n14[<span class="dv">1</span>] =<span class="st"> </span>listIso<span class="op">$</span>N[<span class="dv">1</span>]; n14[<span class="dv">2</span>] =<span class="st"> </span>listIso<span class="op">$</span>N[<span class="dv">2</span>];</span>
-<span id="cb13-10"><a href="#cb13-10"></a>o16[<span class="dv">1</span>] =<span class="st"> </span>listIso<span class="op">$</span>O[<span class="dv">1</span>]; o16[<span class="dv">2</span>] =<span class="st"> </span>listIso<span class="op">$</span>O[<span class="dv">2</span>]; o16[<span class="dv">3</span>] =<span class="st"> </span>listIso<span class="op">$</span>O[<span class="dv">3</span>];</span>
-<span id="cb13-11"><a href="#cb13-11"></a>p31[<span class="dv">1</span>] =<span class="st"> </span><span class="fl">1.0</span>;</span>
-<span id="cb13-12"><a href="#cb13-12"></a>k39[<span class="dv">1</span>] =<span class="st"> </span>listIso<span class="op">$</span>K[<span class="dv">1</span>]; k39[<span class="dv">2</span>] =<span class="st"> </span>listIso<span class="op">$</span>K[<span class="dv">2</span>]; k39[<span class="dv">3</span>] =<span class="st"> </span>listIso<span class="op">$</span>K[<span class="dv">3</span>];</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1">Iso_Pattern &lt;-<span class="st"> </span>c12 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks); h1 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks); n14 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks);</a>
+<a class="sourceLine" id="cb13-2" title="2">o16 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks); p31 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks); k39 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>,nrPeaks);</a>
+<a class="sourceLine" id="cb13-3" title="3">h2 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, nrPeaks);</a>
+<a class="sourceLine" id="cb13-4" title="4"></a>
+<a class="sourceLine" id="cb13-5" title="5"><span class="co">#Isotope abundances</span></a>
+<a class="sourceLine" id="cb13-6" title="6">h1[<span class="dv">1</span>] =<span class="st"> </span><span class="fl">0.999855</span>; h1[<span class="dv">2</span>] =<span class="st"> </span><span class="fl">0.000145</span> ;<span class="co">#Natural abundances of H isotopes</span></a>
+<a class="sourceLine" id="cb13-7" title="7">h2[<span class="dv">1</span>] =<span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>DC<span class="op">/</span><span class="dv">100</span>); h2[<span class="dv">2</span>] =<span class="st"> </span>DC<span class="op">/</span><span class="dv">100</span>; <span class="co">#Calculated abundances for exchangeable sites              </span></a>
+<a class="sourceLine" id="cb13-8" title="8">c12[<span class="dv">1</span>] =<span class="st"> </span>listIso<span class="op">$</span>C[<span class="dv">1</span>]; c12[<span class="dv">2</span>] =<span class="st"> </span>listIso<span class="op">$</span>C[<span class="dv">2</span>];</a>
+<a class="sourceLine" id="cb13-9" title="9">n14[<span class="dv">1</span>] =<span class="st"> </span>listIso<span class="op">$</span>N[<span class="dv">1</span>]; n14[<span class="dv">2</span>] =<span class="st"> </span>listIso<span class="op">$</span>N[<span class="dv">2</span>];</a>
+<a class="sourceLine" id="cb13-10" title="10">o16[<span class="dv">1</span>] =<span class="st"> </span>listIso<span class="op">$</span>O[<span class="dv">1</span>]; o16[<span class="dv">2</span>] =<span class="st"> </span>listIso<span class="op">$</span>O[<span class="dv">2</span>]; o16[<span class="dv">3</span>] =<span class="st"> </span>listIso<span class="op">$</span>O[<span class="dv">3</span>];</a>
+<a class="sourceLine" id="cb13-11" title="11">p31[<span class="dv">1</span>] =<span class="st"> </span><span class="fl">1.0</span>;</a>
+<a class="sourceLine" id="cb13-12" title="12">k39[<span class="dv">1</span>] =<span class="st"> </span>listIso<span class="op">$</span>K[<span class="dv">1</span>]; k39[<span class="dv">2</span>] =<span class="st"> </span>listIso<span class="op">$</span>K[<span class="dv">2</span>]; k39[<span class="dv">3</span>] =<span class="st"> </span>listIso<span class="op">$</span>K[<span class="dv">3</span>];</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2208,9 +2207,9 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuSXNvX1BhdHRlcm4gPC0gUmUoZmZ0KGZmdChjMTIpXm5DKmZmdChoMSleKG5ILW5YKSpmZnQobjE0KV5uTiAqIGZmdChvMTYpXm5PICogZmZ0KHAzMSleblAgKiBmZnQoazM5KV5uSyAqIGZmdChoMileblgsXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGludmVyc2U9VFJVRSkpL2xlbmd0aChjMTIpXG5Jc29fUGF0dGVyblxuYGBgIn0= -->
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>Iso_Pattern &lt;-<span class="st"> </span><span class="kw">Re</span>(<span class="kw">fft</span>(<span class="kw">fft</span>(c12)<span class="op">^</span>nC<span class="op">*</span><span class="kw">fft</span>(h1)<span class="op">^</span>(nH<span class="op">-</span>nX)<span class="op">*</span><span class="kw">fft</span>(n14)<span class="op">^</span>nN <span class="op">*</span><span class="st"> </span><span class="kw">fft</span>(o16)<span class="op">^</span>nO <span class="op">*</span><span class="st"> </span><span class="kw">fft</span>(p31)<span class="op">^</span>nP <span class="op">*</span><span class="st"> </span><span class="kw">fft</span>(k39)<span class="op">^</span>nK <span class="op">*</span><span class="st"> </span><span class="kw">fft</span>(h2)<span class="op">^</span>nX,</span>
-<span id="cb14-2"><a href="#cb14-2"></a>                          <span class="dt">inverse=</span><span class="ot">TRUE</span>))<span class="op">/</span><span class="kw">length</span>(c12)</span>
-<span id="cb14-3"><a href="#cb14-3"></a>Iso_Pattern</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1">Iso_Pattern &lt;-<span class="st"> </span><span class="kw">Re</span>(<span class="kw">fft</span>(<span class="kw">fft</span>(c12)<span class="op">^</span>nC<span class="op">*</span><span class="kw">fft</span>(h1)<span class="op">^</span>(nH<span class="op">-</span>nX)<span class="op">*</span><span class="kw">fft</span>(n14)<span class="op">^</span>nN <span class="op">*</span><span class="st"> </span><span class="kw">fft</span>(o16)<span class="op">^</span>nO <span class="op">*</span><span class="st"> </span><span class="kw">fft</span>(p31)<span class="op">^</span>nP <span class="op">*</span><span class="st"> </span><span class="kw">fft</span>(k39)<span class="op">^</span>nK <span class="op">*</span><span class="st"> </span><span class="kw">fft</span>(h2)<span class="op">^</span>nX,</a>
+<a class="sourceLine" id="cb14-2" title="2">                          <span class="dt">inverse=</span><span class="ot">TRUE</span>))<span class="op">/</span><span class="kw">length</span>(c12)</a>
+<a class="sourceLine" id="cb14-3" title="3">Iso_Pattern</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2218,46 +2217,46 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubmJQZWFrcyA8LSAxOm5yUGVha3NcbiAgXG5wZWFrcyA8LSBkYXRhLmZyYW1lKFwibmJQZWFrczFcIiA9IHVubGlzdChuYlBlYWtzKSwgJ01vbm9NVzEnID0gTW9ub01XKSAlPiVcbiAgICAgIG11dGF0ZSgnbWFzcy50aCcgPSBNb25vTVcxICsgKG5iUGVha3MxLTEpKjEuMDA3ODI1MDMyMSkgJT4lXG4gICAgICBtdXRhdGUoJ216LnRoJyA9IG1hc3MudGgveikgJT4lXG4gICAgICBzZWxlY3QobXoudGgpICU+JVxuICAgICAgY2JpbmQoJ0lzby5QYXR0ZXJuJyA9IElzb19QYXR0ZXJuKSAlPiVcbiAgICAgIG11dGF0ZShJc28uUGF0dGVybiA9IDEgLSAobWF4KElzby5QYXR0ZXJuKS1Jc28uUGF0dGVybikvKG1heChJc28uUGF0dGVybiktbWluKElzby5QYXR0ZXJuKSkpXG5cbnAucGVha3MgPC0gZ2dwbG90KGRhdGEgPSBwZWFrcywgYWVzKHggPSBtei50aCwgeSA9IElzby5QYXR0ZXJuKSkgK1xuICAgICAgZ2VvbV9saW5lKGNvbG9yID0gJ3RvbWF0bycsIHNpemUgPSAxKSArXG4gICAgICBnZW9tX3BvaW50KGNvbG9yID0gJ3RvbWF0bycsIHNpemUgPSAzKSArXG4gICAgICBnZW9tX3ZsaW5lKHhpbnRlcmNlcHQgPSBBdmVteiwgbGluZXR5cGUgPSAnZGFzaGVkJywgY29sb3IgPSAnc3RlZWxibHVlJywgc2l6ZSA9IDEpICtcbiAgICAgIHhsYWIoXCJtL3pcIikgK1xuICAgICAgeWxhYignbm9ybWFsaXplZCBhYnVuZGFuY2UnKSArXG4gICAgICB0aGVtZShzdHJpcC50ZXh0LnkgPSBlbGVtZW50X2JsYW5rKCksXG4gICAgICAgICAgICBzdHJpcC5iYWNrZ3JvdW5kID0gZWxlbWVudF9ibGFuaygpLFxuICAgICAgICAgICAgcGFuZWwuYm9yZGVyID0gZWxlbWVudF9ibGFuaygpLFxuICAgICAgICAgICAgcGFuZWwuZ3JpZC5tYWpvciA9IGVsZW1lbnRfbGluZShjb2xvdXIgPSBcImdyZXk1MFwiKSxcbiAgICAgICAgICAgIHBhbmVsLmdyaWQubWlub3IgPSBlbGVtZW50X2xpbmUoY29sb3VyID0gXCJncmV5XCIpLFxuICAgICAgICAgICAgcGFuZWwuYmFja2dyb3VuZCA9IGVsZW1lbnRfYmxhbmsoKSxcbiAgICAgICAgICAgIHBsb3QuYmFja2dyb3VuZCA9IGVsZW1lbnRfYmxhbmsoKSxcbiAgICAgICAgICAgIGF4aXMubGluZS54ID0gZWxlbWVudF9saW5lKGNvbG91ciA9IFwiYmxhY2tcIiwgc2l6ZSA9IDAuNzUpLFxuICAgICAgICAgICAgYXhpcy5saW5lLnkgPSBlbGVtZW50X2xpbmUoY29sb3VyID0gXCJibGFja1wiLCBzaXplID0gMC43NSksXG4gICAgICAgICAgICBheGlzLnRpY2tzLmxlbmd0aD11bml0KDAuMSwgXCJpblwiKSxcbiAgICAgICAgICAgIGF4aXMudGlja3MueCA9IGVsZW1lbnRfbGluZShzaXplID0gMC43NSwgY29sb3VyID0gXCJibGFja1wiKSxcbiAgICAgICAgICAgIGF4aXMudGlja3MueSA9IGVsZW1lbnRfbGluZShzaXplID0gMC43NSwgY29sb3VyID0gXCJibGFja1wiKSxcbiAgICAgICAgICAgIGF4aXMudGV4dC55ID0gZWxlbWVudF90ZXh0KHNpemUgPSAxNiwgY29sb3IgPSBcImJsYWNrXCIsIGFuZ2xlID0gMCksXG4gICAgICAgICAgICBheGlzLnRleHQueCA9IGVsZW1lbnRfdGV4dChzaXplID0gMTYsIGNvbG9yID0gXCJibGFja1wiLCBhbmdsZSA9IDApLFxuICAgICAgICAgICAgYXhpcy50aXRsZS54ID0gZWxlbWVudF90ZXh0KHNpemU9MTgsZmFjZT1cImJvbGRcIiwgY29sb3IgPSAnYmxhY2snKSxcbiAgICAgICAgICAgIGF4aXMudGl0bGUueSA9IGVsZW1lbnRfdGV4dChzaXplPTE4LGZhY2U9XCJib2xkXCIsIGNvbG9yID0gJ2JsYWNrJyksXG4gICAgICAgICAgICBwbG90Lm1hcmdpbiA9IG1hcmdpbigyNSwgMC41LCAwLjUsIDAuNSksXG4gICAgICAgICAgICBsZWdlbmQucG9zaXRpb249XCJyaWdodFwiLFxuICAgICAgICAgICAgbGVnZW5kLmJveCA9IFwidmVydGljYWxcIixcbiAgICAgICAgICAgIGxlZ2VuZC50aXRsZSA9IGVsZW1lbnRfdGV4dChzaXplPTE4LCBmYWNlPVwiYm9sZFwiLCBjb2xvciA9IFwiYmxhY2tcIiksXG4gICAgICAgICAgICBsZWdlbmQua2V5ID0gZWxlbWVudF9yZWN0KGZpbGwgPSBcIndoaXRlXCIpLFxuICAgICAgICAgICAgbGVnZW5kLnRleHQgPSBlbGVtZW50X3RleHQoc2l6ZT0xNiwgZmFjZT1cImJvbGRcIiwgY29sb3IgPSBcImJsYWNrXCIpLFxuICAgICAgKSBcblxucC5wZWFrc1xuYGBgIn0= -->
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>nbPeaks &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span>nrPeaks</span>
-<span id="cb15-2"><a href="#cb15-2"></a>  </span>
-<span id="cb15-3"><a href="#cb15-3"></a>peaks &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="st">&quot;nbPeaks1&quot;</span> =<span class="st"> </span><span class="kw">unlist</span>(nbPeaks), <span class="st">&#39;MonoMW1&#39;</span> =<span class="st"> </span>MonoMW) <span class="op">%&gt;%</span></span>
-<span id="cb15-4"><a href="#cb15-4"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="st">&#39;mass.th&#39;</span> =<span class="st"> </span>MonoMW1 <span class="op">+</span><span class="st"> </span>(nbPeaks1<span class="dv">-1</span>)<span class="op">*</span><span class="fl">1.0078250321</span>) <span class="op">%&gt;%</span></span>
-<span id="cb15-5"><a href="#cb15-5"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="st">&#39;mz.th&#39;</span> =<span class="st"> </span>mass.th<span class="op">/</span>z) <span class="op">%&gt;%</span></span>
-<span id="cb15-6"><a href="#cb15-6"></a><span class="st">      </span><span class="kw">select</span>(mz.th) <span class="op">%&gt;%</span></span>
-<span id="cb15-7"><a href="#cb15-7"></a><span class="st">      </span><span class="kw">cbind</span>(<span class="st">&#39;Iso.Pattern&#39;</span> =<span class="st"> </span>Iso_Pattern) <span class="op">%&gt;%</span></span>
-<span id="cb15-8"><a href="#cb15-8"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">Iso.Pattern =</span> <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>(<span class="kw">max</span>(Iso.Pattern)<span class="op">-</span>Iso.Pattern)<span class="op">/</span>(<span class="kw">max</span>(Iso.Pattern)<span class="op">-</span><span class="kw">min</span>(Iso.Pattern)))</span>
-<span id="cb15-9"><a href="#cb15-9"></a></span>
-<span id="cb15-10"><a href="#cb15-10"></a>p.peaks &lt;-<span class="st"> </span><span class="kw">ggplot</span>(<span class="dt">data =</span> peaks, <span class="kw">aes</span>(<span class="dt">x =</span> mz.th, <span class="dt">y =</span> Iso.Pattern)) <span class="op">+</span></span>
-<span id="cb15-11"><a href="#cb15-11"></a><span class="st">      </span><span class="kw">geom_line</span>(<span class="dt">color =</span> <span class="st">&#39;tomato&#39;</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span></span>
-<span id="cb15-12"><a href="#cb15-12"></a><span class="st">      </span><span class="kw">geom_point</span>(<span class="dt">color =</span> <span class="st">&#39;tomato&#39;</span>, <span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span></span>
-<span id="cb15-13"><a href="#cb15-13"></a><span class="st">      </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> Avemz, <span class="dt">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="dt">color =</span> <span class="st">&#39;steelblue&#39;</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span></span>
-<span id="cb15-14"><a href="#cb15-14"></a><span class="st">      </span><span class="kw">xlab</span>(<span class="st">&quot;m/z&quot;</span>) <span class="op">+</span></span>
-<span id="cb15-15"><a href="#cb15-15"></a><span class="st">      </span><span class="kw">ylab</span>(<span class="st">&#39;normalized abundance&#39;</span>) <span class="op">+</span></span>
-<span id="cb15-16"><a href="#cb15-16"></a><span class="st">      </span><span class="kw">theme</span>(<span class="dt">strip.text.y =</span> <span class="kw">element_blank</span>(),</span>
-<span id="cb15-17"><a href="#cb15-17"></a>            <span class="dt">strip.background =</span> <span class="kw">element_blank</span>(),</span>
-<span id="cb15-18"><a href="#cb15-18"></a>            <span class="dt">panel.border =</span> <span class="kw">element_blank</span>(),</span>
-<span id="cb15-19"><a href="#cb15-19"></a>            <span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;grey50&quot;</span>),</span>
-<span id="cb15-20"><a href="#cb15-20"></a>            <span class="dt">panel.grid.minor =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;grey&quot;</span>),</span>
-<span id="cb15-21"><a href="#cb15-21"></a>            <span class="dt">panel.background =</span> <span class="kw">element_blank</span>(),</span>
-<span id="cb15-22"><a href="#cb15-22"></a>            <span class="dt">plot.background =</span> <span class="kw">element_blank</span>(),</span>
-<span id="cb15-23"><a href="#cb15-23"></a>            <span class="dt">axis.line.x =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="fl">0.75</span>),</span>
-<span id="cb15-24"><a href="#cb15-24"></a>            <span class="dt">axis.line.y =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="fl">0.75</span>),</span>
-<span id="cb15-25"><a href="#cb15-25"></a>            <span class="dt">axis.ticks.length=</span><span class="kw">unit</span>(<span class="fl">0.1</span>, <span class="st">&quot;in&quot;</span>),</span>
-<span id="cb15-26"><a href="#cb15-26"></a>            <span class="dt">axis.ticks.x =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.75</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>),</span>
-<span id="cb15-27"><a href="#cb15-27"></a>            <span class="dt">axis.ticks.y =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.75</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>),</span>
-<span id="cb15-28"><a href="#cb15-28"></a>            <span class="dt">axis.text.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">16</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">angle =</span> <span class="dv">0</span>),</span>
-<span id="cb15-29"><a href="#cb15-29"></a>            <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">16</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">angle =</span> <span class="dv">0</span>),</span>
-<span id="cb15-30"><a href="#cb15-30"></a>            <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size=</span><span class="dv">18</span>,<span class="dt">face=</span><span class="st">&quot;bold&quot;</span>, <span class="dt">color =</span> <span class="st">&#39;black&#39;</span>),</span>
-<span id="cb15-31"><a href="#cb15-31"></a>            <span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size=</span><span class="dv">18</span>,<span class="dt">face=</span><span class="st">&quot;bold&quot;</span>, <span class="dt">color =</span> <span class="st">&#39;black&#39;</span>),</span>
-<span id="cb15-32"><a href="#cb15-32"></a>            <span class="dt">plot.margin =</span> <span class="kw">margin</span>(<span class="dv">25</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>),</span>
-<span id="cb15-33"><a href="#cb15-33"></a>            <span class="dt">legend.position=</span><span class="st">&quot;right&quot;</span>,</span>
-<span id="cb15-34"><a href="#cb15-34"></a>            <span class="dt">legend.box =</span> <span class="st">&quot;vertical&quot;</span>,</span>
-<span id="cb15-35"><a href="#cb15-35"></a>            <span class="dt">legend.title =</span> <span class="kw">element_text</span>(<span class="dt">size=</span><span class="dv">18</span>, <span class="dt">face=</span><span class="st">&quot;bold&quot;</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>),</span>
-<span id="cb15-36"><a href="#cb15-36"></a>            <span class="dt">legend.key =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>),</span>
-<span id="cb15-37"><a href="#cb15-37"></a>            <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size=</span><span class="dv">16</span>, <span class="dt">face=</span><span class="st">&quot;bold&quot;</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>),</span>
-<span id="cb15-38"><a href="#cb15-38"></a>      ) </span>
-<span id="cb15-39"><a href="#cb15-39"></a></span>
-<span id="cb15-40"><a href="#cb15-40"></a>p.peaks</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1">nbPeaks &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span>nrPeaks</a>
+<a class="sourceLine" id="cb15-2" title="2">  </a>
+<a class="sourceLine" id="cb15-3" title="3">peaks &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="st">&quot;nbPeaks1&quot;</span> =<span class="st"> </span><span class="kw">unlist</span>(nbPeaks), <span class="st">&#39;MonoMW1&#39;</span> =<span class="st"> </span>MonoMW) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-4" title="4"><span class="st">      </span><span class="kw">mutate</span>(<span class="st">&#39;mass.th&#39;</span> =<span class="st"> </span>MonoMW1 <span class="op">+</span><span class="st"> </span>(nbPeaks1<span class="dv">-1</span>)<span class="op">*</span><span class="fl">1.0078250321</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-5" title="5"><span class="st">      </span><span class="kw">mutate</span>(<span class="st">&#39;mz.th&#39;</span> =<span class="st"> </span>mass.th<span class="op">/</span>z) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-6" title="6"><span class="st">      </span><span class="kw">select</span>(mz.th) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-7" title="7"><span class="st">      </span><span class="kw">cbind</span>(<span class="st">&#39;Iso.Pattern&#39;</span> =<span class="st"> </span>Iso_Pattern) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-8" title="8"><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">Iso.Pattern =</span> <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>(<span class="kw">max</span>(Iso.Pattern)<span class="op">-</span>Iso.Pattern)<span class="op">/</span>(<span class="kw">max</span>(Iso.Pattern)<span class="op">-</span><span class="kw">min</span>(Iso.Pattern)))</a>
+<a class="sourceLine" id="cb15-9" title="9"></a>
+<a class="sourceLine" id="cb15-10" title="10">p.peaks &lt;-<span class="st"> </span><span class="kw">ggplot</span>(<span class="dt">data =</span> peaks, <span class="kw">aes</span>(<span class="dt">x =</span> mz.th, <span class="dt">y =</span> Iso.Pattern)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-11" title="11"><span class="st">      </span><span class="kw">geom_line</span>(<span class="dt">color =</span> <span class="st">&#39;tomato&#39;</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-12" title="12"><span class="st">      </span><span class="kw">geom_point</span>(<span class="dt">color =</span> <span class="st">&#39;tomato&#39;</span>, <span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-13" title="13"><span class="st">      </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> Avemz, <span class="dt">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="dt">color =</span> <span class="st">&#39;steelblue&#39;</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-14" title="14"><span class="st">      </span><span class="kw">xlab</span>(<span class="st">&quot;m/z&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-15" title="15"><span class="st">      </span><span class="kw">ylab</span>(<span class="st">&#39;normalized abundance&#39;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-16" title="16"><span class="st">      </span><span class="kw">theme</span>(<span class="dt">strip.text.y =</span> <span class="kw">element_blank</span>(),</a>
+<a class="sourceLine" id="cb15-17" title="17">            <span class="dt">strip.background =</span> <span class="kw">element_blank</span>(),</a>
+<a class="sourceLine" id="cb15-18" title="18">            <span class="dt">panel.border =</span> <span class="kw">element_blank</span>(),</a>
+<a class="sourceLine" id="cb15-19" title="19">            <span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;grey50&quot;</span>),</a>
+<a class="sourceLine" id="cb15-20" title="20">            <span class="dt">panel.grid.minor =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;grey&quot;</span>),</a>
+<a class="sourceLine" id="cb15-21" title="21">            <span class="dt">panel.background =</span> <span class="kw">element_blank</span>(),</a>
+<a class="sourceLine" id="cb15-22" title="22">            <span class="dt">plot.background =</span> <span class="kw">element_blank</span>(),</a>
+<a class="sourceLine" id="cb15-23" title="23">            <span class="dt">axis.line.x =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="fl">0.75</span>),</a>
+<a class="sourceLine" id="cb15-24" title="24">            <span class="dt">axis.line.y =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="fl">0.75</span>),</a>
+<a class="sourceLine" id="cb15-25" title="25">            <span class="dt">axis.ticks.length=</span><span class="kw">unit</span>(<span class="fl">0.1</span>, <span class="st">&quot;in&quot;</span>),</a>
+<a class="sourceLine" id="cb15-26" title="26">            <span class="dt">axis.ticks.x =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.75</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>),</a>
+<a class="sourceLine" id="cb15-27" title="27">            <span class="dt">axis.ticks.y =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.75</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>),</a>
+<a class="sourceLine" id="cb15-28" title="28">            <span class="dt">axis.text.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">16</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">angle =</span> <span class="dv">0</span>),</a>
+<a class="sourceLine" id="cb15-29" title="29">            <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">16</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">angle =</span> <span class="dv">0</span>),</a>
+<a class="sourceLine" id="cb15-30" title="30">            <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size=</span><span class="dv">18</span>,<span class="dt">face=</span><span class="st">&quot;bold&quot;</span>, <span class="dt">color =</span> <span class="st">&#39;black&#39;</span>),</a>
+<a class="sourceLine" id="cb15-31" title="31">            <span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size=</span><span class="dv">18</span>,<span class="dt">face=</span><span class="st">&quot;bold&quot;</span>, <span class="dt">color =</span> <span class="st">&#39;black&#39;</span>),</a>
+<a class="sourceLine" id="cb15-32" title="32">            <span class="dt">plot.margin =</span> <span class="kw">margin</span>(<span class="dv">25</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>),</a>
+<a class="sourceLine" id="cb15-33" title="33">            <span class="dt">legend.position=</span><span class="st">&quot;right&quot;</span>,</a>
+<a class="sourceLine" id="cb15-34" title="34">            <span class="dt">legend.box =</span> <span class="st">&quot;vertical&quot;</span>,</a>
+<a class="sourceLine" id="cb15-35" title="35">            <span class="dt">legend.title =</span> <span class="kw">element_text</span>(<span class="dt">size=</span><span class="dv">18</span>, <span class="dt">face=</span><span class="st">&quot;bold&quot;</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>),</a>
+<a class="sourceLine" id="cb15-36" title="36">            <span class="dt">legend.key =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>),</a>
+<a class="sourceLine" id="cb15-37" title="37">            <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size=</span><span class="dv">16</span>, <span class="dt">face=</span><span class="st">&quot;bold&quot;</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>),</a>
+<a class="sourceLine" id="cb15-38" title="38">      ) </a>
+<a class="sourceLine" id="cb15-39" title="39"></a>
+<a class="sourceLine" id="cb15-40" title="40">p.peaks</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2265,20 +2264,20 @@ summary {
 </div>
 </div>
 <div id="msxplor" class="section level2">
-<h2 number="1.4"><span class="header-section-number">1.4</span> MSxploR</h2>
+<h2><span class="header-section-number">1.4</span> MSxploR</h2>
 <div id="purpose-1" class="section level3">
-<h3 number="1.4.1"><span class="header-section-number">1.4.1</span> Purpose</h3>
+<h3><span class="header-section-number">1.4.1</span> Purpose</h3>
 <p>The aim of this module is to: 1. Import MS data (in the ms1 format), 2. Combine the desired scans (either by brushing the TIC, or manually specifying scan numbers), 3. Zooming on the desired m/z range (also by brushing or text input). 4. Exporting the obtained mass spectra to either the OligoR module (as a reference point) or the MSstackR and HDXplotR as an HDX time point. It also allows the user to manually specify the mixing time of each selected spectra, or use the TIC time scale (modulo a user specified void time)</p>
 </div>
 <div id="principle-1" class="section level3">
-<h3 number="1.4.2"><span class="header-section-number">1.4.2</span> Principle</h3>
+<h3><span class="header-section-number">1.4.2</span> Principle</h3>
 <p>The MSxploR module allows the summing of scans selected either by manual input or brushing of the TIC.</p>
 <p>To do so, the data must first be preprocessed to extract the scan numbers and corresponding time, then binned (by default it is rounded to 0.01 m/z) so that MS detectors that output variable m/z scales (e.g. Orbitraps) can be processed. The abundances are summed by bins, and the time points associated to each set of scans is the mean of their time range.</p>
 </div>
 <div id="features-1" class="section level3">
-<h3 number="1.4.3"><span class="header-section-number">1.4.3</span> Features</h3>
+<h3><span class="header-section-number">1.4.3</span> Features</h3>
 <div id="user-input-1" class="section level4">
-<h4 number="1.4.3.1"><span class="header-section-number">1.4.3.1</span> User input</h4>
+<h4><span class="header-section-number">1.4.3.1</span> User input</h4>
 <p>The sidebar contains numerous user inputs:</p>
 <ol style="list-style-type: decimal">
 <li>A <em>file importer</em>. It only accepts .ms1 file so far (see the Raw data section).</li>
@@ -2310,7 +2309,7 @@ summary {
 </ol>
 </div>
 <div id="output-1" class="section level4">
-<h4 number="1.4.3.2"><span class="header-section-number">1.4.3.2</span> Output</h4>
+<h4><span class="header-section-number">1.4.3.2</span> Output</h4>
 <p>The sidebar has two output, namely:</p>
 <ul>
 <li>A <em>progress bar</em> for the file import (that doesn’t cover the pre-processing time however)</li>
@@ -2335,56 +2334,56 @@ summary {
 </div>
 </div>
 <div id="code-1" class="section level3">
-<h3 number="1.4.4"><span class="header-section-number">1.4.4</span> Code</h3>
+<h3><span class="header-section-number">1.4.4</span> Code</h3>
 <div id="data-import-and-pre-processing" class="section level4">
-<h4 number="1.4.4.1"><span class="header-section-number">1.4.4.1</span> Data import and pre-processing</h4>
+<h4><span class="header-section-number">1.4.4.1</span> Data import and pre-processing</h4>
 <p>For this part of the work, we will use an example file acquired during a XXX HDX/MS experiment.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3RvIHJlZG9cbmBgYCJ9 -->
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">#to redo</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1"><span class="co">#to redo</span></a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
 <div id="tic" class="section level4">
-<h4 number="1.4.4.2"><span class="header-section-number">1.4.4.2</span> TIC</h4>
+<h4><span class="header-section-number">1.4.4.2</span> TIC</h4>
 <p>The TIC is generated by XXX</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3RvIHJlZG9cbmBgYCJ9 -->
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">#to redo</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="co">#to redo</span></a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
 <div id="spectrum-selection-and-summing" class="section level4">
-<h4 number="1.4.4.3"><span class="header-section-number">1.4.4.3</span> Spectrum selection and summing</h4>
+<h4><span class="header-section-number">1.4.4.3</span> Spectrum selection and summing</h4>
 <p>Because the brush input cannot be replicated on a static document, the manual m/z selection will be used here. However, the data handling is the same after the selection input itself.</p>
 <p>The summing is performed by grouping the data by m/z values, hence the need for binning first. After summing, the scan range average time, species number and continuous flow time are assigned as new columns.</p>
 <p>The scans <code>scanstxt</code> and m/z <code>mztxt</code> to select were manually assigned below, as are the dead time <code>deadtxt</code> and the species number <code>Species</code>. The first 10 lines of the resulting data.frame are presented below.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jIHNjYW5zdHh0IDwtIGMoMjAwLCA4MDApXG4jIG16dHh0IDwtIGMoMTUyMCwgMTUzMilcbiMgXG4jIGRlYWR0eHQgPC0gMVxuIyBcbiMgc2VsZWNzY2Fuc3R4dCA8LSBpbnB1dG1zICU+JVxuIyAgICAgICBmaWx0ZXIoc2NhbiAlaW4lIHNjYW5zdHh0KVxuIyBcbiMgc3BlY3N1bXR4dCA8LSBzZWxlY3NjYW5zdHh0ICU+JVxuIyAgICAgICBmaWx0ZXIobXogPiBtaW4obXp0eHQpKSAlPiVcbiMgICAgICAgZmlsdGVyKG16IDwgbWF4KG16dHh0KSkgJT4lXG4jICAgICAgIGdyb3VwX2J5KG16KSAlPiVcbiMgICAgICAgc3VtbWFyaXNlKFwiaW50ZW5zdW1cIiA9IHN1bShpbnRlbnNpdHkpKSAlPiVcbiMgICAgICAgYWRkX2NvbHVtbihcIm1lYW4udGltZVwiID0gbWVhbihzZWxlY3NjYW5zdHh0JHRpbWUpICsgYXMubnVtZXJpYyhkZWFkdHh0KSkgJT4lXG4jICAgICAgIGFkZF9jb2x1bW4oXCJTcGVjaWVzXCIgPSAnU3BlY2llcyAxJykgJT4lXG4jICAgICAgIGFkZF9jb2x1bW4oJ0NGdGltZScgPSAnJylcbiMgXG4jIHNwZWNzdW10eHRbMToxMCxdXG5gYGAifQ== -->
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a></span>
-<span id="cb18-2"><a href="#cb18-2"></a><span class="co"># scanstxt &lt;- c(200, 800)</span></span>
-<span id="cb18-3"><a href="#cb18-3"></a><span class="co"># mztxt &lt;- c(1520, 1532)</span></span>
-<span id="cb18-4"><a href="#cb18-4"></a><span class="co"># </span></span>
-<span id="cb18-5"><a href="#cb18-5"></a><span class="co"># deadtxt &lt;- 1</span></span>
-<span id="cb18-6"><a href="#cb18-6"></a><span class="co"># </span></span>
-<span id="cb18-7"><a href="#cb18-7"></a><span class="co"># selecscanstxt &lt;- inputms %&gt;%</span></span>
-<span id="cb18-8"><a href="#cb18-8"></a><span class="co">#       filter(scan %in% scanstxt)</span></span>
-<span id="cb18-9"><a href="#cb18-9"></a><span class="co"># </span></span>
-<span id="cb18-10"><a href="#cb18-10"></a><span class="co"># specsumtxt &lt;- selecscanstxt %&gt;%</span></span>
-<span id="cb18-11"><a href="#cb18-11"></a><span class="co">#       filter(mz &gt; min(mztxt)) %&gt;%</span></span>
-<span id="cb18-12"><a href="#cb18-12"></a><span class="co">#       filter(mz &lt; max(mztxt)) %&gt;%</span></span>
-<span id="cb18-13"><a href="#cb18-13"></a><span class="co">#       group_by(mz) %&gt;%</span></span>
-<span id="cb18-14"><a href="#cb18-14"></a><span class="co">#       summarise(&quot;intensum&quot; = sum(intensity)) %&gt;%</span></span>
-<span id="cb18-15"><a href="#cb18-15"></a><span class="co">#       add_column(&quot;mean.time&quot; = mean(selecscanstxt$time) + as.numeric(deadtxt)) %&gt;%</span></span>
-<span id="cb18-16"><a href="#cb18-16"></a><span class="co">#       add_column(&quot;Species&quot; = &#39;Species 1&#39;) %&gt;%</span></span>
-<span id="cb18-17"><a href="#cb18-17"></a><span class="co">#       add_column(&#39;CFtime&#39; = &#39;&#39;)</span></span>
-<span id="cb18-18"><a href="#cb18-18"></a><span class="co"># </span></span>
-<span id="cb18-19"><a href="#cb18-19"></a><span class="co"># specsumtxt[1:10,]</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" title="1"></a>
+<a class="sourceLine" id="cb18-2" title="2"><span class="co"># scanstxt &lt;- c(200, 800)</span></a>
+<a class="sourceLine" id="cb18-3" title="3"><span class="co"># mztxt &lt;- c(1520, 1532)</span></a>
+<a class="sourceLine" id="cb18-4" title="4"><span class="co"># </span></a>
+<a class="sourceLine" id="cb18-5" title="5"><span class="co"># deadtxt &lt;- 1</span></a>
+<a class="sourceLine" id="cb18-6" title="6"><span class="co"># </span></a>
+<a class="sourceLine" id="cb18-7" title="7"><span class="co"># selecscanstxt &lt;- inputms %&gt;%</span></a>
+<a class="sourceLine" id="cb18-8" title="8"><span class="co">#       filter(scan %in% scanstxt)</span></a>
+<a class="sourceLine" id="cb18-9" title="9"><span class="co"># </span></a>
+<a class="sourceLine" id="cb18-10" title="10"><span class="co"># specsumtxt &lt;- selecscanstxt %&gt;%</span></a>
+<a class="sourceLine" id="cb18-11" title="11"><span class="co">#       filter(mz &gt; min(mztxt)) %&gt;%</span></a>
+<a class="sourceLine" id="cb18-12" title="12"><span class="co">#       filter(mz &lt; max(mztxt)) %&gt;%</span></a>
+<a class="sourceLine" id="cb18-13" title="13"><span class="co">#       group_by(mz) %&gt;%</span></a>
+<a class="sourceLine" id="cb18-14" title="14"><span class="co">#       summarise(&quot;intensum&quot; = sum(intensity)) %&gt;%</span></a>
+<a class="sourceLine" id="cb18-15" title="15"><span class="co">#       add_column(&quot;mean.time&quot; = mean(selecscanstxt$time) + as.numeric(deadtxt)) %&gt;%</span></a>
+<a class="sourceLine" id="cb18-16" title="16"><span class="co">#       add_column(&quot;Species&quot; = &#39;Species 1&#39;) %&gt;%</span></a>
+<a class="sourceLine" id="cb18-17" title="17"><span class="co">#       add_column(&#39;CFtime&#39; = &#39;&#39;)</span></a>
+<a class="sourceLine" id="cb18-18" title="18"><span class="co"># </span></a>
+<a class="sourceLine" id="cb18-19" title="19"><span class="co"># specsumtxt[1:10,]</span></a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2392,11 +2391,11 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGltZS5zZWMgPC0gNjBcblxudGltZS5taW4gPC0gYXMubnVtZXJpYyh0aW1lLnNlYykgLyA2MFxuXG50aW1lLm1pblxuYGBgIn0= -->
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>time.sec &lt;-<span class="st"> </span><span class="dv">60</span></span>
-<span id="cb19-2"><a href="#cb19-2"></a></span>
-<span id="cb19-3"><a href="#cb19-3"></a>time.min &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(time.sec) <span class="op">/</span><span class="st"> </span><span class="dv">60</span></span>
-<span id="cb19-4"><a href="#cb19-4"></a></span>
-<span id="cb19-5"><a href="#cb19-5"></a>time.min</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1">time.sec &lt;-<span class="st"> </span><span class="dv">60</span></a>
+<a class="sourceLine" id="cb19-2" title="2"></a>
+<a class="sourceLine" id="cb19-3" title="3">time.min &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(time.sec) <span class="op">/</span><span class="st"> </span><span class="dv">60</span></a>
+<a class="sourceLine" id="cb19-4" title="4"></a>
+<a class="sourceLine" id="cb19-5" title="5">time.min</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2404,32 +2403,32 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBwLnNwZWNzdW10eHQgPC0gZ2dwbG90KGRhdGEgPSBzcGVjc3VtdHh0LCBhZXMoeCA9IG16LCB5ID0gaW50ZW5zdW0pKSArXG4jICAgICAgIGdlb21fbGluZShjb2xvciA9ICdzdGVlbGJsdWUnLCBzaXplID0gMSkgK1xuIyAgICAgICB4bGFiKFwibS96XCIpICtcbiMgICAgICAgdGhlbWUoc3RyaXAudGV4dC55ID0gZWxlbWVudF9ibGFuaygpLFxuIyAgICAgICAgICAgICBzdHJpcC5iYWNrZ3JvdW5kID0gZWxlbWVudF9ibGFuaygpLFxuIyAgICAgICAgICAgICBwYW5lbC5ib3JkZXIgPSBlbGVtZW50X2JsYW5rKCksXG4jICAgICAgICAgICAgIHBhbmVsLmdyaWQubWFqb3IgPSBlbGVtZW50X2xpbmUoY29sb3VyID0gXCJncmV5XCIpLFxuIyAgICAgICAgICAgICBwYW5lbC5ncmlkLm1pbm9yID0gZWxlbWVudF9saW5lKGNvbG91ciA9IFwiZ3JleTUwXCIpLFxuIyAgICAgICAgICAgICBwYW5lbC5iYWNrZ3JvdW5kID0gZWxlbWVudF9ibGFuaygpLFxuIyAgICAgICAgICAgICBheGlzLmxpbmUueCA9IGVsZW1lbnRfbGluZShjb2xvdXIgPSBcImJsYWNrXCIsIHNpemUgPSAwLjc1KSxcbiMgICAgICAgICAgICAgYXhpcy50aWNrcy5sZW5ndGg9dW5pdCgwLjEsIFwiaW5cIiksXG4jICAgICAgICAgICAgIGF4aXMudGlja3MueCA9IGVsZW1lbnRfbGluZShzaXplID0gMC43NSksXG4jICAgICAgICAgICAgIGF4aXMudGlja3MueSA9IGVsZW1lbnRfYmxhbmsoKSxcbiMgICAgICAgICAgICAgYXhpcy50ZXh0LnkgPSBlbGVtZW50X2JsYW5rKCksXG4jICAgICAgICAgICAgIGF4aXMudGV4dC54ID0gZWxlbWVudF90ZXh0KGNvbG91cj1cImJsYWNrXCIsIHNpemUgPSAxNiwgY29sb3IgPSBcImJsYWNrXCIsIGFuZ2xlID0gMCksXG4jICAgICAgICAgICAgIGF4aXMudGl0bGUueCA9IGVsZW1lbnRfdGV4dChzaXplPTE4LGZhY2U9XCJib2xkXCIpLFxuIyAgICAgICAgICAgICBheGlzLnRpdGxlLnkgPSBlbGVtZW50X2JsYW5rKCksXG4jICAgICAgICAgICAgIHBsb3QubWFyZ2luID0gbWFyZ2luKDI1LCAwLjUsIDAuNSwgMC41KSxcbiMgICAgICAgICAgICAgbGVnZW5kLnBvc2l0aW9uPVwicmlnaHRcIixcbiMgICAgICAgICAgICAgbGVnZW5kLmJveCA9IFwidmVydGljYWxcIixcbiMgICAgICAgICAgICAgbGVnZW5kLnRpdGxlID0gZWxlbWVudF90ZXh0KHNpemU9MTgsIGZhY2U9XCJib2xkXCIpLFxuIyAgICAgICAgICAgICBsZWdlbmQua2V5ID0gZWxlbWVudF9yZWN0KGZpbGwgPSBcIndoaXRlXCIpLFxuIyAgICAgICAgICAgICBsZWdlbmQudGV4dCA9IGVsZW1lbnRfdGV4dChzaXplPTE2LCBmYWNlPVwiYm9sZFwiKSkgK1xuIyAgICAgICBjb29yZF9jYXJ0ZXNpYW4oeGxpbSA9IGMobWluKG16dHh0KSwgbWF4KG16dHh0KSksIGV4cGFuZCA9IEZBTFNFKVxuIyBcbiMgcC5zcGVjc3VtdHh0XG5cbmBgYCJ9 -->
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co"># p.specsumtxt &lt;- ggplot(data = specsumtxt, aes(x = mz, y = intensum)) +</span></span>
-<span id="cb20-2"><a href="#cb20-2"></a><span class="co">#       geom_line(color = &#39;steelblue&#39;, size = 1) +</span></span>
-<span id="cb20-3"><a href="#cb20-3"></a><span class="co">#       xlab(&quot;m/z&quot;) +</span></span>
-<span id="cb20-4"><a href="#cb20-4"></a><span class="co">#       theme(strip.text.y = element_blank(),</span></span>
-<span id="cb20-5"><a href="#cb20-5"></a><span class="co">#             strip.background = element_blank(),</span></span>
-<span id="cb20-6"><a href="#cb20-6"></a><span class="co">#             panel.border = element_blank(),</span></span>
-<span id="cb20-7"><a href="#cb20-7"></a><span class="co">#             panel.grid.major = element_line(colour = &quot;grey&quot;),</span></span>
-<span id="cb20-8"><a href="#cb20-8"></a><span class="co">#             panel.grid.minor = element_line(colour = &quot;grey50&quot;),</span></span>
-<span id="cb20-9"><a href="#cb20-9"></a><span class="co">#             panel.background = element_blank(),</span></span>
-<span id="cb20-10"><a href="#cb20-10"></a><span class="co">#             axis.line.x = element_line(colour = &quot;black&quot;, size = 0.75),</span></span>
-<span id="cb20-11"><a href="#cb20-11"></a><span class="co">#             axis.ticks.length=unit(0.1, &quot;in&quot;),</span></span>
-<span id="cb20-12"><a href="#cb20-12"></a><span class="co">#             axis.ticks.x = element_line(size = 0.75),</span></span>
-<span id="cb20-13"><a href="#cb20-13"></a><span class="co">#             axis.ticks.y = element_blank(),</span></span>
-<span id="cb20-14"><a href="#cb20-14"></a><span class="co">#             axis.text.y = element_blank(),</span></span>
-<span id="cb20-15"><a href="#cb20-15"></a><span class="co">#             axis.text.x = element_text(colour=&quot;black&quot;, size = 16, color = &quot;black&quot;, angle = 0),</span></span>
-<span id="cb20-16"><a href="#cb20-16"></a><span class="co">#             axis.title.x = element_text(size=18,face=&quot;bold&quot;),</span></span>
-<span id="cb20-17"><a href="#cb20-17"></a><span class="co">#             axis.title.y = element_blank(),</span></span>
-<span id="cb20-18"><a href="#cb20-18"></a><span class="co">#             plot.margin = margin(25, 0.5, 0.5, 0.5),</span></span>
-<span id="cb20-19"><a href="#cb20-19"></a><span class="co">#             legend.position=&quot;right&quot;,</span></span>
-<span id="cb20-20"><a href="#cb20-20"></a><span class="co">#             legend.box = &quot;vertical&quot;,</span></span>
-<span id="cb20-21"><a href="#cb20-21"></a><span class="co">#             legend.title = element_text(size=18, face=&quot;bold&quot;),</span></span>
-<span id="cb20-22"><a href="#cb20-22"></a><span class="co">#             legend.key = element_rect(fill = &quot;white&quot;),</span></span>
-<span id="cb20-23"><a href="#cb20-23"></a><span class="co">#             legend.text = element_text(size=16, face=&quot;bold&quot;)) +</span></span>
-<span id="cb20-24"><a href="#cb20-24"></a><span class="co">#       coord_cartesian(xlim = c(min(mztxt), max(mztxt)), expand = FALSE)</span></span>
-<span id="cb20-25"><a href="#cb20-25"></a><span class="co"># </span></span>
-<span id="cb20-26"><a href="#cb20-26"></a><span class="co"># p.specsumtxt</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" title="1"><span class="co"># p.specsumtxt &lt;- ggplot(data = specsumtxt, aes(x = mz, y = intensum)) +</span></a>
+<a class="sourceLine" id="cb20-2" title="2"><span class="co">#       geom_line(color = &#39;steelblue&#39;, size = 1) +</span></a>
+<a class="sourceLine" id="cb20-3" title="3"><span class="co">#       xlab(&quot;m/z&quot;) +</span></a>
+<a class="sourceLine" id="cb20-4" title="4"><span class="co">#       theme(strip.text.y = element_blank(),</span></a>
+<a class="sourceLine" id="cb20-5" title="5"><span class="co">#             strip.background = element_blank(),</span></a>
+<a class="sourceLine" id="cb20-6" title="6"><span class="co">#             panel.border = element_blank(),</span></a>
+<a class="sourceLine" id="cb20-7" title="7"><span class="co">#             panel.grid.major = element_line(colour = &quot;grey&quot;),</span></a>
+<a class="sourceLine" id="cb20-8" title="8"><span class="co">#             panel.grid.minor = element_line(colour = &quot;grey50&quot;),</span></a>
+<a class="sourceLine" id="cb20-9" title="9"><span class="co">#             panel.background = element_blank(),</span></a>
+<a class="sourceLine" id="cb20-10" title="10"><span class="co">#             axis.line.x = element_line(colour = &quot;black&quot;, size = 0.75),</span></a>
+<a class="sourceLine" id="cb20-11" title="11"><span class="co">#             axis.ticks.length=unit(0.1, &quot;in&quot;),</span></a>
+<a class="sourceLine" id="cb20-12" title="12"><span class="co">#             axis.ticks.x = element_line(size = 0.75),</span></a>
+<a class="sourceLine" id="cb20-13" title="13"><span class="co">#             axis.ticks.y = element_blank(),</span></a>
+<a class="sourceLine" id="cb20-14" title="14"><span class="co">#             axis.text.y = element_blank(),</span></a>
+<a class="sourceLine" id="cb20-15" title="15"><span class="co">#             axis.text.x = element_text(colour=&quot;black&quot;, size = 16, color = &quot;black&quot;, angle = 0),</span></a>
+<a class="sourceLine" id="cb20-16" title="16"><span class="co">#             axis.title.x = element_text(size=18,face=&quot;bold&quot;),</span></a>
+<a class="sourceLine" id="cb20-17" title="17"><span class="co">#             axis.title.y = element_blank(),</span></a>
+<a class="sourceLine" id="cb20-18" title="18"><span class="co">#             plot.margin = margin(25, 0.5, 0.5, 0.5),</span></a>
+<a class="sourceLine" id="cb20-19" title="19"><span class="co">#             legend.position=&quot;right&quot;,</span></a>
+<a class="sourceLine" id="cb20-20" title="20"><span class="co">#             legend.box = &quot;vertical&quot;,</span></a>
+<a class="sourceLine" id="cb20-21" title="21"><span class="co">#             legend.title = element_text(size=18, face=&quot;bold&quot;),</span></a>
+<a class="sourceLine" id="cb20-22" title="22"><span class="co">#             legend.key = element_rect(fill = &quot;white&quot;),</span></a>
+<a class="sourceLine" id="cb20-23" title="23"><span class="co">#             legend.text = element_text(size=16, face=&quot;bold&quot;)) +</span></a>
+<a class="sourceLine" id="cb20-24" title="24"><span class="co">#       coord_cartesian(xlim = c(min(mztxt), max(mztxt)), expand = FALSE)</span></a>
+<a class="sourceLine" id="cb20-25" title="25"><span class="co"># </span></a>
+<a class="sourceLine" id="cb20-26" title="26"><span class="co"># p.specsumtxt</span></a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2437,15 +2436,15 @@ summary {
 </div>
 </div>
 <div id="msstackr" class="section level2">
-<h2 number="1.5"><span class="header-section-number">1.5</span> MSstackR</h2>
+<h2><span class="header-section-number">1.5</span> MSstackR</h2>
 <div id="purpose-2" class="section level3">
-<h3 number="1.5.1"><span class="header-section-number">1.5.1</span> Purpose</h3>
+<h3><span class="header-section-number">1.5.1</span> Purpose</h3>
 <p>The MSstackR module is used to create a figure from the spectra selected in the MSxploR tab, stacked by exchanging time and species</p>
 </div>
 <div id="features-2" class="section level3">
-<h3 number="1.5.2"><span class="header-section-number">1.5.2</span> Features</h3>
+<h3><span class="header-section-number">1.5.2</span> Features</h3>
 <div id="user-input-2" class="section level4">
-<h4 number="1.5.2.1"><span class="header-section-number">1.5.2.1</span> User input</h4>
+<h4><span class="header-section-number">1.5.2.1</span> User input</h4>
 <p>The sidebar contains a single input, that is a switch between the TIC time scale (modulo the dead time) and the manual time (for e.g. continuous flow).</p>
 <p>Besides the coloring and size parameters, the customisation widget also contains two switches:</p>
 <ol style="list-style-type: decimal">
@@ -2457,33 +2456,33 @@ summary {
 </ol>
 </div>
 <div id="output-2" class="section level4">
-<h4 number="1.5.2.2"><span class="header-section-number">1.5.2.2</span> Output</h4>
+<h4><span class="header-section-number">1.5.2.2</span> Output</h4>
 <p>The output is a figure where spectra are intensity-normalized, then stacked and colored by increasing mixing time (either automatically from the TIC or manually provided values). Different species are stacked in different columns and can be displayed with common or individual scales.</p>
 <p>There graph can be downloaded as a .png file by clicking on the sidebar button.</p>
 </div>
 </div>
 <div id="code-2" class="section level3">
-<h3 number="1.5.3"><span class="header-section-number">1.5.3</span> Code</h3>
+<h3><span class="header-section-number">1.5.3</span> Code</h3>
 <p>There is no data transformation to be discussed here, except for the intensity <code>intensum</code> normalization that is: <code>1-(max(intensum)-intensum)/(max(intensum)-min(intensum))</code></p>
 </div>
 </div>
 <div id="hdxplotr" class="section level2">
-<h2 number="1.6"><span class="header-section-number">1.6</span> HDXplotR</h2>
+<h2><span class="header-section-number">1.6</span> HDXplotR</h2>
 <div id="purpose-3" class="section level3">
-<h3 number="1.6.1"><span class="header-section-number">1.6.1</span> Purpose</h3>
+<h3><span class="header-section-number">1.6.1</span> Purpose</h3>
 <p>The HDXplotR tab is used to plot the centroids as a function of time, convert said centroids to number of unexchanged sites <em>NUS</em> using the deuterium content, charge, and reference centroid m/z, and plot the results. Non-linear fitting of the results can also be achieved.</p>
 </div>
 <div id="principle-2" class="section level3">
-<h3 number="1.6.2"><span class="header-section-number">1.6.2</span> Principle</h3>
+<h3><span class="header-section-number">1.6.2</span> Principle</h3>
 <p>Centroid masses <em>(m/z)<sub>t</sub></em> are extracted from the selected spectra by calculating the average isotopic mass <em>m<sub>i</sub></em> weighted by the abudance <em>a<sub>i</sub></em>:</p>
 <p><span class="math inline">\((m/z)_t = \frac {\sum_i{m_ia_i}}{\sum_i{a_i}}\)</span></p>
 <p>The <em>NUS</em> is defined as the measured mass shift between the sample centroid mass <em>(m/z)<sub>t</sub></em> at a time t calculated abovce and that of the fully-exchanged reference centroid <em>(m/z)<sub></sub></em> (user supplied, can be determined in OligoR), converted to mass units by multiplying by |<em>z</em>| (user-supplied), and divided by the apparent isotopic mass shift for a single site (ms):</p>
 <p><span class="math inline">\(NUS_t = \frac{[(m/z)_t-(m/z)_\infty ]|z|}{\Delta m_s}\)</span></p>
 </div>
 <div id="features-3" class="section level3">
-<h3 number="1.6.3"><span class="header-section-number">1.6.3</span> Features</h3>
+<h3><span class="header-section-number">1.6.3</span> Features</h3>
 <div id="user-input-3" class="section level4">
-<h4 number="1.6.3.1"><span class="header-section-number">1.6.3.1</span> User input</h4>
+<h4><span class="header-section-number">1.6.3.1</span> User input</h4>
 <p>In the sidebar, the user can input:</p>
 <ol style="list-style-type: decimal">
 <li>Already processed data to visualize (and possibly save) along the data being processed</li>
@@ -2494,7 +2493,7 @@ summary {
 <p>In the main window, the user can use the kinetics data box to: 1. Fill in the NUS calculation parameters in the <em>centroid calculation tab</em> - reference centroid values (in <em>m/z</em>), - charge states (in absolute value), - initial and final deuterium content (<code>D.initial</code> and <code>D.final</code>) 2. Name the species in that same tab, 3. Review and select the data points to be displayed in the figures by clicking on the corresponding table lines, or simply tick the <em>select all</em> box.</p>
 </div>
 <div id="output-3" class="section level4">
-<h4 number="1.6.3.2"><span class="header-section-number">1.6.3.2</span> Output</h4>
+<h4><span class="header-section-number">1.6.3.2</span> Output</h4>
 <p>The output is composed of two plots and on table:</p>
 <ol style="list-style-type: decimal">
 <li>The raw exchange plot displays the centroid values as a function of time
@@ -2517,26 +2516,26 @@ summary {
 </div>
 </div>
 <div id="titrator" class="section level2">
-<h2 number="1.7"><span class="header-section-number">1.7</span> TitratoR</h2>
+<h2><span class="header-section-number">1.7</span> TitratoR</h2>
 <div id="purpose-4" class="section level3">
-<h3 number="1.7.1"><span class="header-section-number">1.7.1</span> Purpose</h3>
+<h3><span class="header-section-number">1.7.1</span> Purpose</h3>
 <p>TitratoR is used for the data treatment of MS titration of oligonucleotides (although it can be used for other analytes) from raw MS data to final titration plot. It is capable of calculating the corrected concentrations of free and complexed species even with non-equivalent response factors. It does not handle multimeric species yet (but several ligands are ok).</p>
 </div>
 <div id="principle-3" class="section level3">
-<h3 number="1.7.2"><span class="header-section-number">1.7.2</span> Principle</h3>
+<h3><span class="header-section-number">1.7.2</span> Principle</h3>
 <p>Intensities of species are calculated by summing the intensities across the selected m/z ranges. Correction with the response factor of each species requires the use of an internal standard <em>IS</em>, as described in <em>Anal. Chem.</em> <strong>2009</strong>, <em>81</em>, 6708-6715. It is not described herein, but the code section below illustrates the correction principle.</p>
 </div>
 <div id="features-4" class="section level3">
-<h3 number="1.7.3"><span class="header-section-number">1.7.3</span> Features</h3>
+<h3><span class="header-section-number">1.7.3</span> Features</h3>
 <div id="user-input-4" class="section level4">
-<h4 number="1.7.3.1"><span class="header-section-number">1.7.3.1</span> User input</h4>
+<h4><span class="header-section-number">1.7.3.1</span> User input</h4>
 </div>
 <div id="output-4" class="section level4">
-<h4 number="1.7.3.2"><span class="header-section-number">1.7.3.2</span> Output</h4>
+<h4><span class="header-section-number">1.7.3.2</span> Output</h4>
 </div>
 </div>
 <div id="code-3" class="section level3">
-<h3 number="1.7.4"><span class="header-section-number">1.7.4</span> Code</h3>
+<h3><span class="header-section-number">1.7.4</span> Code</h3>
 <p>The example used hereafter is the titration of <span class="math inline">\(M\)</span> (10 µM) by <span class="math inline">\(L\)</span> (0, 5, 10 or 20 µM), forming <span class="math inline">\(ML\)</span> and <span class="math inline">\(ML_2\)</span> sequentially. A set of response factors, concentrations <em>C</em> and corresponding MS intensities <em>I</em> were made up:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
@@ -2547,22 +2546,22 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTXRvdCA8LSAxMCAjdG90YWwgdGFyZ2V0XG5cblN0ZCA8LSAyICNJbnRlcm5hbCBzdGFuZGFyZFxuXG5MZ2QgPC0gcmJpbmQoICNBZGRlZCBsaWdhbmQgY29uY2VudHJhdGlvbnMgZm9yIDQgZXhwZXJpbWVudHNcbiAgMCwgNSwgMTAsIDIwXG4pXG5TdG9pY2ggPC0gY2JpbmQoICNMaWdhbmQgc3RvaWNoaW9tZXRyeSBpbiBjcGx4c1xuICAwLCAxLCAyXG4pXG5cbnByaW50KCdUb3RhbCBsaWdhbmQgY29uY2VudHJhdGlvbiBpbiBlYWNoIGV4cGVyaW1lbnQnKVxuTGdkXG5cbnByaW50KCdTdG9pY2hpb21ldHJ5IG9mIHRoZSBsaWdhbmQgaW4gZWFjaCBvZiB0aGUgZm9ybWVkIGNvbXBsZXgnKVxuU3RvaWNoXG5gYGAifQ== -->
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>Mtot &lt;-<span class="st"> </span><span class="dv">10</span> <span class="co">#total target</span></span>
-<span id="cb21-2"><a href="#cb21-2"></a></span>
-<span id="cb21-3"><a href="#cb21-3"></a>Std &lt;-<span class="st"> </span><span class="dv">2</span> <span class="co">#Internal standard</span></span>
-<span id="cb21-4"><a href="#cb21-4"></a></span>
-<span id="cb21-5"><a href="#cb21-5"></a>Lgd &lt;-<span class="st"> </span><span class="kw">rbind</span>( <span class="co">#Added ligand concentrations for 4 experiments</span></span>
-<span id="cb21-6"><a href="#cb21-6"></a>  <span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span></span>
-<span id="cb21-7"><a href="#cb21-7"></a>)</span>
-<span id="cb21-8"><a href="#cb21-8"></a>Stoich &lt;-<span class="st"> </span><span class="kw">cbind</span>( <span class="co">#Ligand stoichiometry in cplxs</span></span>
-<span id="cb21-9"><a href="#cb21-9"></a>  <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span></span>
-<span id="cb21-10"><a href="#cb21-10"></a>)</span>
-<span id="cb21-11"><a href="#cb21-11"></a></span>
-<span id="cb21-12"><a href="#cb21-12"></a><span class="kw">print</span>(<span class="st">&#39;Total ligand concentration in each experiment&#39;</span>)</span>
-<span id="cb21-13"><a href="#cb21-13"></a>Lgd</span>
-<span id="cb21-14"><a href="#cb21-14"></a></span>
-<span id="cb21-15"><a href="#cb21-15"></a><span class="kw">print</span>(<span class="st">&#39;Stoichiometry of the ligand in each of the formed complex&#39;</span>)</span>
-<span id="cb21-16"><a href="#cb21-16"></a>Stoich</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" title="1">Mtot &lt;-<span class="st"> </span><span class="dv">10</span> <span class="co">#total target</span></a>
+<a class="sourceLine" id="cb21-2" title="2"></a>
+<a class="sourceLine" id="cb21-3" title="3">Std &lt;-<span class="st"> </span><span class="dv">2</span> <span class="co">#Internal standard</span></a>
+<a class="sourceLine" id="cb21-4" title="4"></a>
+<a class="sourceLine" id="cb21-5" title="5">Lgd &lt;-<span class="st"> </span><span class="kw">rbind</span>( <span class="co">#Added ligand concentrations for 4 experiments</span></a>
+<a class="sourceLine" id="cb21-6" title="6">  <span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span></a>
+<a class="sourceLine" id="cb21-7" title="7">)</a>
+<a class="sourceLine" id="cb21-8" title="8">Stoich &lt;-<span class="st"> </span><span class="kw">cbind</span>( <span class="co">#Ligand stoichiometry in cplxs</span></a>
+<a class="sourceLine" id="cb21-9" title="9">  <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span></a>
+<a class="sourceLine" id="cb21-10" title="10">)</a>
+<a class="sourceLine" id="cb21-11" title="11"></a>
+<a class="sourceLine" id="cb21-12" title="12"><span class="kw">print</span>(<span class="st">&#39;Total ligand concentration in each experiment&#39;</span>)</a>
+<a class="sourceLine" id="cb21-13" title="13">Lgd</a>
+<a class="sourceLine" id="cb21-14" title="14"></a>
+<a class="sourceLine" id="cb21-15" title="15"><span class="kw">print</span>(<span class="st">&#39;Stoichiometry of the ligand in each of the formed complex&#39;</span>)</a>
+<a class="sourceLine" id="cb21-16" title="16">Stoich</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2570,33 +2569,33 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0VhY2ggcm93IGlzIGFuIGluZGVwZW5kZW50IGV4cGVyaW1lbnQgKGluY3JlYXNpbmcgbGdkIGNvbmNlbnRyYXRpb24pXG4jRWFjaCBjb2x1bW4gaXMgYSBkaWZmZXJlbnQgc3BlY2llcyAoTSwgTUwsIE1MMilcbiNUaGUgdmFsdWVzIGFyZSByYXcgaW50ZW5zaXRpZXNcbkkwID0gcmJpbmQoXG4gIGMoMTAsIDAsIDApLFxuICBjKDcsIDIsIDAuMjUpLFxuICBjKDQuOCwgMi45MiwgMC43NzUpLFxuICBjKDIuMDUsIDMuMDgsIDIuMDUpXG4pXG5cbklTID0gcmJpbmQoXG4gIDYsXG4gIDYsXG4gIDYsXG4gIDZcbilcblxuI1RoZSBzaXplIG9mIHRoZSBJIG1hdHJpeCBkZXBlbmRzIG9uIHRoZSBudW1iZXIgb2YgZXhwZXJpbWVudHMgYW5kIHNwZWNpZXNcbkkgPC0gbWF0cml4KG5jb2wgPSBsZW5ndGgoU3RvaWNoKSwgbnJvdyA9IGxlbmd0aChMZ2QpKVxuXG5mb3IgKGkgaW4gMTpucm93KEkwKSkge1xuICBmb3IgKGogaW4gMTpuY29sKEkwKSkge1xuICAgIElbaSxqXSA8LSBJMFtpLGpdL0lTW2ldIFxuICB9XG59XG5cbklcbmBgYCJ9 -->
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="co">#Each row is an independent experiment (increasing lgd concentration)</span></span>
-<span id="cb22-2"><a href="#cb22-2"></a><span class="co">#Each column is a different species (M, ML, ML2)</span></span>
-<span id="cb22-3"><a href="#cb22-3"></a><span class="co">#The values are raw intensities</span></span>
-<span id="cb22-4"><a href="#cb22-4"></a>I0 =<span class="st"> </span><span class="kw">rbind</span>(</span>
-<span id="cb22-5"><a href="#cb22-5"></a>  <span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
-<span id="cb22-6"><a href="#cb22-6"></a>  <span class="kw">c</span>(<span class="dv">7</span>, <span class="dv">2</span>, <span class="fl">0.25</span>),</span>
-<span id="cb22-7"><a href="#cb22-7"></a>  <span class="kw">c</span>(<span class="fl">4.8</span>, <span class="fl">2.92</span>, <span class="fl">0.775</span>),</span>
-<span id="cb22-8"><a href="#cb22-8"></a>  <span class="kw">c</span>(<span class="fl">2.05</span>, <span class="fl">3.08</span>, <span class="fl">2.05</span>)</span>
-<span id="cb22-9"><a href="#cb22-9"></a>)</span>
-<span id="cb22-10"><a href="#cb22-10"></a></span>
-<span id="cb22-11"><a href="#cb22-11"></a>IS =<span class="st"> </span><span class="kw">rbind</span>(</span>
-<span id="cb22-12"><a href="#cb22-12"></a>  <span class="dv">6</span>,</span>
-<span id="cb22-13"><a href="#cb22-13"></a>  <span class="dv">6</span>,</span>
-<span id="cb22-14"><a href="#cb22-14"></a>  <span class="dv">6</span>,</span>
-<span id="cb22-15"><a href="#cb22-15"></a>  <span class="dv">6</span></span>
-<span id="cb22-16"><a href="#cb22-16"></a>)</span>
-<span id="cb22-17"><a href="#cb22-17"></a></span>
-<span id="cb22-18"><a href="#cb22-18"></a><span class="co">#The size of the I matrix depends on the number of experiments and species</span></span>
-<span id="cb22-19"><a href="#cb22-19"></a>I &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">length</span>(Stoich), <span class="dt">nrow =</span> <span class="kw">length</span>(Lgd))</span>
-<span id="cb22-20"><a href="#cb22-20"></a></span>
-<span id="cb22-21"><a href="#cb22-21"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I0)) {</span>
-<span id="cb22-22"><a href="#cb22-22"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(I0)) {</span>
-<span id="cb22-23"><a href="#cb22-23"></a>    I[i,j] &lt;-<span class="st"> </span>I0[i,j]<span class="op">/</span>IS[i] </span>
-<span id="cb22-24"><a href="#cb22-24"></a>  }</span>
-<span id="cb22-25"><a href="#cb22-25"></a>}</span>
-<span id="cb22-26"><a href="#cb22-26"></a></span>
-<span id="cb22-27"><a href="#cb22-27"></a>I</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" title="1"><span class="co">#Each row is an independent experiment (increasing lgd concentration)</span></a>
+<a class="sourceLine" id="cb22-2" title="2"><span class="co">#Each column is a different species (M, ML, ML2)</span></a>
+<a class="sourceLine" id="cb22-3" title="3"><span class="co">#The values are raw intensities</span></a>
+<a class="sourceLine" id="cb22-4" title="4">I0 =<span class="st"> </span><span class="kw">rbind</span>(</a>
+<a class="sourceLine" id="cb22-5" title="5">  <span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">0</span>, <span class="dv">0</span>),</a>
+<a class="sourceLine" id="cb22-6" title="6">  <span class="kw">c</span>(<span class="dv">7</span>, <span class="dv">2</span>, <span class="fl">0.25</span>),</a>
+<a class="sourceLine" id="cb22-7" title="7">  <span class="kw">c</span>(<span class="fl">4.8</span>, <span class="fl">2.92</span>, <span class="fl">0.775</span>),</a>
+<a class="sourceLine" id="cb22-8" title="8">  <span class="kw">c</span>(<span class="fl">2.05</span>, <span class="fl">3.08</span>, <span class="fl">2.05</span>)</a>
+<a class="sourceLine" id="cb22-9" title="9">)</a>
+<a class="sourceLine" id="cb22-10" title="10"></a>
+<a class="sourceLine" id="cb22-11" title="11">IS =<span class="st"> </span><span class="kw">rbind</span>(</a>
+<a class="sourceLine" id="cb22-12" title="12">  <span class="dv">6</span>,</a>
+<a class="sourceLine" id="cb22-13" title="13">  <span class="dv">6</span>,</a>
+<a class="sourceLine" id="cb22-14" title="14">  <span class="dv">6</span>,</a>
+<a class="sourceLine" id="cb22-15" title="15">  <span class="dv">6</span></a>
+<a class="sourceLine" id="cb22-16" title="16">)</a>
+<a class="sourceLine" id="cb22-17" title="17"></a>
+<a class="sourceLine" id="cb22-18" title="18"><span class="co">#The size of the I matrix depends on the number of experiments and species</span></a>
+<a class="sourceLine" id="cb22-19" title="19">I &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">length</span>(Stoich), <span class="dt">nrow =</span> <span class="kw">length</span>(Lgd))</a>
+<a class="sourceLine" id="cb22-20" title="20"></a>
+<a class="sourceLine" id="cb22-21" title="21"><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I0)) {</a>
+<a class="sourceLine" id="cb22-22" title="22">  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(I0)) {</a>
+<a class="sourceLine" id="cb22-23" title="23">    I[i,j] &lt;-<span class="st"> </span>I0[i,j]<span class="op">/</span>IS[i] </a>
+<a class="sourceLine" id="cb22-24" title="24">  }</a>
+<a class="sourceLine" id="cb22-25" title="25">}</a>
+<a class="sourceLine" id="cb22-26" title="26"></a>
+<a class="sourceLine" id="cb22-27" title="27">I</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2604,14 +2603,14 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5DIDwtIG1hdHJpeChuY29sID0gMSwgbnJvdyA9IG5yb3coSSkpXG5cbmZvciAobnJvd0kgaW4gMTpucm93KEkpKSB7XG4gIENbbnJvd0ldIDwtIE10b3QvU3RkXG59XG5cbkNcbmBgYCJ9 -->
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a></span>
-<span id="cb23-2"><a href="#cb23-2"></a>C &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="dv">1</span>, <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</span>
-<span id="cb23-3"><a href="#cb23-3"></a></span>
-<span id="cb23-4"><a href="#cb23-4"></a><span class="cf">for</span> (nrowI <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I)) {</span>
-<span id="cb23-5"><a href="#cb23-5"></a>  C[nrowI] &lt;-<span class="st"> </span>Mtot<span class="op">/</span>Std</span>
-<span id="cb23-6"><a href="#cb23-6"></a>}</span>
-<span id="cb23-7"><a href="#cb23-7"></a></span>
-<span id="cb23-8"><a href="#cb23-8"></a>C</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" title="1"></a>
+<a class="sourceLine" id="cb23-2" title="2">C &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="dv">1</span>, <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</a>
+<a class="sourceLine" id="cb23-3" title="3"></a>
+<a class="sourceLine" id="cb23-4" title="4"><span class="cf">for</span> (nrowI <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I)) {</a>
+<a class="sourceLine" id="cb23-5" title="5">  C[nrowI] &lt;-<span class="st"> </span>Mtot<span class="op">/</span>Std</a>
+<a class="sourceLine" id="cb23-6" title="6">}</a>
+<a class="sourceLine" id="cb23-7" title="7"></a>
+<a class="sourceLine" id="cb23-8" title="8">C</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2619,8 +2618,8 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuSS5pbnYgPSBwaW52KEkpXG5JLmludlxuYGBgIn0= -->
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>I.inv =<span class="st"> </span><span class="kw">pinv</span>(I)</span>
-<span id="cb24-2"><a href="#cb24-2"></a>I.inv</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" title="1">I.inv =<span class="st"> </span><span class="kw">pinv</span>(I)</a>
+<a class="sourceLine" id="cb24-2" title="2">I.inv</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2628,9 +2627,9 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1Jlc3BvbnNlIGZhY3RvcnMgcmVsYXRpdmUgdG8gdGhlIElTLlxuUiA8LSBJLmludiUqJUNcblJcbmBgYCJ9 -->
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a><span class="co">#Response factors relative to the IS.</span></span>
-<span id="cb25-2"><a href="#cb25-2"></a>R &lt;-<span class="st"> </span>I.inv<span class="op">%*%</span>C</span>
-<span id="cb25-3"><a href="#cb25-3"></a>R</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" title="1"><span class="co">#Response factors relative to the IS.</span></a>
+<a class="sourceLine" id="cb25-2" title="2">R &lt;-<span class="st"> </span>I.inv<span class="op">%*%</span>C</a>
+<a class="sourceLine" id="cb25-3" title="3">R</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2641,28 +2640,28 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jUkkgaGFzIHRoZSBzYW1lIGRpbWVuc2lvbnMgYXMgSVxuUkkgPC0gbWF0cml4KG5jb2wgPSBuY29sKEkpLCBucm93ID0gbnJvdyhJKSlcbiNSSSBpcyBvYnRhaW5lZCBieSBkaXN0cmlidXRpbmcgZWFjaCByb3cgb2YgUiBvbnRvIHRoZSBzYW1lIG51bWJlcmVkIGNvbHVtbiBvZiBJIFxuZm9yIChucm93UiBpbiAxOm5yb3coUikpIHtcbiAgZm9yIChucm93SSBpbiAxOm5yb3coSSkpIHtcbiAgICBSSVtucm93SSxucm93Ul0gPC0gUltucm93Ul0gKiBJW25yb3dJLG5yb3dSXVxuICB9XG59XG5cblxuI0ZpbmFsIG1hdHJpeCBvZiBjb3JyZWN0ZWQgY29uY2VudHJhdGlvbnNcbiNTYW1lIGRpbWVuc2lvbnMgYXMgSVxuY29yci5DIDwtIG1hdHJpeChuY29sID0gbmNvbChJKSwgbnJvdyA9IG5yb3coSSkpXG4jUHJvZHVjdCBvZiBNdG90IG9uIFJJLCBkaXZpZGVkIGJ5IHRoZSBzdW0gb2YgUkkgYWNyb3NzIHNwZWNpZXMgZm9yIGEgZ2l2ZW4gZXhwZXJpbWVudFxuZm9yIChucm93SSBpbiAxOm5yb3coSSkpIHtcbiAgZm9yIChuY29sSSBpbiAxOm5jb2woSSkpIHtcbiAgICBjb3JyLkNbbnJvd0ksbmNvbEldIDwtIE10b3QqUklbbnJvd0ksbmNvbEldL3N1bShSSVtucm93SSxdKVxuICB9XG59XG5cbmNvcnIuQ1xuXG5gYGAifQ== -->
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a></span>
-<span id="cb26-2"><a href="#cb26-2"></a><span class="co">#RI has the same dimensions as I</span></span>
-<span id="cb26-3"><a href="#cb26-3"></a>RI &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">ncol</span>(I), <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</span>
-<span id="cb26-4"><a href="#cb26-4"></a><span class="co">#RI is obtained by distributing each row of R onto the same numbered column of I </span></span>
-<span id="cb26-5"><a href="#cb26-5"></a><span class="cf">for</span> (nrowR <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(R)) {</span>
-<span id="cb26-6"><a href="#cb26-6"></a>  <span class="cf">for</span> (nrowI <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I)) {</span>
-<span id="cb26-7"><a href="#cb26-7"></a>    RI[nrowI,nrowR] &lt;-<span class="st"> </span>R[nrowR] <span class="op">*</span><span class="st"> </span>I[nrowI,nrowR]</span>
-<span id="cb26-8"><a href="#cb26-8"></a>  }</span>
-<span id="cb26-9"><a href="#cb26-9"></a>}</span>
-<span id="cb26-10"><a href="#cb26-10"></a></span>
-<span id="cb26-11"><a href="#cb26-11"></a></span>
-<span id="cb26-12"><a href="#cb26-12"></a><span class="co">#Final matrix of corrected concentrations</span></span>
-<span id="cb26-13"><a href="#cb26-13"></a><span class="co">#Same dimensions as I</span></span>
-<span id="cb26-14"><a href="#cb26-14"></a>corr.C &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">ncol</span>(I), <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</span>
-<span id="cb26-15"><a href="#cb26-15"></a><span class="co">#Product of Mtot on RI, divided by the sum of RI across species for a given experiment</span></span>
-<span id="cb26-16"><a href="#cb26-16"></a><span class="cf">for</span> (nrowI <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I)) {</span>
-<span id="cb26-17"><a href="#cb26-17"></a>  <span class="cf">for</span> (ncolI <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(I)) {</span>
-<span id="cb26-18"><a href="#cb26-18"></a>    corr.C[nrowI,ncolI] &lt;-<span class="st"> </span>Mtot<span class="op">*</span>RI[nrowI,ncolI]<span class="op">/</span><span class="kw">sum</span>(RI[nrowI,])</span>
-<span id="cb26-19"><a href="#cb26-19"></a>  }</span>
-<span id="cb26-20"><a href="#cb26-20"></a>}</span>
-<span id="cb26-21"><a href="#cb26-21"></a></span>
-<span id="cb26-22"><a href="#cb26-22"></a>corr.C</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" title="1"></a>
+<a class="sourceLine" id="cb26-2" title="2"><span class="co">#RI has the same dimensions as I</span></a>
+<a class="sourceLine" id="cb26-3" title="3">RI &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">ncol</span>(I), <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</a>
+<a class="sourceLine" id="cb26-4" title="4"><span class="co">#RI is obtained by distributing each row of R onto the same numbered column of I </span></a>
+<a class="sourceLine" id="cb26-5" title="5"><span class="cf">for</span> (nrowR <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(R)) {</a>
+<a class="sourceLine" id="cb26-6" title="6">  <span class="cf">for</span> (nrowI <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I)) {</a>
+<a class="sourceLine" id="cb26-7" title="7">    RI[nrowI,nrowR] &lt;-<span class="st"> </span>R[nrowR] <span class="op">*</span><span class="st"> </span>I[nrowI,nrowR]</a>
+<a class="sourceLine" id="cb26-8" title="8">  }</a>
+<a class="sourceLine" id="cb26-9" title="9">}</a>
+<a class="sourceLine" id="cb26-10" title="10"></a>
+<a class="sourceLine" id="cb26-11" title="11"></a>
+<a class="sourceLine" id="cb26-12" title="12"><span class="co">#Final matrix of corrected concentrations</span></a>
+<a class="sourceLine" id="cb26-13" title="13"><span class="co">#Same dimensions as I</span></a>
+<a class="sourceLine" id="cb26-14" title="14">corr.C &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">ncol</span>(I), <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</a>
+<a class="sourceLine" id="cb26-15" title="15"><span class="co">#Product of Mtot on RI, divided by the sum of RI across species for a given experiment</span></a>
+<a class="sourceLine" id="cb26-16" title="16"><span class="cf">for</span> (nrowI <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I)) {</a>
+<a class="sourceLine" id="cb26-17" title="17">  <span class="cf">for</span> (ncolI <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(I)) {</a>
+<a class="sourceLine" id="cb26-18" title="18">    corr.C[nrowI,ncolI] &lt;-<span class="st"> </span>Mtot<span class="op">*</span>RI[nrowI,ncolI]<span class="op">/</span><span class="kw">sum</span>(RI[nrowI,])</a>
+<a class="sourceLine" id="cb26-19" title="19">  }</a>
+<a class="sourceLine" id="cb26-20" title="20">}</a>
+<a class="sourceLine" id="cb26-21" title="21"></a>
+<a class="sourceLine" id="cb26-22" title="22">corr.C</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2673,26 +2672,26 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jVG90YWwgYW1vdW50IG9mIGNvbXBsZXhlZCBsaWdhbmRcbmNwbHguTCA8LSBtYXRyaXgobmNvbCA9IG5jb2woSSksIG5yb3cgPSBucm93KEkpKVxuXG5mb3IgKGkgaW4gMTpuY29sKEkpKSB7XG4gIGZvciAoaiBpbiAxOm5yb3coSSkpIHtcbiAgICBjcGx4LkxbaixpXSA8LSBTdG9pY2hbaV0gKiBjb3JyLkNbaixpXVxuICB9XG59XG5cbkwuZnJlZSA8LSBtYXRyaXgobmNvbCA9IDEsIG5yb3cgPSBucm93KExnZCkpXG5cbiNGcmVlIGxpZ2FuZCAodW5ib3VuZClcbmZyZWUuTCA8LSBtYXRyaXgobnJvdyA9IG5yb3coY3BseC5MKSlcblxuZm9yIChrIGluIDE6bnJvdyhjcGx4LkwpKSB7XG4gIGZyZWUuTFtrXSA8LSBMZ2Rba10gLSBzdW0oY3BseC5MW2ssXSlcbn1cblxuZnJlZS5MXG5cbmBgYCJ9 -->
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a></span>
-<span id="cb27-2"><a href="#cb27-2"></a><span class="co">#Total amount of complexed ligand</span></span>
-<span id="cb27-3"><a href="#cb27-3"></a>cplx.L &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">ncol</span>(I), <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</span>
-<span id="cb27-4"><a href="#cb27-4"></a></span>
-<span id="cb27-5"><a href="#cb27-5"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(I)) {</span>
-<span id="cb27-6"><a href="#cb27-6"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I)) {</span>
-<span id="cb27-7"><a href="#cb27-7"></a>    cplx.L[j,i] &lt;-<span class="st"> </span>Stoich[i] <span class="op">*</span><span class="st"> </span>corr.C[j,i]</span>
-<span id="cb27-8"><a href="#cb27-8"></a>  }</span>
-<span id="cb27-9"><a href="#cb27-9"></a>}</span>
-<span id="cb27-10"><a href="#cb27-10"></a></span>
-<span id="cb27-11"><a href="#cb27-11"></a>L.free &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="dv">1</span>, <span class="dt">nrow =</span> <span class="kw">nrow</span>(Lgd))</span>
-<span id="cb27-12"><a href="#cb27-12"></a></span>
-<span id="cb27-13"><a href="#cb27-13"></a><span class="co">#Free ligand (unbound)</span></span>
-<span id="cb27-14"><a href="#cb27-14"></a>free.L &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">nrow =</span> <span class="kw">nrow</span>(cplx.L))</span>
-<span id="cb27-15"><a href="#cb27-15"></a></span>
-<span id="cb27-16"><a href="#cb27-16"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(cplx.L)) {</span>
-<span id="cb27-17"><a href="#cb27-17"></a>  free.L[k] &lt;-<span class="st"> </span>Lgd[k] <span class="op">-</span><span class="st"> </span><span class="kw">sum</span>(cplx.L[k,])</span>
-<span id="cb27-18"><a href="#cb27-18"></a>}</span>
-<span id="cb27-19"><a href="#cb27-19"></a></span>
-<span id="cb27-20"><a href="#cb27-20"></a>free.L</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" title="1"></a>
+<a class="sourceLine" id="cb27-2" title="2"><span class="co">#Total amount of complexed ligand</span></a>
+<a class="sourceLine" id="cb27-3" title="3">cplx.L &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">ncol</span>(I), <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</a>
+<a class="sourceLine" id="cb27-4" title="4"></a>
+<a class="sourceLine" id="cb27-5" title="5"><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(I)) {</a>
+<a class="sourceLine" id="cb27-6" title="6">  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(I)) {</a>
+<a class="sourceLine" id="cb27-7" title="7">    cplx.L[j,i] &lt;-<span class="st"> </span>Stoich[i] <span class="op">*</span><span class="st"> </span>corr.C[j,i]</a>
+<a class="sourceLine" id="cb27-8" title="8">  }</a>
+<a class="sourceLine" id="cb27-9" title="9">}</a>
+<a class="sourceLine" id="cb27-10" title="10"></a>
+<a class="sourceLine" id="cb27-11" title="11">L.free &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="dv">1</span>, <span class="dt">nrow =</span> <span class="kw">nrow</span>(Lgd))</a>
+<a class="sourceLine" id="cb27-12" title="12"></a>
+<a class="sourceLine" id="cb27-13" title="13"><span class="co">#Free ligand (unbound)</span></a>
+<a class="sourceLine" id="cb27-14" title="14">free.L &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">nrow =</span> <span class="kw">nrow</span>(cplx.L))</a>
+<a class="sourceLine" id="cb27-15" title="15"></a>
+<a class="sourceLine" id="cb27-16" title="16"><span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(cplx.L)) {</a>
+<a class="sourceLine" id="cb27-17" title="17">  free.L[k] &lt;-<span class="st"> </span>Lgd[k] <span class="op">-</span><span class="st"> </span><span class="kw">sum</span>(cplx.L[k,])</a>
+<a class="sourceLine" id="cb27-18" title="18">}</a>
+<a class="sourceLine" id="cb27-19" title="19"></a>
+<a class="sourceLine" id="cb27-20" title="20">free.L</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2701,19 +2700,19 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4ja2QgY29udGFpbnMgYWxsIEtkcyBmb3IgYWxsIHNwZWNpZXMgaW4gZXZlcnkgZXhwZXJpbWVudFxua2QgPC0gbWF0cml4KG5jb2wgPSBuY29sKEkpLTEsIG5yb3cgPSBucm93KEkpKVxuXG5mb3IgKGogaW4gMjpuY29sKEkpKSB7XG4gIGZvciAoaSBpbiAxOm5yb3coa2QpKSB7XG4gICAga2RbaS0xLGotMV0gPC0gZnJlZS5MW2ldICogY29yci5DW2ksai0xXSAvIGNvcnIuQ1tpLGpdXG4gIH1cbn1cblxuI2NsZWFuIHVwXG5rZCA8LSBrZFsxOm5yb3coa2QpLTEsIDE6bmNvbChrZCldXG5rZFxuYGBgIn0= -->
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a></span>
-<span id="cb28-2"><a href="#cb28-2"></a><span class="co">#kd contains all Kds for all species in every experiment</span></span>
-<span id="cb28-3"><a href="#cb28-3"></a>kd &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">ncol</span>(I)<span class="op">-</span><span class="dv">1</span>, <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</span>
-<span id="cb28-4"><a href="#cb28-4"></a></span>
-<span id="cb28-5"><a href="#cb28-5"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">2</span><span class="op">:</span><span class="kw">ncol</span>(I)) {</span>
-<span id="cb28-6"><a href="#cb28-6"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(kd)) {</span>
-<span id="cb28-7"><a href="#cb28-7"></a>    kd[i<span class="dv">-1</span>,j<span class="dv">-1</span>] &lt;-<span class="st"> </span>free.L[i] <span class="op">*</span><span class="st"> </span>corr.C[i,j<span class="dv">-1</span>] <span class="op">/</span><span class="st"> </span>corr.C[i,j]</span>
-<span id="cb28-8"><a href="#cb28-8"></a>  }</span>
-<span id="cb28-9"><a href="#cb28-9"></a>}</span>
-<span id="cb28-10"><a href="#cb28-10"></a></span>
-<span id="cb28-11"><a href="#cb28-11"></a><span class="co">#clean up</span></span>
-<span id="cb28-12"><a href="#cb28-12"></a>kd &lt;-<span class="st"> </span>kd[<span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(kd)<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(kd)]</span>
-<span id="cb28-13"><a href="#cb28-13"></a>kd</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" title="1"></a>
+<a class="sourceLine" id="cb28-2" title="2"><span class="co">#kd contains all Kds for all species in every experiment</span></a>
+<a class="sourceLine" id="cb28-3" title="3">kd &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">ncol =</span> <span class="kw">ncol</span>(I)<span class="op">-</span><span class="dv">1</span>, <span class="dt">nrow =</span> <span class="kw">nrow</span>(I))</a>
+<a class="sourceLine" id="cb28-4" title="4"></a>
+<a class="sourceLine" id="cb28-5" title="5"><span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">2</span><span class="op">:</span><span class="kw">ncol</span>(I)) {</a>
+<a class="sourceLine" id="cb28-6" title="6">  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(kd)) {</a>
+<a class="sourceLine" id="cb28-7" title="7">    kd[i<span class="dv">-1</span>,j<span class="dv">-1</span>] &lt;-<span class="st"> </span>free.L[i] <span class="op">*</span><span class="st"> </span>corr.C[i,j<span class="dv">-1</span>] <span class="op">/</span><span class="st"> </span>corr.C[i,j]</a>
+<a class="sourceLine" id="cb28-8" title="8">  }</a>
+<a class="sourceLine" id="cb28-9" title="9">}</a>
+<a class="sourceLine" id="cb28-10" title="10"></a>
+<a class="sourceLine" id="cb28-11" title="11"><span class="co">#clean up</span></a>
+<a class="sourceLine" id="cb28-12" title="12">kd &lt;-<span class="st"> </span>kd[<span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(kd)<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(kd)]</a>
+<a class="sourceLine" id="cb28-13" title="13">kd</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2721,19 +2720,19 @@ summary {
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2EgdmVjdG9yIHRvIGdhdGhlciBtZWFuIEtkc1xua2QubWVhbiA8LSB2ZWN0b3IoKVxuXG5pZiAoaXMubnVsbChuY29sKGtkKSkpIHtcbiAga2QubWVhbiA8LSBtZWFuKGtkKVxufSBlbHNle1xuICBmb3IgKGkgaW4gMTpuY29sKGtkKSkge1xuICAgIGtkLm1lYW5baV0gPC0gbWVhbihrZFssaV0pIFxuICB9XG4gIFxufVxuXG5rZFxuXG5gYGAifQ== -->
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a><span class="co">#a vector to gather mean Kds</span></span>
-<span id="cb29-2"><a href="#cb29-2"></a>kd.mean &lt;-<span class="st"> </span><span class="kw">vector</span>()</span>
-<span id="cb29-3"><a href="#cb29-3"></a></span>
-<span id="cb29-4"><a href="#cb29-4"></a><span class="cf">if</span> (<span class="kw">is.null</span>(<span class="kw">ncol</span>(kd))) {</span>
-<span id="cb29-5"><a href="#cb29-5"></a>  kd.mean &lt;-<span class="st"> </span><span class="kw">mean</span>(kd)</span>
-<span id="cb29-6"><a href="#cb29-6"></a>} <span class="cf">else</span>{</span>
-<span id="cb29-7"><a href="#cb29-7"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(kd)) {</span>
-<span id="cb29-8"><a href="#cb29-8"></a>    kd.mean[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(kd[,i]) </span>
-<span id="cb29-9"><a href="#cb29-9"></a>  }</span>
-<span id="cb29-10"><a href="#cb29-10"></a>  </span>
-<span id="cb29-11"><a href="#cb29-11"></a>}</span>
-<span id="cb29-12"><a href="#cb29-12"></a></span>
-<span id="cb29-13"><a href="#cb29-13"></a>kd</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" title="1"><span class="co">#a vector to gather mean Kds</span></a>
+<a class="sourceLine" id="cb29-2" title="2">kd.mean &lt;-<span class="st"> </span><span class="kw">vector</span>()</a>
+<a class="sourceLine" id="cb29-3" title="3"></a>
+<a class="sourceLine" id="cb29-4" title="4"><span class="cf">if</span> (<span class="kw">is.null</span>(<span class="kw">ncol</span>(kd))) {</a>
+<a class="sourceLine" id="cb29-5" title="5">  kd.mean &lt;-<span class="st"> </span><span class="kw">mean</span>(kd)</a>
+<a class="sourceLine" id="cb29-6" title="6">} <span class="cf">else</span>{</a>
+<a class="sourceLine" id="cb29-7" title="7">  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(kd)) {</a>
+<a class="sourceLine" id="cb29-8" title="8">    kd.mean[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(kd[,i]) </a>
+<a class="sourceLine" id="cb29-9" title="9">  }</a>
+<a class="sourceLine" id="cb29-10" title="10">  </a>
+<a class="sourceLine" id="cb29-11" title="11">}</a>
+<a class="sourceLine" id="cb29-12" title="12"></a>
+<a class="sourceLine" id="cb29-13" title="13">kd</a></code></pre></div>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
