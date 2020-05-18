@@ -7,6 +7,8 @@
 
 oligor <- function(){
 
+
+
   #libraries------------
   library(BiocManager)
   options(repos = BiocManager::repositories())
@@ -42,6 +44,7 @@ oligor <- function(){
   library(shinysky)
   library(ggthemes)
   library(ggsci)
+  library(ggpmisc)
   library(zoo)
   # install.packages("remotes")
   # remotes::install_github("DavidBarke/QWUtils")
@@ -114,7 +117,7 @@ ui <- dashboardPagePlus(
   sidebar_fullCollapse = TRUE,
   #header--------------
   dashboardHeaderPlus(
-    title = "OligoR 0.37",
+    title = "OligoR 0.48",
     enable_rightsidebar = TRUE,
     rightSidebarIcon = "palette"
   ),
@@ -305,7 +308,7 @@ ui <- dashboardPagePlus(
         dropdown_icon = 'upload',
         fileInput(
           'file.old',
-          'Select csv file'
+          'Select Excel file'
         )
       ),
       boxPlus(
@@ -329,71 +332,6 @@ ui <- dashboardPagePlus(
       ),
       boxPlus(
         width = "100%",
-        title = "NUS calculation",
-        status = "primary",
-        solidHeader = F,
-        collapsible = T,
-        collapsed = F,
-        splitLayout(
-          cellWidths = "50%",
-          textInput(inputId = "Di", "initial %D", "90"),
-          textInput(inputId = "Dend", "final %D", "9")),
-        splitLayout(
-          textInput(
-            inputId = "centroid.ref1",
-            label = "Reference centroid 1",
-            value = 1500,
-            width = "100%"
-          ),textInput(
-            inputId = "centroid.ref2",
-            label = "Reference centroid 2",
-            value = 1510,
-            width = "100%"
-          )
-        ),
-        splitLayout(
-          textInput(
-            inputId = "charge.ref1",
-            label = "Charge 1",
-            value = 4,
-            width = "100%"
-          ),textInput(
-            inputId = "charge.ref2",
-            label = "Charge 2",
-            value = 4,
-            width = "100%"
-          )
-        ),
-        splitLayout(
-          textInput(
-            inputId = "centroid.ref3",
-            label = "Reference centroid 3",
-            value = 1500,
-            width = "100%"
-          ),textInput(
-            inputId = "centroid.ref4",
-            label = "Reference centroid 4",
-            value = 1510,
-            width = "100%"
-          )
-        ),
-        splitLayout(
-          textInput(
-            inputId = "charge.ref3",
-            label = "Charge 3",
-            value = 4,
-            width = "100%"
-          ),
-          textInput(
-            inputId = "charge.ref4",
-            label = "Charge 4",
-            value = 4,
-            width = "100%"
-          )
-        )
-      ),
-      boxPlus(
-        width = "100%",
         title = "Fitting initialization",
         status = "maroon",
         solidHeader = F,
@@ -412,7 +350,14 @@ ui <- dashboardPagePlus(
           label = "y0",
           value = 5,
           width = "100%"
-        )
+        ),
+        switchInput(inputId = "fit.hdx", #toggles baseline on/off
+                    label = "fit HDX plots",
+                    onLabel = 'fit',
+                    offLabel = 'no fit',
+                    value = FALSE,
+                    size = 'normal',
+                    width = 'auto')
       ),
       boxPlus(
         title = "Downloads",
@@ -429,7 +374,13 @@ ui <- dashboardPagePlus(
         br(),
         downloadBttn(
           outputId = "dwnplot2",
-          label = "NUS plot",
+          label = "NUS plot png",
+          style = "material-flat",
+          size = 'sm'
+        ),
+        downloadBttn(
+          outputId = "dwnplot3",
+          label = "NUS plot pdf",
           style = "material-flat",
           size = 'sm'
         )
@@ -464,7 +415,13 @@ ui <- dashboardPagePlus(
         width = '100%',
         downloadBttn(
           outputId = "dwnspec",
-          label = "Spectra",
+          label = "png",
+          style = "material-flat",
+          size = 'sm'
+        ),
+        downloadBttn(
+          outputId = "dwnspec.pdf",
+          label = "pdf",
           style = "material-flat",
           size = 'sm'
         )
@@ -616,11 +573,11 @@ ui <- dashboardPagePlus(
                  no_outline = TRUE)
     ),
     conditionalPanel(
-      condition = "input.tabs == 'OligoR'",
+      condition = "input.tabs == 'OligoRef'",
       boxPlus(id = "boxseq",
               title = "Analyte information",
               status = "primary",
-              solidHeader = T,
+              solidHeader = F,
               collapsible = T,
               width = '100%',
               textInput(
@@ -665,6 +622,18 @@ ui <- dashboardPagePlus(
                           width = "100%",
                           choices = list("all sites" = 'A', "no phosphates" = 'B', "no phosphates nor termini" = 'C'),
                           selected = "C")
+      ),
+      downloadBttn(
+        outputId = "ref.accu.png",
+        label = "png",
+        style = "material-flat",
+        size = 'sm'
+      ),
+      downloadBttn(
+        outputId = "ref.accu.pdf",
+        label = "pdf",
+        style = "material-flat",
+        size = 'sm'
       )
     ),
     conditionalPanel(
@@ -966,8 +935,8 @@ ui <- dashboardPagePlus(
                           style = "opacity: 0.9"
                         )
                ),
-               #panel oligoR------------
-               tabPanel("OligoR",
+               #panel oligoRef------------
+               tabPanel("OligoRef",
                         icon = icon("dna"),
                         fluidRow(
                           boxPlus(id = 'Oligoutput69',
@@ -1024,7 +993,7 @@ ui <- dashboardPagePlus(
                           )
                         ),
                         absolutePanel(
-                          bottom = 200, right = 40, width = 200,
+                          top = 300, right = 40, width = 200,
                           draggable = TRUE,
                           wellPanel(h3("Customisation"),
                                     colourInput("col.dot.th", "Theory  dot colour", "tomato"),
@@ -1192,14 +1161,23 @@ ui <- dashboardPagePlus(
                tabPanel("HDXplotR",
                         icon = icon('stopwatch'),
                         fluidRow(
-                          boxPlus(
-                            title = "Kinetics data",
-                            width = 12,
-                            status = "info",
-                            solidHeader = T,
-                            collapsible = T,
-                            DTOutput("centroids"),
-                            checkboxInput("centroids_sel", "select all")
+                          column(12,
+                                 collapsible_tabBox(
+                                   id = 'kinetic.hdx',
+                                   title = 'Kinetics data',
+                                   width = 12,
+                                   tabPanel(
+                                     title = 'NUS calculation',
+                                     icon = icon('calculation'),
+                                     hotable("hotable2"),
+                                   ),
+                                   tabPanel(
+                                     title = 'Kinetics data',
+                                     icon = icon('table'),
+                                     DTOutput("centroids"),
+                                     checkboxInput("centroids_sel", "select all")
+                                   )
+                                 )
                           ),
                           boxPlus(
                             title = "Exchange plot (raw)",
@@ -1659,6 +1637,8 @@ server <- function(input, output, session) {
       escape = T,
       filter = 'top',
       autoHideNavigation = T,
+      colnames = c('m/z' = 'mz.th',
+                   'Abundance' = 'Iso.Pattern'),
       options = list(
         deferRender = TRUE,
         scrollY = 200,
@@ -1669,8 +1649,8 @@ server <- function(input, output, session) {
         buttons = c('copy', 'csv', 'excel') #buttons
       )
     ) %>%
-      formatRound(c('mz.th'), digits = 5) %>%
-      formatRound(c('Iso.Pattern'), digits = 3)
+      formatRound(c('m/z'), digits = 5) %>%
+      formatRound(c('Abundance'), digits = 3)
 
   })
 
@@ -1710,7 +1690,7 @@ server <- function(input, output, session) {
       )
   })
 
-  output$plot98 <- renderPlot({
+  plot98 <- reactive({
     ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
       geom_line(color = input$col.line.th, size = input$size.line.th) +
       geom_point(color = input$col.dot.th, size = input$size.dot.th) +
@@ -1756,6 +1736,31 @@ server <- function(input, output, session) {
       )
   })
 
+  output$plot98 <- renderPlot({
+    plot98()
+  })
+
+  output$ref.accu.pdf <- downloadHandler(
+    filename = function() { paste("stacked spectra", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(file, plot = plot98(), device = "pdf",
+             width = 200,
+             height = 100,
+             units = 'mm',
+             dpi = 600)
+    }
+  )
+
+  output$ref.accu.png <- downloadHandler(
+    filename = function() { paste("stacked spectra", '.png', sep='') },
+    content = function(file) {
+      ggsave(file, plot = plot98(), device = "png",
+             # width = 25,
+             # height = 8,
+             # units = 'mm',
+             dpi = 300)
+    }
+  )
 
 
 
@@ -2765,6 +2770,21 @@ server <- function(input, output, session) {
 
 
   output$plot5 <- renderPlot({
+    Plot5()
+  }
+  )
+
+  output$plot5.ui <- renderUI({
+    plotOutput("plot5",
+               width = as.numeric(input$plot5.w),
+               height = as.numeric(input$plot5.h)
+    )
+  })
+
+
+  #download spectra----------
+
+  Plot5 <- reactive({
     ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
                                   color = colorscale)) +
       geom_line(size = 1) +
@@ -2798,47 +2818,6 @@ server <- function(input, output, session) {
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold"))  +
       coord_cartesian(expand = FALSE)
-  }
-  )
-
-  output$plot5.ui <- renderUI({
-    plotOutput("plot5",
-               width = as.numeric(input$plot5.w),
-               height = as.numeric(input$plot5.h)
-    )
-  })
-
-
-  #download spectra----------
-
-  Plot5 <- reactive({
-    ggplot(data = MSsnaps(), aes(x = mz, y = intensum)) +
-      geom_line(color = "steelblue", size = 1) +
-      xlab("m/z") +
-      facet_wrap(~mean.time,
-                 dir = "v",
-                 ncol = 1) +
-      theme(strip.text.y = element_blank(),
-            strip.background = element_blank(),
-            panel.border = element_blank(),
-            panel.grid.major = element_line(colour = "black"),
-            panel.grid.minor = element_line(colour = "grey"),
-            panel.background = element_blank(),
-            axis.line.x = element_line(colour = "black", size = 0.75),
-            axis.ticks.length=unit(0.1, "in"),
-            axis.ticks.x = element_line(size = 0.75),
-            axis.ticks.y = element_blank(),
-            axis.text.y = element_blank(),
-            axis.text.x = element_text(colour="black", size = 16, color = "black", angle = 0),
-            axis.title.x = element_text(size=18,face="bold"),
-            axis.title.y = element_blank(),
-            plot.margin = margin(25, 0.5, 0.5, 0.5),
-            legend.position="right",
-            legend.box = "vertical",
-            legend.title = element_text(size=18, face="bold"),
-            legend.key = element_rect(fill = "white"),
-            legend.text = element_text(size=16, face="bold")) +
-      coord_cartesian(expand = FALSE)
   })
 
   output$dwnspec <- downloadHandler(
@@ -2851,8 +2830,19 @@ server <- function(input, output, session) {
     }
   )
 
+  output$dwnspec.pdf <- downloadHandler(
+    filename = function() { paste("stacked spectra", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(file, plot = Plot5(), device = "pdf",
+             width = as.numeric(input$plot5.w),
+             height = as.numeric(input$plot5.h),
+             units = 'mm')
+    }
+  )
+
   #centroids and NUS--------
 
+  #centroid calculation
   centroids <- reactive({
     MSsnaps() %>%
       # group_by(mean.time, Species) %>%
@@ -2860,39 +2850,83 @@ server <- function(input, output, session) {
       summarise(centroid = weighted.mean(mz, intensum)) #calculation of centroids
   })
 
-
-  deltaD <- reactive({
-    (as.numeric(input$Di)-as.numeric(input$Dend))/100 #calculation of change in deuterium content
+  #hot table
+  NUS.init0 <- reactive({
+    NUS.init0 <- data.frame(Species = unique(centroids()$Species),
+                            Name = unique(centroids()$Species),
+                            Reference = rep(1500, length(unique(centroids()$Species))),
+                            Charge = rep(4, length(unique(centroids()$Species))),
+                            D.initial = rep(90, length(unique(centroids()$Species))),
+                            D.final = rep(9, length(unique(centroids()$Species)))
+    )
   })
 
+  NUS.change <- reactive({
+    as.data.frame(hot.to.df(input$hotable2))
+  })
 
+  output$hotable2 <- renderHotable({NUS.init0() }, readOnly = F)
+
+  #NUS calculation
   NUS <- reactive({
-
     centroids() %>%
-      add_column('Reference' = c(1789)) %>% #assignment of reference centroid for each charge state
-      mutate(
-        Reference = if_else(Species == "Species 1", as.numeric(input$centroid.ref1),
-                            if_else(Species == "Species 2", as.numeric(input$centroid.ref2),
-                                    if_else(Species == "Species 3", as.numeric(input$centroid.ref3),
-                                            as.numeric(input$centroid.ref4))))) %>%
-      add_column('Charge' = c(5)) %>% #assignment of charge states for each sample
-      mutate(
-        Charge = if_else(Species == "Species 1", as.numeric(input$charge.ref1),
-                         if_else(Species == "Species 2", as.numeric(input$charge.ref2),
-                                 if_else(Species == "Species 3", as.numeric(input$charge.ref3),
-                                         as.numeric(input$charge.ref4))))) %>%
-
-      group_by(Species) %>%
-      mutate(
-        NUS = (centroid - Reference)*Charge/((as.numeric(input$Di)-as.numeric(input$Dend))/100*(2.013553-1.007825)), #NUS calculation
+      left_join(NUS.change(), by = "Species") %>%
+      group_by(mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
+      mutate(#NUS calculation
+        NUS = (centroid - Reference)*Charge/((D.initial - D.final)/100*(2.013553-1.007825)),
         mean.time.s = mean.time * 60,
         CFtime.s = CFtime * 60) %>% #creation of a time column in seconds
-      dplyr::select(mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS,
-                    Reference, Charge, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz)  #column reordering
-    # order_by(Species)
+      dplyr::select(Species, Name, mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS,
+                    Reference, Charge, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz)
   })
 
+  #time scaling
+  centroidscaled.init <- reactive({
+    if (isTRUE(input$manu2)) {
+      NUS() %>%
+        add_column(timescale = NUS()$CFtime)
+    } else {
+      NUS() %>%
+        add_column(timescale = NUS()$mean.time)
+    }
+  })
 
+  #upload already processed data
+  file.old <- reactive({
+    if(is.null(input$file.old))
+      return(NULL)
+
+    input$file.old
+  })
+
+  processed.data <- reactive({
+
+    if(is.null(input$file.old)) {
+      return(NULL)
+    } else {
+      processed.data <- data.frame(read_excel(file.old()$datapath,
+                                              skip = 1))
+
+      colnames(processed.data) <- c('Species', 'Name', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS',
+                                    'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan',
+                                    'max.scan', 'min.mz', 'max.mz',	"timescale")
+
+      return(processed.data)
+    }
+  })
+
+  centroidscaled <- reactive({
+    if (is.null(file.old)) {
+      return(centroidscaled.init())
+    } else {
+      if (is.null(input$file1)) {
+        return(processed.data())
+      } else{
+        processed.data() %>%
+          rbind(centroidscaled.init())
+      }
+    }
+  })
 
   output$centroids <- DT::renderDT(server = FALSE, {
     datatable(data = centroidscaled(),  #data = NUS(),
@@ -2909,7 +2943,9 @@ server <- function(input, output, session) {
                            'Start scan' = 'min.scan',
                            'End scan' = 'max.scan',
                            'Start m/z' = 'min.mz',
-                           'End m/z'= 'max.mz'),
+                           'End m/z'= 'max.mz',
+                           'Species number' = 'Species',
+                           'Species name' = 'Name'),
               editable = T,
               rownames = F,
               escape = T,
@@ -2923,16 +2959,11 @@ server <- function(input, output, session) {
                 autoWidth = F,
                 dom = 'Bfrtip', #button position
                 buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
-                columnDefs = list(list(visible=FALSE, targets=c(8, 9, 10, 11, 12, 13, 14, 15, 16)))
+                columnDefs = list(list(visible=FALSE, targets=c(11, 12, 13, 14, 15, 16, 17)))
               )
     ) %>%
       formatRound(c('TIC Time (min)', 'Centroid', 'NUS', "TIC Time (s)"), digits = 2)
   })
-
-  # output$centroids <- renderDT({
-  #   centroidscaled2()
-  # })
-
 
   #Select all lines
   centroids_proxy <- DT::dataTableProxy("centroids")
@@ -2946,58 +2977,13 @@ server <- function(input, output, session) {
   })
   output$selected_rows <- renderPrint(print(input$centroids_rows_selected))
 
-  centroidscaled.init <- reactive({
-    if (isTRUE(input$manu2)) {
-      NUS() %>%
-        add_column(timescale = NUS()$CFtime)
-    } else {
-      NUS() %>%
-        add_column(timescale = NUS()$mean.time)
-    }
-  })
-
-
-
-  file.old <- reactive({
-    if(is.null(input$file.old))
-      return(NULL)
-
-    input$file.old
-  })
-
-  processed.data <- reactive({
-
-    if(is.null(input$file.old))
-      return(NULL)
-
-    processed.data <- data.frame(read_excel(file.old()$datapath))
-
-    colnames(processed.data) <- c('Species', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS',
-                                  'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan',
-                                  'max.scan', 'min.mz', 'max.mz',	"timescale")
-
-    return(processed.data)
-
-  })
-
-
-  centroidscaled <- reactive({
-
-    if (is.null(file.old)) {
-      return(centroidscaled.init())
-    } else {
-      rbind.data.frame(centroidscaled.init(),processed.data())
-    }
-  })
-
-
   output$plot6 <- renderPlot({
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
     ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = centroidscaled()$centroid)) +
       geom_point(color = input$col.kin, size = input$size.kin) +
       geom_point(data = selected.points, size = input$size.kin,
-                 aes(x = timescale, y = centroid, color = Species), inherit.aes = F) +
+                 aes(x = timescale, y = centroid, color = Name), inherit.aes = F) +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
       xlab("time (min)") +
       ylab("centroid (m/z)") +
@@ -3019,54 +3005,53 @@ server <- function(input, output, session) {
             # plot.margin = margin(25, 0.5, 0.5, 0.5),
             legend.position="right",
             legend.box = "vertical",
-            legend.title = element_text(size=18, face="bold"),
+            legend.title = element_blank(),
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(expand = T)
   })
 
 
+  plot7 <- reactive({
 
-  # fits <- reactive({
-  #   s = input$centroids_rows_selected
-  #   selected.points <- centroidscaled()[ s,]
-  #
-  #   fits <- nls(data = selected.points,
-  #               formula = selected.points$NUS~a1*exp(-t1*selected.points$timescale)+a2*exp(-t2*selected.points$timescale)+y0,
-  #               start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
-  #                       a2=as.numeric(input$a2), t2=as.numeric(input$t2),
-  #                       y0=as.numeric(input$y0)),
-  #               control = c(maxiter = 100000, warnOnly = T)
-  #   )
-  # })
-
-  output$plot7 <- renderPlot({
-
+    #data selection
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
 
-    ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
-      geom_point(data = selected.points, size = input$size.kin, aes(x = timescale, y = NUS, color = Species), alpha = as.numeric(input$trans.kin), inherit.aes = F) +
+
+    #fitting (for labeling only, fit lines are calculated directly in the plot)
+    if (isTRUE(input$fit.hdx)) { #calculates fit labeling is requested by user
+      fit.list <- data.frame()
+
+      for (i in unique(selected.points$Name)) {
+
+        selected.species <- selected.points %>% filter(Name == i)
+
+        fit <- nls(data = selected.species ,
+                   formula = selected.species$NUS~a1*exp(-t1*selected.species$timescale)+a2*exp(-t2*selected.species$timescale)+y0,
+                   start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
+                           a2=as.numeric(input$a2), t2=as.numeric(input$t2),
+                           y0=as.numeric(input$y0)),
+                   control = nls.control(maxiter = 100000, warnOnly = T))
+
+        buffer <- data.frame(label = paste0('k1 = ', round(coef(fit)[2], 5), ', k2 = ', round(coef(fit)[4], 5)),
+                             species.name = i,
+                             position.x = min(selected.species$timescale),
+                             position.y = max(selected.species$NUS))
+
+        fit.list <- rbind(fit.list, buffer)
+      }
+    }
+
+    #plot
+    p7 <- ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
+      geom_point(data = selected.points,
+                 size = input$size.kin, aes(x = timescale, y = NUS, color = Name),
+                 alpha = as.numeric(input$trans.kin),
+                 inherit.aes = F) +
       xlab("time (min)") +
       ylab("NUS") +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
-      geom_line(stat = "smooth", #This instead of geom_smooth to be able to apply alpha on fit line
-                method="nls",
-                data=selected.points,
-                formula=y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
-                method.args = list(start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
-                                           a2=as.numeric(input$a2), t2=as.numeric(input$t2),
-                                           y0=as.numeric(input$y0)),
-                                   nls.control(maxiter = 100000, warnOnly = T)),
-                se=F,
-                inherit.aes = T,
-                aes(x = timescale, y=NUS, color = Species),
-                alpha = 0.5,
-                size = 1) +
-      # stat_poly_eq(formula = y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
-      #              data = selected.points,
-      #              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~"), x = timescale, y=NUS, color = Species),
-      #              parse = TRUE, rr.digits = 4) +
       theme(strip.text.y = element_blank(),
             strip.background = element_blank(),
             panel.border = element_blank(),
@@ -3085,10 +3070,38 @@ server <- function(input, output, session) {
             # plot.margin = margin(25, 0.5, 0.5, 0.5),
             legend.position="right",
             legend.box = "vertical",
-            legend.title = element_text(size=18, face="bold"),
+            legend.title = element_blank(),
             legend.key = element_rect(fill = "white"),
             legend.text = element_text(size=16, face="bold")) +
       coord_cartesian(expand = T)
+
+    if (isTRUE(input$fit.hdx)) { #displays fit lines and labeling is requested by user
+      p7 <- p7 + geom_line(stat = "smooth", #This instead of geom_smooth to be able to apply alpha on fit line
+                           method = "nls",
+                           data = selected.points,
+                           formula=y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
+                           method.args = list(start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
+                                                      a2=as.numeric(input$a2), t2=as.numeric(input$t2),
+                                                      y0=as.numeric(input$y0)),
+                                              nls.control(maxiter = 100000, warnOnly = T)),
+                           se = F,
+                           inherit.aes = T,
+                           aes(x = timescale, y = NUS, color = Name),
+                           alpha = 0.5,
+                           size = 1) +
+        geom_label_repel(data = fit.list,
+                         inherit.aes = F,
+                         aes(x = position.x,
+                             y = position.y,
+                             colour = species.name,
+                             label = label),
+                         show.legend = F,
+                         force = 3
+        )
+    }
+
+    return(p7)
+
   })
 
   #Download kinetics plots-----------
@@ -3104,15 +3117,29 @@ server <- function(input, output, session) {
     }
   )
 
-  Plot7 <- reactive({
-    ggplot(data = NUS(), aes(x = NUS()$mean.time, y = NUS()$NUS)) +
-      geom_point(color = "steelblue", size = 3)
+  output$plot7 <- renderPlot({
+    plot7()
   })
 
   output$dwnplot2 <- downloadHandler(
     filename = function() { paste("kinetics-NUS", '.png', sep='') },
     content = function(file) {
-      ggsave(file, plot = Plot7(), device = "png")
+      gggsave(file, plot = plot7(), device = "png",
+              width = 200,
+              height = 125,
+              units = 'mm',
+              dpi = 600)
+    }
+  )
+
+  output$dwnplot3 <- downloadHandler(
+    filename = function() { paste("kinetics-NUS", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(file, plot = plot7(), device = "pdf",
+             width = 200,
+             height = 125,
+             units = 'mm',
+             dpi = 600)
     }
   )
 
@@ -3967,6 +3994,9 @@ server <- function(input, output, session) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
+
+
 
 
 
