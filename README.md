@@ -21,11 +21,13 @@ oligor()
 ```
 When working in R without IDE, OligoR will open in the default web browser. OligoR can also be used in a web browser when using Rstudio, if preferred to the IDE's interface.
 
-## HDX workflow
+### HDX workflow
 
 The HDX workflow and main features are presented below:
 
-![blabla](https://github.com/EricLarG4/OligoR/blob/master/man/ressources/HDX_workflow.png)
+![HDX workflow](https://github.com/EricLarG4/OligoR/blob/master/man/ressources/HDX_workflow.png)
+
+![Download source pdf](https://github.com/EricLarG4/OligoR/blob/master/man/ressources/HDX_workflow.png)
 
 ## License
 
