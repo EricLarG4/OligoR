@@ -19,7 +19,7 @@ To use oligor, in R, run:
 library(OligoR)
 oligor()
 ```
-When working in R without IDE, OligoR will open in the default web browser. OligoR can also be used in a web browser when using Rstudio, if preferred to the IDE's interface.
+When working in R without IDE, OligoR will open in the default web browser. OligoR can also be used in a web browser when using Rstudio, if preferred over the IDE's interface.
 
 ### HDX workflow
 
