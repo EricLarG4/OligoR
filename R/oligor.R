@@ -7,9 +7,7 @@
 
 oligor <- function(){
 
-
-
-  #libraries------------
+  #libraries----
   library(BiocManager)
   options(repos = BiocManager::repositories())
   library(data.table)
@@ -52,7 +50,7 @@ oligor <- function(){
   library(plotly)
   library(shinyBS)
 
-  # Ui change functions ------------------------------------------------------------
+  # Ui change functions ----
   uiChangeThemeDropdown <- function(dropDownLabel = "Change Theme", defaultTheme = "grey_light")
   {
     changeThemeChoices <- c(
@@ -90,7 +88,7 @@ oligor <- function(){
   }
 
 
-  # Server ui change functions --------------------------------------------------------
+  # Server ui change functions ----
   serverChangeTheme <- function(input, output, session)
   {
     observeEvent(
@@ -104,13 +102,12 @@ oligor <- function(){
   }
 
 
-
+  #JS----
   jscode <- "
 shinyjs.collapse = function(boxid) {
 $('#' + boxid).closest('.box').find('[data-widget=collapse]').click();
 }
 "
-
 
 #ui------------------
 ui <- dashboardPagePlus(
@@ -337,20 +334,6 @@ ui <- dashboardPagePlus(
         solidHeader = F,
         collapsible = T,
         collapsed = F,
-        splitLayout(
-          cellWidths = "50%",
-          textInput(inputId = "a1", "a1", 5),
-          textInput(inputId = "a2", "a2", 9)),
-        splitLayout(
-          cellWidths = "50%",
-          textInput(inputId = "t1", "t1", 0.5),
-          textInput(inputId = "t2", "t2", 0.06)),
-        textInput(
-          inputId = "y0",
-          label = "y0",
-          value = 5,
-          width = "100%"
-        ),
         switchInput(inputId = "fit.hdx", #toggles baseline on/off
                     label = "fit HDX plots",
                     onLabel = 'fit',
@@ -757,15 +740,18 @@ ui <- dashboardPagePlus(
   ),
   #body--------------
   dashboardBody(
-    # shinyDashboardThemes(
-    #   theme = "grey_light"
-    # ),
     use_waiter(include_js = FALSE), # do not include js
     show_waiter_on_load(spin_fading_circles()), # place at the bottom
     useShinyjs(),
     uiChangeThemeOutput(),
     extendShinyjs(text = jscode),
     tags$style(HTML('table.dataTable tr.selected td, table.dataTable td.selected {background-color: tomato !important;}')),
+    tags$style(type="text/css", #hides error messages
+               # ".shiny-output-warning { visibility: hidden; }",
+               # ".shiny-output-warning:before { visibility: hidden; }",
+               ".shiny-output-error { visibility: hidden; }",
+               ".shiny-output-error:before { visibility: hidden; }"
+    ),
     navbarPage('Navigation',
                id = 'tabs',
                #panel meltR---------
@@ -1164,7 +1150,7 @@ ui <- dashboardPagePlus(
                           column(12,
                                  collapsible_tabBox(
                                    id = 'kinetic.hdx',
-                                   title = 'Kinetics data',
+                                   title = 'HDX kinetics',
                                    width = 12,
                                    tabPanel(
                                      title = 'NUS calculation',
@@ -1176,6 +1162,11 @@ ui <- dashboardPagePlus(
                                      icon = icon('table'),
                                      DTOutput("centroids"),
                                      checkboxInput("centroids_sel", "select all")
+                                   ),
+                                   tabPanel(
+                                     title = 'Fit initialization',
+                                     icon = icon("edit"),
+                                     hotable('hotable3')
                                    )
                                  )
                           ),
@@ -2844,6 +2835,9 @@ server <- function(input, output, session) {
 
   #centroid calculation
   centroids <- reactive({
+
+    req(MSsnaps)
+
     MSsnaps() %>%
       # group_by(mean.time, Species) %>%
       group_by(mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
@@ -2852,6 +2846,9 @@ server <- function(input, output, session) {
 
   #hot table
   NUS.init0 <- reactive({
+
+    req(centroids())
+
     NUS.init0 <- data.frame(Species = unique(centroids()$Species),
                             Name = unique(centroids()$Species),
                             Reference = rep(1500, length(unique(centroids()$Species))),
@@ -2862,10 +2859,15 @@ server <- function(input, output, session) {
   })
 
   NUS.change <- reactive({
+    req(input$hotable2)
+    req(NUS.init0())
     as.data.frame(hot.to.df(input$hotable2))
   })
 
-  output$hotable2 <- renderHotable({NUS.init0() }, readOnly = F)
+  output$hotable2 <- renderHotable({
+    req(centroids())
+    NUS.init0()
+  }, readOnly = F)
 
   #NUS calculation
   NUS <- reactive({
@@ -2978,8 +2980,13 @@ server <- function(input, output, session) {
   output$selected_rows <- renderPrint(print(input$centroids_rows_selected))
 
   output$plot6 <- renderPlot({
+
+    req(centroidscaled()) #computes only once centroidscaled() is populated
+
+    #data selection
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
+
     ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = centroidscaled()$centroid)) +
       geom_point(color = input$col.kin, size = input$size.kin) +
       geom_point(data = selected.points, size = input$size.kin,
@@ -3011,13 +3018,74 @@ server <- function(input, output, session) {
       coord_cartesian(expand = T)
   })
 
+  #HDX fit initialization----
+  hdx.fit.init <- reactive({
+    as.data.frame(hot.to.df(input$hotable3))
+  })
 
+  output$hotable3 <- renderHotable({
+
+    #automated N1, N2, NUS0 initialization
+    parm.init <- centroidscaled() %>%
+      select(Name, NUS) %>% #gets names and NUS
+      group_by(Name) %>%
+      filter(NUS == max(NUS) | NUS == min(NUS)) %>% #calculates min and max NUS for each name
+      mutate(#calculates initial values for number of sites and offset
+        N1 = max(NUS)/2, #assumes same number of sites for both exponentials (may be quite inacurate)
+        N2 = max(NUS)/2,
+        NUS0 = min(NUS) #offset should be spot on
+      ) %>%
+      ungroup() %>%
+      select(Name, N1, N2, NUS0) %>% #discard unnecessary data
+      unique() #keep a single row per name
+
+    #automated k1, k2 initialization
+    lm.prep <- centroidscaled() %>%
+      select(Name, NUS, timescale) %>% #get names, NUS, and timescale
+      mutate(tr = NUS - min(NUS)) %>% #subtracts offset
+      filter(tr > 0) %>% #removes non strictly positive values before calculating log
+      mutate(tr = log(tr)) #calculates neperian log
+
+    lm.results <- data.frame() #initializes data frame to gather linear fit results
+
+    for (i in unique(lm.prep$Name)) {
+      selected.species <- lm.prep %>%
+        filter(Name == i) #loops across Names
+
+      #linear fit of tr = f(timescale)
+      fit <- lm(data = selected.species,
+                formula = tr ~ timescale)
+
+      #k1, k2 initial values
+      buffer <- data.frame(k1 = 1/coef(fit)[1], #k1 estimated from the inverse of the intercept
+                           k2 = 0.1/coef(fit)[1], #k2 estimated to be an order of magnitude smaller than k1
+                           Name = i) #adds Name to join to other parameters below
+
+      lm.results <- rbind(lm.results, buffer) #added to the result data frame
+    }
+
+    #initial parameter joining
+    parm.init <- left_join(parm.init, lm.results,
+                           by = c('Name')) %>%
+      # parm.init <- parm.init %>%
+      select(Name, NUS0, k1, N1, k2, N2) #reorders of columns
+
+    lm.prep <- NULL #empties lm.prep
+    lm.results <- NULL #empties lm.results
+
+    return(parm.init)
+
+  },
+  readOnly = F)
+
+  #HDX fit plot----
   plot7 <- reactive({
+
+    req(centroidscaled()) #computes only once centroidscaled() is populated
 
     #data selection
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
-
 
     #fitting (for labeling only, fit lines are calculated directly in the plot)
     if (isTRUE(input$fit.hdx)) { #calculates fit labeling is requested by user
@@ -3025,22 +3093,38 @@ server <- function(input, output, session) {
 
       for (i in unique(selected.points$Name)) {
 
-        selected.species <- selected.points %>% filter(Name == i)
+        selected.species <- selected.points %>%
+          filter(Name == i) #select one species per loop iteration
 
+        start.df <- hdx.fit.init() %>%
+          filter(Name == i) #select corresponding fit parameter start value
+
+        #fit start value vector
+        start <- c(N1 = as.numeric(start.df$N1), k1=as.numeric(start.df$k1),
+                   N2=as.numeric(start.df$N2), k2=as.numeric(start.df$k2),
+                   NUS0=as.numeric(start.df$NUS0))
+
+        #non linear fitting
         fit <- nls(data = selected.species ,
-                   formula = selected.species$NUS~a1*exp(-t1*selected.species$timescale)+a2*exp(-t2*selected.species$timescale)+y0,
-                   start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
-                           a2=as.numeric(input$a2), t2=as.numeric(input$t2),
-                           y0=as.numeric(input$y0)),
+                   formula = NUS~NUS0+N1*exp(-k1*timescale)+N2*exp(-k2*timescale),
+                   start = start,
                    control = nls.control(maxiter = 100000, warnOnly = T))
 
-        buffer <- data.frame(label = paste0('k1 = ', round(coef(fit)[2], 5), ', k2 = ', round(coef(fit)[4], 5)),
+        #result collection
+        buffer <- data.frame(label = paste0('k1 = ', round(coef(fit)[2], 5), ' (N = ', round(coef(fit)[1], 1), '), ',
+                                            'k2 = ', round(coef(fit)[4], 5), ' (N = ', round(coef(fit)[3], 1), '), ',
+                                            'NUS0 = ', round(coef(fit)[5], 1)),
                              species.name = i,
                              position.x = min(selected.species$timescale),
                              position.y = max(selected.species$NUS))
 
         fit.list <- rbind(fit.list, buffer)
       }
+
+      buffer <- NULL #empties buffer
+      start.df <- NULL #empties start.df
+      selected.species <- NULL #empties selected.species
+
     }
 
     #plot
@@ -3079,24 +3163,25 @@ server <- function(input, output, session) {
       p7 <- p7 + geom_line(stat = "smooth", #This instead of geom_smooth to be able to apply alpha on fit line
                            method = "nls",
                            data = selected.points,
-                           formula=y~a1*exp(-t1*x)+a2*exp(-t2*x)+y0,
-                           method.args = list(start=c(a1=as.numeric(input$a1), t1=as.numeric(input$t1),
-                                                      a2=as.numeric(input$a2), t2=as.numeric(input$t2),
-                                                      y0=as.numeric(input$y0)),
+                           formula=y~NUS0+N1*exp(-k1*x)+N2*exp(-k2*x),
+                           method.args = list(start = start,
                                               nls.control(maxiter = 100000, warnOnly = T)),
                            se = F,
                            inherit.aes = T,
                            aes(x = timescale, y = NUS, color = Name),
                            alpha = 0.5,
                            size = 1) +
-        geom_label_repel(data = fit.list,
-                         inherit.aes = F,
-                         aes(x = position.x,
-                             y = position.y,
-                             colour = species.name,
-                             label = label),
-                         show.legend = F,
-                         force = 3
+        geom_text_repel(data = fit.list,
+                        inherit.aes = F,
+                        aes(x = position.x,
+                            y = position.y,
+                            colour = species.name,
+                            label = label),
+                        show.legend = F,
+                        force = 3,
+                        point.padding = 2,
+                        alpha = 0.9,
+                        size = 5
         )
     }
 
