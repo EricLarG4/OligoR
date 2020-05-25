@@ -3139,8 +3139,8 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_blank(),
             strip.background = element_blank(),
             panel.border = element_blank(),
-            panel.grid.major = element_line(colour = "black"),
-            panel.grid.minor = element_line(colour = "grey"),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
             panel.background = element_blank(),
             axis.line.x = element_line(colour = "black", size = 0.75),
             axis.line.y = element_line(colour = "black", size = 0.75),
@@ -3181,7 +3181,8 @@ server <- function(input, output, session) {
                         force = 3,
                         point.padding = 2,
                         alpha = 0.9,
-                        size = 5
+                        size = 5,
+                        fontface = "bold"
         )
     }
 
