@@ -2917,7 +2917,7 @@ server <- function(input, output, session) {
     }
   })
 
-  centroidscaled <- reactive({
+  centroidscaled.import <- reactive({
     if (is.null(file.old)) {
       return(centroidscaled.init())
     } else {
@@ -2927,6 +2927,16 @@ server <- function(input, output, session) {
         processed.data() %>%
           rbind(centroidscaled.init())
       }
+    }
+  })
+
+  centroidscaled <- reactive({
+    if (isTRUE(input$manu2)) {
+      centroidscaled.import() %>%
+        mutate(timescale = centroidscaled.import()$CFtime)
+    } else {
+      centroidscaled.import() %>%
+        mutate(timescale = centroidscaled.import()$mean.time)
     }
   })
 
