@@ -3039,10 +3039,12 @@ server <- function(input, output, session) {
       select(Name, N1, N2, NUS0) %>% #discard unnecessary data
       unique() #keep a single row per name
 
-    #automated k1, k2 initialization
+
+    #automated k1 and k2 initialization
     lm.prep <- centroidscaled() %>%
       select(Name, NUS, timescale) %>% #get names, NUS, and timescale
-      mutate(tr = NUS - min(NUS)) %>% #subtracts offset
+      group_by(Name) %>%
+      mutate(tr = NUS - min(NUS)) %>%
       filter(tr > 0) %>% #removes non strictly positive values before calculating log
       mutate(tr = log(tr)) #calculates neperian log
 
@@ -3056,18 +3058,16 @@ server <- function(input, output, session) {
       fit <- lm(data = selected.species,
                 formula = tr ~ timescale)
 
-      #k1, k2 initial values
-      buffer <- data.frame(k1 = 1/coef(fit)[1], #k1 estimated from the inverse of the intercept
-                           k2 = 0.1/coef(fit)[1], #k2 estimated to be an order of magnitude smaller than k1
+      #k1, k2 initial values estimated from slope of log(NUS) = f(timescale)
+      buffer <- data.frame(k1 = -coef(fit)[2] * 4,
+                           k2 = -coef(fit)[2] * 0.25,
                            Name = i) #adds Name to join to other parameters below
 
       lm.results <- rbind(lm.results, buffer) #added to the result data frame
     }
 
-    #initial parameter joining
     parm.init <- left_join(parm.init, lm.results,
                            by = c('Name')) %>%
-      # parm.init <- parm.init %>%
       select(Name, NUS0, k1, N1, k2, N2) #reorders of columns
 
     lm.prep <- NULL #empties lm.prep
