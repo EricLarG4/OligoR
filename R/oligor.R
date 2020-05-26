@@ -745,7 +745,7 @@ ui <- dashboardPagePlus(
     useShinyjs(),
     uiChangeThemeOutput(),
     extendShinyjs(text = jscode),
-    tags$style(HTML('table.dataTable tr.selected td, table.dataTable td.selected {background-color: tomato !important;}')),
+    tags$style(HTML('table.dataTable tr.selected td, table.dataTable td.selected {background-color: pink !important;}')),
     tags$style(type="text/css", #hides error messages
                # ".shiny-output-warning { visibility: hidden; }",
                # ".shiny-output-warning:before { visibility: hidden; }",
