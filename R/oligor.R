@@ -3035,8 +3035,11 @@ server <- function(input, output, session) {
 
   output$hotable3 <- renderHotable({
 
+    s = input$centroids_rows_selected
+    selected.points <- centroidscaled()[ s,]
+
     #automated N1, N2, NUS0 initialization
-    parm.init <- centroidscaled() %>%
+    parm.init <- selected.points %>%
       select(Name, NUS) %>% #gets names and NUS
       group_by(Name) %>%
       filter(NUS == max(NUS) | NUS == min(NUS)) %>% #calculates min and max NUS for each name
@@ -3051,7 +3054,7 @@ server <- function(input, output, session) {
 
 
     #automated k1 and k2 initialization
-    lm.prep <- centroidscaled() %>%
+    lm.prep <- selected.points %>%
       select(Name, NUS, timescale) %>% #get names, NUS, and timescale
       group_by(Name) %>%
       mutate(tr = NUS - min(NUS)) %>%
@@ -3069,15 +3072,14 @@ server <- function(input, output, session) {
                 formula = tr ~ timescale)
 
       #k1, k2 initial values estimated from slope of log(NUS) = f(timescale)
-      buffer <- data.frame(k1 = -coef(fit)[2] * 4,
-                           k2 = -coef(fit)[2] * 0.25,
+      buffer <- data.frame(k1 = -coef(fit)[2] * 10/3,
+                           k2 = -coef(fit)[2] / 3,
                            Name = i) #adds Name to join to other parameters below
 
       lm.results <- rbind(lm.results, buffer) #added to the result data frame
     }
 
-    parm.init <- left_join(parm.init, lm.results,
-                           by = c('Name')) %>%
+    parm.init <- left_join(parm.init, lm.results) %>%
       select(Name, NUS0, k1, N1, k2, N2) #reorders of columns
 
     lm.prep <- NULL #empties lm.prep
