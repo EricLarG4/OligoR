@@ -37,10 +37,10 @@ Imports:
   plotly,
   shinyBS
 Remotes:
+  bioc::3.11/mzR,
   github::AnalytixWare/ShinySky,
   github::DavidBarke/QWUtils,
-  github::nik01010/dashboardthemes,
-  bioc::release/mzR
+  github::nik01010/dashboardthemes
 Depends: 
     R (>= 3.5.0)
 RoxygenNote: 7.1.0
