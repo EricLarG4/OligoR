@@ -1,12 +1,50 @@
 Package: OligoR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Software suite for oligonucleotide native MS data treatment
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Eric Largy
+Maintainer: Eric Largy <eric.largy@u-bordeaux.fr>
+Description: A software suite to process native MS data of oligonucleotides, including HDX/MS experiments.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Imports:
+  BiocManager
+  data.table
+  readr
+  tidyverse
+  DescTools
+  ggpubr
+  shiny
+  shinydashboard
+  shinydashboardPlus
+  shinyjs
+  shinyWidgets
+  colourpicker
+  DT
+  stringr
+  formattable
+  ggrepel
+  waiter
+  V8
+  data.table
+  readxl
+  gnm
+  ggthemes
+  ggsci
+  ggpmisc
+  zoo
+  plotly
+  shinyBS
+Remotes:
+  github::AnalytixWare/ShinySky,
+  github::DavidBarke/QWUtils,
+  github::nik01010/dashboardthemes,
+  BiocManager::install("mzR")
+Depends: 
+    R (>= 3.5.0)
 RoxygenNote: 7.1.0
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
