@@ -36,7 +36,7 @@ Imports:
   plotly,
   shinyBS
 Remotes:
-  bioc::3.11/mzR,
+  bioc::release/mzR,
   github::AnalytixWare/ShinySky,
   github::DavidBarke/QWUtils,
   github::nik01010/dashboardthemes
