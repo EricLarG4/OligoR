@@ -50,6 +50,8 @@ oligor <- function(){
   library(plotly)
   library(shinyBS)
 
+  # source("peakpicking.R")
+
   # Ui change functions ----
   uiChangeThemeDropdown <- function(dropDownLabel = "Change Theme", defaultTheme = "grey_light")
   {
@@ -617,8 +619,33 @@ ui <- dashboardPagePlus(
         label = "pdf",
         style = "material-flat",
         size = 'sm'
-      )
-    ),
+      ),
+      boxPlus(
+        id = "peak.picking",
+        status = 'danger',
+        solidHeader = F,
+        collapsible = T,
+        collapsed = F,
+        width = '100%',
+        sliderInput(inputId = 'neighlim',
+                    label = 'neighbour limit',
+                    min = 0,
+                    max = 100,
+                    step = 1,
+                    value = 5),
+        sliderInput(inputId = 'deriv.lim',
+                    label = 'derivative limit',
+                    min = 0,
+                    max = 100000,
+                    step = 1000,
+                    value = 10000),
+        sliderInput(inputId = 'int.thresh',
+                    label = 'intensity limit',
+                    min = 0,
+                    max = 0.25,
+                    step = 0.0001,
+                    value = 0.02)
+    )),
     conditionalPanel(
       condition = "input.tabs == 'meltR'",
       boxPlus(
@@ -956,7 +983,7 @@ ui <- dashboardPagePlus(
                                       step = 8
                                     )
                                   ),
-                                  plotOutput('plot99')
+                                  plotOutput('p.hdx.ref')
                           ),
                           boxPlus(id = 'Oligoutput7-2',
                                   title = 'Reference accuracy',
@@ -975,7 +1002,7 @@ ui <- dashboardPagePlus(
                                       step = 8
                                     )
                                   ),
-                                  plotOutput('plot98')
+                                  plotOutput('p.hdx.ref.vs.exp')
                           )
                         ),
                         absolutePanel(
@@ -1620,6 +1647,20 @@ server <- function(input, output, session) {
       mutate(Iso.Pattern = 1 - (max(Iso.Pattern)-Iso.Pattern)/(max(Iso.Pattern)-min(Iso.Pattern)))
   })
 
+  #peak picking and plotting-----
+
+  peak.picked <- reactive({
+    unpicked <- MSsnaps.ref() %>%
+      mutate(intensum = 1 - (max(intensum)-intensum)/(max(intensum)-min(intensum))) %>%
+      select(c("mz", "intensum"))
+
+    peak.picked <- peakpicking(raw.data = unpicked,
+                               neighlim = input$neighlim,
+                               deriv.lim = input$deriv.lim,
+                               int.thresh = input$int.thresh)
+  })
+
+
   output$peak.position <- renderDT(server = FALSE, {
     datatable(
       peak.position(),
@@ -1649,7 +1690,7 @@ server <- function(input, output, session) {
   #   MSsnaps.ref()
   # })
 
-  output$plot99 <- renderPlot({
+  output$p.hdx.ref <- renderPlot({
     ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
       geom_line(color = input$col.line.th, size = input$size.line.th) +
       geom_point(color = input$col.dot.th, size = input$size.dot.th) +
@@ -1681,13 +1722,32 @@ server <- function(input, output, session) {
       )
   })
 
-  plot98 <- reactive({
-    ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
-      geom_line(color = input$col.line.th, size = input$size.line.th) +
-      geom_point(color = input$col.dot.th, size = input$size.dot.th) +
-      geom_vline(xintercept = Avemz(), linetype = 'dashed', color = input$col.centroid.th, size = input$size.centroid.th) +
-      geom_vline(xintercept = exp.centroid.ref(), linetype = 'dashed', color = input$col.centroid.exp, size = input$size.centroid.th) +
-      geom_line(data = MSsnaps.ref(), aes(x = mz, y = 1 - (max(intensum)-intensum)/(max(intensum)-min(intensum))), inherit.aes = F, color = input$col.line.exp, size = input$size.line.exp) +
+  p.hdx.ref.vs.exp <- reactive({
+    ggplot(data = peak.position(),
+           aes(x = mz.th, y = Iso.Pattern)) +
+      geom_line(color = input$col.line.th,
+                size = input$size.line.th) +
+      geom_point(color = input$col.dot.th,
+                 size = input$size.dot.th) +
+      geom_vline(xintercept = Avemz(),
+                 linetype = 'dashed',
+                 color = input$col.centroid.th,
+                 size = input$size.centroid.th) +
+      geom_vline(xintercept = exp.centroid.ref(),
+                 linetype = 'dashed',
+                 color = input$col.centroid.exp,
+                 size = input$size.centroid.th) +
+      geom_line(data = MSsnaps.ref(),
+                aes(x = mz, y = 1 - (max(intensum)-intensum)/(max(intensum)-min(intensum))),
+                inherit.aes = F,
+                color = input$col.line.exp,
+                size = input$size.line.exp) +
+      geom_point(data = peak.picked() %>%
+                   filter(peak > 0),
+                 aes(x = mz, y = int),
+                 inherit.aes = F,
+                 color = 'green',
+                 size = 5) +
       # annotate(geom="text", x=Inf, y=Inf, label=OligoName, hjust = 1,
       #          color="black", size=6, fontface="bold") +
       # annotate(geom="text", x=Inf, y=0.85, label=deparse(annolab), hjust = 1,
@@ -1727,14 +1787,14 @@ server <- function(input, output, session) {
       )
   })
 
-  output$plot98 <- renderPlot({
-    plot98()
+  output$p.hdx.ref.vs.exp <- renderPlot({
+    p.hdx.ref.vs.exp()
   })
 
   output$ref.accu.pdf <- downloadHandler(
     filename = function() { paste("stacked spectra", '.pdf', sep='') },
     content = function(file) {
-      ggsave(file, plot = plot98(), device = "pdf",
+      ggsave(file, plot = p.hdx.ref.vs.exp(), device = "pdf",
              width = 200,
              height = 100,
              units = 'mm',
@@ -1745,7 +1805,7 @@ server <- function(input, output, session) {
   output$ref.accu.png <- downloadHandler(
     filename = function() { paste("stacked spectra", '.png', sep='') },
     content = function(file) {
-      ggsave(file, plot = plot98(), device = "png",
+      ggsave(file, plot = p.hdx.ref.vs.exp(), device = "png",
              # width = 25,
              # height = 8,
              # units = 'mm',
