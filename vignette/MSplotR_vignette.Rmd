@@ -139,6 +139,8 @@ Both tables can be searched, filtered, and exported in the clipboard or as csv a
 
 4. The experimental data imported and selected by the user (see the MSxploR module) superimposed on the theoretical distributin plot
     * The experimental centroid value and its accuracy versus the reference is given on the plot.
+    
+5. Peak picking of the experimental reference data for modeling purpose (not implemented yet)
 
 ### Code
 
