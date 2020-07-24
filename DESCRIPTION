@@ -34,7 +34,8 @@ Imports:
   ggpmisc,
   zoo,
   plotly,
-  shinyBS
+  shinyBS,
+  peakPick
 Remotes:
   bioc::release/mzR,
   github::AnalytixWare/ShinySky,
