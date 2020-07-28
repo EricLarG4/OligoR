@@ -122,6 +122,7 @@ ui <- dashboardPagePlus(
   dashboardSidebar(
     useShinyjs(),
     # setSliderColor(c("tomato"), c(1)),
+    #sidebar MSxplorR-------------
     conditionalPanel(
       condition = "input.tabs == 'MSxploR'",
       boxPlus(
@@ -293,6 +294,7 @@ ui <- dashboardPagePlus(
           textInput(inputId = "text4", "end", "2500"))
       )
     ),
+    #sidebar HDXplotR-------------
     conditionalPanel(
       condition = "input.tabs == 'HDXplotR'",
       boxPlus(
@@ -369,6 +371,7 @@ ui <- dashboardPagePlus(
         )
       )
     ),
+    #sidebar MSstackR-------------
     conditionalPanel(
       condition = "input.tabs == 'MSstackR'",
       boxPlus(
@@ -416,14 +419,6 @@ ui <- dashboardPagePlus(
         collapsible = T,
         collapsed = F,
         width = '100%',
-        actionBttn(inputId = "bttnpp",
-                   label = "Pick peaks",
-                   icon = icon('check-circle', class = 'solid'),
-                   style = "simple",
-                   color = "warning",
-                   size = "sm",
-                   block = F,
-                   no_outline = TRUE),
         sliderInput(inputId = 'neighlim',
                     label = 'neighbour limit',
                     min = 0,
@@ -442,15 +437,25 @@ ui <- dashboardPagePlus(
                     max = 0.25,
                     step = 0.0001,
                     value = 0.02),
-        actionBttn(inputId = 'ref.import.pp.bttn',
-                   label = 'import reference',
-                   style = 'simple',
-                   color = 'success',
-                   size = 'sm',
-                   block = F,
-                   no_outline = TRUE)
+        sliderInput(
+          inputId = "DC.pp",
+          label = 'D%',
+          value = 90,
+          width = "100%",
+          min = 0, max = 100,
+          step = 0.5
+        ),
+        sliderInput(
+          inputId = "nrPeaks.user.pp",
+          label = 'Number of peaks',
+          value =72,
+          width = "100%",
+          min = 8, max = 128,
+          step = 4
+        )
       )
     ),
+    #sidebar KineticR-------------
     conditionalPanel(
       condition = "input.tabs =='KineticR'",
       boxPlus(
@@ -561,6 +566,7 @@ ui <- dashboardPagePlus(
         )
       )
     ),
+    #sidebar TitR-------------
     conditionalPanel(
       condition = "input.tabs =='TitR'",
       boxPlus(
@@ -596,6 +602,7 @@ ui <- dashboardPagePlus(
                  block = F,
                  no_outline = TRUE)
     ),
+    #sidebar OligoRef-------------
     conditionalPanel(
       condition = "input.tabs == 'OligoRef'",
       boxPlus(id = "boxseq",
@@ -1174,73 +1181,17 @@ server <- function(input, output, session) {
 
   #Mass calculations---------
 
-  DC <- reactive({
-    as.numeric(input$DC)
+  massr <- reactive({
+    massR(seq=sequencer(),
+          DC = as.numeric(input$DC))
   })
-
-  #Isotope abundances (averaged). Source: Isotopic compositions of the elements 2017. Available online at www.ciaaw.org.
-  listIso <- reactive({
-    list(
-      H = c(0.999855, 0.000145),           #Natural 1H ``and 2H isotope abundances
-      C = c(0.9894, 0.0106),
-      N = c(0.996205, 0.003795),
-      O = c(0.99757, 0.0003835, 0.002045),
-      D = c(100-DC(), DC())/100,                #computed 1H and 2H isotope abundances for exchangeable sites dependeding on the deuterium content DC
-      P = c(1),
-      K = c(0.93258144, 0.0001171, 0.06730244)
-    )
-  })
-
-  #Atomic masses. Current atomic masses available online at www.ciaaw.org based on Wang,M., Audi,G., Kondev,F.G., Huang,W.J., Naimi,S., et al. (2017) Chinese Phys. C, 41, 030003.
-  listMass <- list(
-    H = c(1.0078250322, 2.0141017781),
-    C = c(12, 13.003354835),
-    N = c(14.003074004, 15.000108899),
-    O = c(15.994914619, 16.999131757, 17.999159613),
-    D = c(1.0078250322, 2.0141017781),
-    P = c(30.973761998),
-    K = c(38.96370649, 39.9639982, 40.96182526)
-  )
-
-  #Monoisotopic mass
-  MonoMW <- reactive({
-    sequencer()$nC*listMass$C[1] + sequencer()$nH*listMass$H[1] +
-      sequencer()$nN*listMass$N[1] + sequencer()$nO*listMass$O[1] +
-      sequencer()$nP*listMass$P[1] + sequencer()$nK*listMass$K[1]
-  })
-
-  Monomz <- reactive({
-    if (sequencer()$z>0) {
-      MonoMW()/sequencer()$z
-    } else {
-      MonoMW()
-    }
-  })
-
-
-  #Average mass calculation from number of atoms, isotopic masses and abundances.
-  #nX is subtracted from nH because nH is the total number of H, including the exchangeable ones.
-  AveMW <- reactive({
-    AveMW <- sequencer()$nC*(listIso()$C[1]*listMass$C[1] + listIso()$C[2]*listMass$C[2]) +
-      (sequencer()$nH-sequencer()$nX)*(listIso()$H[1]*listMass$H[1] + listIso()$H[2]*listMass$H[2]) +
-      sequencer()$nN*(listIso()$N[1]*listMass$N[1] + listIso()$N[2]*listMass$N[2]) +
-      sequencer()$nO*(listIso()$O[1]*listMass$O[1] + listIso()$O[2]*listMass$O[2] + listIso()$O[3]*listMass$O[3]) +
-      sequencer()$nX*(listIso()$D[1]*listMass$D[1] + listIso()$D[2]*listMass$D[2]) +
-      sequencer()$nP*(listIso()$P[1]*listMass$P[1]) +
-      sequencer()$nK*(listIso()$K[1]*listMass$K[1] + listIso()$K[2]*listMass$K[2] + listIso()$K[3]*listMass$K[3])
-  })
-
-  Avemz <- reactive({
-    AveMW()/sequencer()$z
-  })
-
 
   oligo.data <- reactive({
 
     data.frame(
       "Parameters" = c('phosphates', 'neutralized phosphates', 'exchangeable sites', 'monoisotopic mass',
                        'average mass', 'monoisotopic m/z', 'average m/z'),
-      "Values" = c(sequencer()$nb_PO, sequencer()$nb_POH, sequencer()$nX, MonoMW(), AveMW(), Monomz(), Avemz())
+      "Values" = c(sequencer()$nb_PO, sequencer()$nb_POH, sequencer()$nX, massr()$MonoMW, massr()$AveMW, massr()$Monomz, massr()$Avemz)
     )
   })
 
@@ -1269,14 +1220,9 @@ server <- function(input, output, session) {
   #FFT-----------
   peak.position <- reactive({
     peak.positionR(nrPeaks.user = input$nrPeaks.user,
-                   DC = DC(),
-                   listIso = listIso(),
-                   nC = sequencer()$nC, nH = sequencer()$nH,
-                   nX = sequencer()$nX, nN = sequencer()$nN,
-                   nO = sequencer()$nO, nP = sequencer()$nP,
-                   nK = sequencer()$nK,
-                   z = sequencer()$z,
-                   MonoMW = MonoMW())
+                   DC = as.numeric(input$DC),
+                   seq = sequencer(),
+                   MonoMW = massr()$MonoMW)
   })
 
   #peak plotting-----
@@ -1314,7 +1260,7 @@ server <- function(input, output, session) {
     ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
       geom_line(color = input$col.line.th, size = input$size.line.th) +
       geom_point(color = input$col.dot.th, size = input$size.dot.th) +
-      geom_vline(xintercept = Avemz(), linetype = 'dashed', color = input$col.centroid.th, size = input$size.centroid.th) +
+      geom_vline(xintercept = massr()$Avemz, linetype = 'dashed', color = input$col.centroid.th, size = input$size.centroid.th) +
       xlab("m/z") +
       ylab('normalized abundance') +
       theme(strip.text.y = element_blank(),
@@ -1349,7 +1295,7 @@ server <- function(input, output, session) {
                 size = input$size.line.th) +
       geom_point(color = input$col.dot.th,
                  size = input$size.dot.th) +
-      geom_vline(xintercept = Avemz(),
+      geom_vline(xintercept = massr()$Avemz,
                  linetype = 'dashed',
                  color = input$col.centroid.th,
                  size = input$size.centroid.th) +
@@ -1421,8 +1367,6 @@ server <- function(input, output, session) {
     }
   )
 
-
-
   #MS ref snapshots------------
   snaps.ref <- data.frame()
 
@@ -1453,7 +1397,7 @@ server <- function(input, output, session) {
 
   #Accuracy of the reference centroid with theory, in ppm
   centroid.ac <- reactive({
-    1000000 * abs(exp.centroid.ref()-Avemz())/Avemz()
+    1000000 * abs(exp.centroid.ref()-massr()$Avemz)/massr()$Avemz
   })
 
 
@@ -2495,19 +2439,23 @@ server <- function(input, output, session) {
   MSsnaps.pp <- reactive({
 
     peak.picked <- peakpickR(raw.data = MSsnaps1(),
-                               neighlim = input$neighlim,
-                               deriv.lim = input$deriv.lim,
-                               int.thresh = input$int.thresh)
+                             neighlim = input$neighlim,
+                             deriv.lim = input$deriv.lim,
+                             int.thresh = input$int.thresh)
 
     return(peak.picked)
 
   })
 
-  ref.import.pp <- eventReactive(input$ref.import.pp.bttn,{
 
+  peak.position.pp <- reactive({
+    peak.positionR(nrPeaks.user = input$nrPeaks.user.pp,
+                   DC = input$DC.pp,
+                   seq = sequencer(),
+                   MonoMW = massr()$MonoMW)
   })
 
-  Plot5bi <- eventReactive(input$bttnpp,{
+  Plot5bi <- reactive({
     ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
                                   color = colorscale)) +
       geom_line(size = 1) +
@@ -2522,13 +2470,13 @@ server <- function(input, output, session) {
                  color = 'green',
                  size = 5,
                  alpha = 0.5) +
-      geom_point(data = peak.position(),
+      geom_point(data = peak.position.pp(),
                  aes(x = mz.th, y = Iso.Pattern),
                  color = "tomato",
                  inherit.aes = F,
                  size = 5,
                  alpha = 0.5) +
-      geom_line(data = peak.position(),
+      geom_line(data = peak.position.pp(),
                 aes(x = mz.th, y = Iso.Pattern),
                 color = "tomato",
                 size = 1.5,
@@ -2554,7 +2502,7 @@ server <- function(input, output, session) {
             axis.title.y = element_blank(),
             plot.margin = margin(25, 0.5, 0.5, 0.5),
             legend.position = "none",
-            )  +
+      )  +
       coord_cartesian(expand = TRUE)
   })
 

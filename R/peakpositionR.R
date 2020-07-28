@@ -1,5 +1,17 @@
+#' Oligonucleotide isotopic peak distribution calculation by FFT based on J. Proteome Res. 2018 Jan 5; 17(1): 751–758
+#'
+#' @param nrPeaks.user An integer controlling the number of calculated peaks.
+#' @param DC A numeric value defining the percentage of in solution deuterium.
+#' @param seq A list created with the \code{sequenceR} function.
+#' @param MonoMW A numeric value, the monoisotopic mass of the oligonucleotide, which can be imported from the \code{massR} function.
+#' @return A dataframe containing the isotopic distribution.
+#' @examples
+#' peak.positionR(nrPeaks.user = 32, DC = 9, seq = sequencer, MonoMW = massr$MonoMW)
 
-peak.positionR <- function(nrPeaks.user = 32, DC = 0.09, listIso, nC, nH, nX, nN, nO, nP, nK, nbPeaks, z, Iso_Pattern, MonoMW){
+
+peak.positionR <- function(nrPeaks.user, DC, seq, MonoMW){
+
+  load('Data/listIso.Rda')
 
   #number of peaks to generate
   nrPeaks <- as.numeric(nrPeaks.user)
@@ -23,7 +35,7 @@ peak.positionR <- function(nrPeaks.user = 32, DC = 0.09, listIso, nC, nH, nX, nN
   #Determination of the isotopic pattern by Fast Fourier Transform
   #(only yields abundance, not the corresponding m/z).
   #Based on J. Proteome Res. 2018 Jan 5; 17(1): 751–758.
-  Iso_Pattern <- Re(fft(fft(c12)^nC*fft(h1)^(nH-nX)*fft(n14)^nN * fft(o16)^nO * fft(p31)^nP * fft(k39)^nK * fft(h2)^nX,
+  Iso_Pattern <- Re(fft(fft(c12)^seq$nC*fft(h1)^(seq$nH-seq$nX)*fft(n14)^seq$nN * fft(o16)^seq$nO * fft(p31)^seq$nP * fft(k39)^seq$nK * fft(h2)^seq$nX,
                         inverse=TRUE))/length(c12)
 
   #Isotopic peak m/z calculation based on the mono-isotopic mass calculated above.
@@ -32,7 +44,7 @@ peak.positionR <- function(nrPeaks.user = 32, DC = 0.09, listIso, nC, nH, nX, nN
 
   peak.position <- data.frame("nbPeaks1" = unlist(nbPeaks), 'MonoMW1' = MonoMW) %>%
     mutate('mass.th' = MonoMW1 + (nbPeaks1-1)*1.0078250321) %>%
-    mutate('mz.th' = mass.th/z) %>%
+    mutate('mz.th' = mass.th/seq$z) %>%
     dplyr::select(mz.th) %>%
     cbind('Iso.Pattern' = Iso_Pattern) %>%
     mutate(Iso.Pattern = 1 - (max(Iso.Pattern)-Iso.Pattern)/(max(Iso.Pattern)-min(Iso.Pattern)))

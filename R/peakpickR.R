@@ -6,8 +6,7 @@
 #' @param int.thresh A numeric intensity threshold value, relative to a maximum intensity of 1, to discard low intensity false positives.
 #' @return A dataframe with an additional column \code{peak} equal to 0 in absence of peak or the peak intensity if a peak is detected at that position
 #' @examples
-#' peakpicking(raw.data = a.data.frame, neighlim = 5, deriv.lim = 10000, int.thresh = 0.02)neighlim = 5, deriv.lim = 10000, int.thresh = 0.02
-
+#' peakpicking(raw.data = a.data.frame, neighlim = 5, deriv.lim = 10000, int.thresh = 0.02)neighlim = 5, deriv.lim = 10000, int.thresh = 0.02)
 
 
 peakpickR <- function(raw.data, neighlim = 5, deriv.lim = 10000, int.thresh = 0.02) {
