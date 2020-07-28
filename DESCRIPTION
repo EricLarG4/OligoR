@@ -24,7 +24,6 @@ Imports:
   stringr,
   formattable,
   ggrepel,
-  waiter,
   V8,
   data.table,
   readxl,
