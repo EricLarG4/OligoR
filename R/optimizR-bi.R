@@ -1,4 +1,6 @@
 
+library(tidyverse)
+
 #optimization (minimization) of peakpositionR vs. the peack-picked experimental distribution-------
 
 
@@ -10,12 +12,15 @@ ppp <- readxl::read_excel('inst/extdata/demodata/optim.xlsx') %>%
 
 pppp <- readxl::read_excel('inst/extdata/demodata/23TAG-binom-6.xlsx') %>%
   mutate(intensum = 1 - (max(intensum)-intensum)/(max(intensum)-min(intensum))) %>%
-  filter(colorscale == 1)
+  filter(colorscale == 12)
 
 optimizer <- function(par, z, raw.data, sequence, nX.select, K, nrPeaks.user){
 
   library(DescTools)
   library(tidyverse)
+  source("R/peakpickR.R")
+  source("R/sequenceR.R")
+  source("R/peakpositionR.R")
 
   #peak picking----
   pp <- peakpickR(raw.data = raw.data,
@@ -34,10 +39,21 @@ optimizer <- function(par, z, raw.data, sequence, nX.select, K, nrPeaks.user){
 
 
   #theoretical distribution (no optim)
+  theo.1 <- peak.positionR(nrPeaks.user=nrPeaks.user,
+                           DC=par[1],
+                           seq=sequencer,
+                           MonoMW=massr$MonoMW) %>%
+    mutate(Iso.Pattern = Iso.Pattern * par[3])
+
   theo <- peak.positionR(nrPeaks.user=nrPeaks.user,
-                         DC=par,
+                         DC=par[2],
                          seq=sequencer,
-                         MonoMW=massr$MonoMW)
+                         MonoMW=massr$MonoMW) %>%
+    mutate(Iso.Pattern = Iso.Pattern * par[4]) %>%
+    rbind(theo.1) %>%
+    group_by(mz.th) %>%
+    mutate(Iso.Pattern = sum(Iso.Pattern))
+
 
   merged <- pp %>%
     mutate(rmz = RoundTo(mz, multiple = 1/z, FUN = round)) %>% #mz rouding to bin theoretical and experimental data together
@@ -56,35 +72,38 @@ optimizer <- function(par, z, raw.data, sequence, nX.select, K, nrPeaks.user){
 
   output <- as.vector(merge.sum$sum.diff.2)
 
-  return(output)
+  if (is.finite(output)) {
+    return(output)
+  } else {
+    return(42)
+  }
 
 }
 
-#using optimize----
-#example 1
-optimize.DC <- optimize(optimizer, par, z=4, raw.data=ppp, sequence="TTGGGTGGGTGGGTGGGT", nX.select='C', K=2, nrPeaks.user=48,
-                        lower = 0, upper = 100, maximum = FALSE)
-#example 2
-optimize.DC <- optimize(optimizer, par, z=4, raw.data=pppp, sequence="TAGGGTTAGGGTTAGGGTTAGGG", nX.select='C', K=2, nrPeaks.user=48,
-                        lower = 0, upper = 100, maximum = FALSE)
 
-#NUS determination
-# optimize.NUS <- optimize.DC$minimum*42/90 #replace 42 by nX as calculated before
-# optimize.NUS
 
 
 #using optim----
-#one-dimensional using Brent (mimics optimize())
-opt <- optim(c(50), optimizer,
-             z=4, raw.data=ppp, K=2, sequence="TTGGGTGGGTGGGTGGGT", nX.select='C', nrPeaks.user=48,
-             method = 'Brent',
-             lower = 0, upper = 100)
 
-# optimopt$par
-
+opt <- optim(c(10,25, 0.5, 0.9), optimizer,
+             z=4, raw.data=pppp, K=2, sequence="TAGGGTTAGGGTTAGGGTTAGGG", nX.select='C', nrPeaks.user=48,
+             method = 'L-BFGS-B',
+             lower = c(0,0,0,0),
+             upper = c(100, 100, 1, 1)) #replace upper[1] et upper[2] par nX as calculated before
 
 
+#get abundance of each population
+fraction.1 <- opt$par[3]/(opt$par[3]+opt$par[4])
+fraction.2 <- opt$par[4]/(opt$par[3]+opt$par[4])
 
+#retrieve nX (unecessary in app cause already available)
+nX <- sequenceR(z=4, K=2, sequence='TAGGGTTAGGGTTAGGGTTAGGG',
+                nX.user.input='',
+                nX.select=48)$nX
+
+#get NUS of both population
+NUS.1 <- opt$par[1]*nX/90 ####NOT SURE ABOUT FORMULA#####
+NUS.2 <- opt$par[2]*nX/90
 
 
 
@@ -94,7 +113,7 @@ opt <- optim(c(50), optimizer,
 
 # verifications------------
 
-optiplot <- function(par=optimize.DC$minimum, z, raw.data, sequence, nX.select, K, nrPeaks.user = 48){
+optiplot <- function(par=opt$par, z, raw.data, sequence, nX.select, K, nrPeaks.user = 48){
 
   library(DescTools)
   library(tidyverse)
@@ -123,10 +142,22 @@ optiplot <- function(par=optimize.DC$minimum, z, raw.data, sequence, nX.select, 
 
 
   #theoretical distribution (no optim)
+  theo.1 <- peak.positionR(nrPeaks.user=nrPeaks.user,
+                                  DC=par[1],
+                                  seq=sequencer,
+                                  MonoMW=massr$MonoMW) %>%
+    mutate(Iso.Pattern = Iso.Pattern * par[3])
+
   theo <- peak.positionR(nrPeaks.user=nrPeaks.user,
-                         DC=par,
-                         seq=sequencer,
-                         MonoMW=massr$MonoMW)
+                           DC=par[2],
+                           seq=sequencer,
+                           MonoMW=massr$MonoMW) %>%
+    mutate(Iso.Pattern = Iso.Pattern * par[4]) %>%
+    rbind(theo.1) %>%
+    group_by(mz.th) %>%
+    mutate(Iso.Pattern = sum(Iso.Pattern))
+
+
 
   p.theo <- p.pp +
     geom_point(data = theo,
@@ -138,6 +169,9 @@ optiplot <- function(par=optimize.DC$minimum, z, raw.data, sequence, nX.select, 
 
 }
 
-optiplot(z=4, raw.data=ppp, sequence="TTGGGTGGGTGGGTGGGT", nX.select='C', K=2, nrPeaks.user=48)
 optiplot(z=4, raw.data=pppp, sequence="TAGGGTTAGGGTTAGGGTTAGGG", nX.select='C', K=2, nrPeaks.user=48)
+
+
+# optiplot(par=c(12,34,0.3,1),
+#          z=4, raw.data=pppp, sequence="TAGGGTTAGGGTTAGGGTTAGGG", nX.select='C', K=2, nrPeaks.user=48)
 

@@ -22,5 +22,5 @@ A dataframe with an additional column \code{peak} equal to 0 in absence of peak 
 Peak picking function based on the peakPick package
 }
 \examples{
-peakpicking(raw.data = a.data.frame, neighlim = 5, deriv.lim = 10000, int.thresh = 0.02)neighlim = 5, deriv.lim = 10000, int.thresh = 0.02)
+peakpickR(raw.data = raw.data,neighlim = 5,deriv.lim = 10000,int.thresh = 0.00000)
 }

@@ -204,7 +204,7 @@ ui <- dashboardPagePlus(
               status = 'warning',
               solidHeader = F,
               collapsible = T,
-              collapsed = T,
+              collapsed = F,
               actionBttn(inputId = "bttn99",
                          label = "Select reference",
                          icon = icon('check-circle', class = 'regular'),
@@ -2051,7 +2051,8 @@ server <- function(input, output, session) {
                                   'max.mz',
                                   'Stoich',
                                   'intensity',
-                                  'rel.intensity')
+                                  'rel.intensity',
+                                  'uncorr.C')
 
     return(processed.titr)
 
@@ -2080,8 +2081,11 @@ server <- function(input, output, session) {
                                       '',
                                       intensity/sum(intensity[Species != "Standard"]))
         ) %>%
-        mutate(rel.intensity = as.numeric(rel.intensity))
-      # the relative intensity does not take into account the SI intensity
+        #the relative intensity does not take into account the SI intensity
+        mutate(rel.intensity = as.numeric(rel.intensity)) %>%
+        group_by(Species, Stoich) %>%
+        mutate(uncorr.C = rel.intensity*Mtot())
+
 
 
       if (is.null(titr.old)) {
@@ -2115,7 +2119,8 @@ server <- function(input, output, session) {
                   'Start scan' = 'min.scan',
                   'End scan' = 'max.scan',
                   'Start m/z' = 'min.mz',
-                  'End m/z'= 'max.mz'
+                  'End m/z'= 'max.mz',
+                  'C (µM, uncorrected)' = 'uncorr.C'
                 ),
                 editable = T,
                 rownames = F,
@@ -2133,7 +2138,7 @@ server <- function(input, output, session) {
                   columnDefs = list(list(visible=FALSE, targets=c(3, 4, 5, 6, 7, 8, 2)))
                 )
       ) %>%
-        formatRound(c('Raw intensity', 'Relative intensity'), digits = 2)
+        formatRound(c('Raw intensity', 'Relative intensity', 'C (µM, uncorrected)'), digits = 2)
     }
   })
 
@@ -2191,7 +2196,7 @@ server <- function(input, output, session) {
 
     #Computes the Moore-Penrose generalized inverse of matrix I
     I.inv = MPinv(I)
-    I.inv
+    # I.inv
 
     #Response factors relative to the IS.
     R <- I.inv%*%C
@@ -2271,6 +2276,21 @@ server <- function(input, output, session) {
       }
     }
 
+    corr.C.colnames <- eq.raw() %>%
+      select(Stoich) %>%
+      unique() %>%
+      mutate(Stoich = case_when(
+        Stoich == 0 ~ 'M',
+        Stoich == 1 ~ 'ML',
+        Stoich == 2 ~ 'ML2'
+      )) %>%
+      as.list() %>%
+      unlist()
+
+    corr.C <- data.frame(corr.C) %>%
+      arrange(desc(X1)) %>%
+      magrittr::set_colnames(corr.C.colnames)
+
     return(corr.C)
 
   })
@@ -2287,7 +2307,27 @@ server <- function(input, output, session) {
   })
 
   output$corr.C <- renderDT({
-    data.table(corr.C())
+
+    datatable(data = corr.C(),
+              extensions = c('Buttons', 'Responsive', 'Scroller'),
+              selection = 'multiple',
+              editable = T,
+              rownames = F,
+              escape = T,
+              filter = 'top',
+              autoHideNavigation = T,
+              plugins = 'natural',
+              options = list(
+                deferRender = TRUE,
+                scrollY = 200,
+                scroller = TRUE,
+                autoWidth = F,
+                dom = 'Bfrtip', #button position
+                buttons = c('copy', 'csv', 'excel', 'colvis')
+              )
+    )
+
+
   })
 
 
