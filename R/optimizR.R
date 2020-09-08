@@ -10,8 +10,7 @@ source("R/peakpositionR.R")
 #optimization (minimization) of peakpositionR vs. the peack-picked experimental distribution-------
 
 #Optimizer----
-optimizer <- function(par, z, raw.data,
-                      sequence, nX.select, K,
+optimizer <- function(par, z, raw.data, nX.select, K,
                       nrPeaks.user, bi,
                       pp, sequencer, massr){
 
@@ -72,7 +71,7 @@ optimizer <- function(par, z, raw.data,
 
 # plotting------------
 
-optiplot <- function(par=opt$par, z, raw.data, sequence, nX.select, K, nrPeaks.user, sequencer, massr, pp){
+optiplot <- function(par=opt$par, z, raw.data, nX.select, K, nrPeaks.user, sequencer, massr, pp){
 
   library(DescTools)
   library(tidyverse)
@@ -209,7 +208,6 @@ massr <- massR(seq = sequencer, DC=0) #the DC parameter is not actually useful h
 
 opt <- optim(c(10), optimizer,
              z=z, raw.data=ppp, K=K,
-             sequence=sequence,
              nX.select='C', nrPeaks.user=nrPeaks.user,
              bi=FALSE,
              pp=pp, sequencer=sequencer, massr=massr,
@@ -220,7 +218,7 @@ opt <- optim(c(10), optimizer,
 #get NUS
 NUS.1 <- opt$par[1]*nX/90 ####NOT SURE ABOUT FORMULA#####
 
-optiplot(z=z, raw.data=pppp, sequence=sequence, nX.select=nX.select, K=K, nrPeaks.user=nrPeaks.user,
+optiplot(z=z, raw.data=pppp, nX.select=nX.select, K=K, nrPeaks.user=nrPeaks.user,
          sequencer=sequencer, massr=massr, pp=pp)
 
 
@@ -261,7 +259,6 @@ massr <- massR(seq = sequencer, DC=0) #the DC parameter is not actually useful h
 
 opt <- optim(c(10,25, 0.5, 0.9), optimizer,
              z=z, raw.data=pppp, K=K,
-             sequence=sequence,
              nX.select=nX.select, nrPeaks.user=nrPeaks.user,
              bi=TRUE,
              pp=pp, sequencer=sequencer, massr=massr,
@@ -278,5 +275,5 @@ fraction.2 <- opt$par[4]/(opt$par[3]+opt$par[4])
 NUS.1 <- opt$par[1]*nX/90 ####NOT SURE ABOUT FORMULA#####
 NUS.2 <- opt$par[2]*nX/90
 
-optiplot(z=z, raw.data=pppp, sequence=sequence, nX.select=nX.select, K=K, nrPeaks.user=nrPeaks.user,
+optiplot(z=z, raw.data=pppp, nX.select=nX.select, K=K, nrPeaks.user=nrPeaks.user,
          sequencer=sequencer, massr=massr, pp=pp)
