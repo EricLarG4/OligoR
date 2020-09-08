@@ -1,5 +1,6 @@
 
 library(tidyverse)
+library(ggthemes)
 
 #to be removed once packaged:
 source("R/peakpickR.R")
@@ -56,7 +57,6 @@ optimizer <- function(par, z, raw.data,
     group_by(colorscale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz, rmz) %>%
     mutate(diff.2 = (Iso.Pattern - intensum)^2) %>% #square of differences
     ungroup() %>%
-    group_by(colorscale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
     summarise(sum.diff.2 = sum(diff.2)) #sum of squares of differences
 
   output <- as.vector(merged$sum.diff.2)
