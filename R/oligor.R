@@ -452,7 +452,24 @@ ui <- dashboardPagePlus(
           width = "100%",
           min = 8, max = 128,
           step = 4
-        )
+        ),
+        switchInput(inputId = 'switchbi',
+                    label = 'Distribution',
+                    value = T,
+                    onLabel = 'mono',
+                    offLabel = 'bi',
+                    onStatus = 'danger',
+                    offStatus = 'info',
+                    size = 'normal',
+                    width = '100%'),
+        actionBttn(inputId = "optibtn",
+                   label = "Model",
+                   icon = icon('check-circle', class = 'solid'),
+                   style = "simple",
+                   color = "primary",
+                   size = "sm",
+                   block = F,
+                   no_outline = TRUE)
       )
     ),
     #sidebar KineticR-------------
@@ -634,6 +651,12 @@ ui <- dashboardPagePlus(
               br(),
               htmlOutput('chem.formula'),
               br(),
+              textInput(
+                inputId = "K41C",
+                label = 'K41%',
+                value = 6.730244,
+                width = "100%"
+              ),
               sliderInput(
                 inputId = "DC",
                 label = 'D%',
@@ -668,7 +691,7 @@ ui <- dashboardPagePlus(
       )
     ),
     verbatimTextOutput("value"),
-    extendShinyjs(text = jscode)
+    extendShinyjs(text = jscode, functions = c('shinyjs.collapse'))
   ),
   rightsidebar = rightSidebar(
     rightSidebarTabContent(
@@ -682,7 +705,7 @@ ui <- dashboardPagePlus(
   dashboardBody(
     useShinyjs(),
     uiChangeThemeOutput(),
-    extendShinyjs(text = jscode),
+    extendShinyjs(text = jscode, functions = c("shinyjs.collapse")),
     tags$style(HTML('table.dataTable tr.selected td, table.dataTable td.selected {background-color: pink !important;}')),
     tags$style(type="text/css", #hides error messages
                # ".shiny-output-warning { visibility: hidden; }",
@@ -882,6 +905,16 @@ ui <- dashboardPagePlus(
                             collapsed = F,
                             height = 1000,
                             uiOutput("plot5bi.ui")
+                          ),
+                          boxPlus(
+                            title = "diag",
+                            width =12,
+                            status = "info",
+                            solidHeader = T,
+                            collapsible = T,
+                            collapsed = F,
+                            height = 1000,
+                            DTOutput('MSsnaps1.table')
                           )
                         ),
                         absolutePanel(
@@ -1183,7 +1216,8 @@ server <- function(input, output, session) {
 
   massr <- reactive({
     massR(seq=sequencer(),
-          DC = as.numeric(input$DC))
+          DC = as.numeric(input$DC),
+          K41C = as.numeric(input$K41C))
   })
 
   oligo.data <- reactive({
@@ -1221,6 +1255,7 @@ server <- function(input, output, session) {
   peak.position <- reactive({
     peak.positionR(nrPeaks.user = input$nrPeaks.user,
                    DC = as.numeric(input$DC),
+                   K41C = as.numeric(input$K41C),
                    seq = sequencer(),
                    MonoMW = massr()$MonoMW)
   })
@@ -2491,9 +2526,11 @@ server <- function(input, output, session) {
   peak.position.pp <- reactive({
     peak.positionR(nrPeaks.user = input$nrPeaks.user.pp,
                    DC = input$DC.pp,
+                   K41C = as.numeric(input$K41C), ## what is this for? ##########
                    seq = sequencer(),
                    MonoMW = massr()$MonoMW)
   })
+
 
   Plot5bi <- reactive({
     ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
@@ -2545,6 +2582,70 @@ server <- function(input, output, session) {
       )  +
       coord_cartesian(expand = TRUE)
   })
+
+
+
+  #OPTIMIZR----
+
+  opt <- reactive({
+    optim(c(10), optimizer,
+          z=input$z,
+          raw.data=MSsnaps1(),
+          K=input$K,
+          nX.select=input$nX.select,
+          nrPeaks.user=input$nrPeaks.user.pp,
+          bi=input$switchbi,
+          pp=MSsnaps.pp(),
+          sequencer=sequencer(),
+          massr=massr(),
+          method = 'L-BFGS-B',
+          lower = c(0,0,0,0),
+          upper = c(100, 100, 1, 1))
+  })
+
+
+  optiplot <- eventReactive(input$optibtn,{
+    optiplotR(z=input$z,
+              raw.data=MSsnaps1(),
+              nX.select=input$nX.select,
+              K=input$K,
+              nrPeaks.user=input$nrPeaks.user.pp,
+              sequencer=sequencer(),
+              massr=massr(),
+              pp=opt())
+  })
+
+
+
+  MSsnaps1.table <- DT::renderDT(server = FALSE, {
+      datatable(data = MSsnaps1())
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   #download spectra----------
   output$dwnspec <- downloadHandler(

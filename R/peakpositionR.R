@@ -9,7 +9,7 @@
 #' peak.positionR(nrPeaks.user = 32, DC = 9, seq = sequencer, MonoMW = massr$MonoMW)
 
 
-peak.positionR <- function(nrPeaks.user, DC, seq, MonoMW){
+peak.positionR <- function(nrPeaks.user, DC, K41C = 6.730244, seq, MonoMW){
 
   load('Data/listIso.Rda')
 
@@ -24,13 +24,22 @@ peak.positionR <- function(nrPeaks.user, DC, seq, MonoMW){
   h2 <- rep(0, nrPeaks);
 
   #Isotope abundances
-  h1[1] = 0.999855;       h1[2] = 0.000145;                            #Natural abundances of H isotopes
-  h2[1] = (1-DC/100);     h2[2] = DC/100;                              #Calculated abundances of H isotopes for exchangeable sites as a function of DC (user-supplied).
-  c12[1] = listIso$C[1]; c12[2] = listIso$C[2];
-  n14[1] = listIso$N[1]; n14[2] = listIso$N[2];
-  o16[1] = listIso$O[1]; o16[2] = listIso$O[2]; o16[3] = listIso$O[3];
-  p31[1] = 1.0;
-  k39[1] = listIso$K[1]; k39[2] = listIso$K[2]; k39[3] = listIso$K[3];
+  h1[1] = 0.999855      #Natural abundances of H isotopes
+  h1[2] = 0.000145
+  h2[1] = (1-DC/100)    #Calculated abundances of H isotopes for exchangeable sites as a function of DC (user-supplied).
+  h2[2] = DC/100
+  c12[1] = listIso$C[1]
+  c12[2] = listIso$C[2]
+  n14[1] = listIso$N[1]
+  n14[2] = listIso$N[2]
+  o16[1] = listIso$O[1]
+  o16[2] = listIso$O[2]
+  o16[3] = listIso$O[3]
+  p31[1] = 1.0
+  # k39[1] = listIso$K[1]; k39[2] = listIso$K[2]; k39[3] = listIso$K[3];
+  k39[1] <- sum(listIso$K)-K41C/100-listIso$K[2]
+  k39[2] <- listIso$K[2]
+  k39[3] <- K41C/100
 
   #Determination of the isotopic pattern by Fast Fourier Transform
   #(only yields abundance, not the corresponding m/z).
