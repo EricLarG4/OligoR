@@ -1,3 +1,12 @@
+#' Oligonucleotide molecular weight and m/z calculator
+#'
+#' @param DC A numeric value defining the percentage of in solution deuterium.
+#' @param K41C A numeric value defining the percentage of 41K isotope. Defaults to the natural abundance of 6.730244%.
+#' @param seq A list created with the \code{sequenceR} function.
+#' @return A list with the monoisotopic molecular weight and m/z, and the monoisotopic molecular weight and m/z.
+#' @examples
+#' massR(DC = 9, K41C = 6.730244 seq = sequencer)
+
 massR <- function(seq, DC, K41C = 6.730244){
 
   load('Data/listMass.Rda')

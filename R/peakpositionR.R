@@ -2,11 +2,12 @@
 #'
 #' @param nrPeaks.user An integer controlling the number of calculated peaks.
 #' @param DC A numeric value defining the percentage of in solution deuterium.
+#' @param K41C A numeric value defining the percentage of 41K isotope. Defaults to the natural abundance of 6.730244%.
 #' @param seq A list created with the \code{sequenceR} function.
 #' @param MonoMW A numeric value, the monoisotopic mass of the oligonucleotide, which can be imported from the \code{massR} function.
 #' @return A dataframe containing the isotopic distribution.
 #' @examples
-#' peak.positionR(nrPeaks.user = 32, DC = 9, seq = sequencer, MonoMW = massr$MonoMW)
+#' peak.positionR(nrPeaks.user = 32, DC = 9, K41C = 6.730244 seq = sequencer, MonoMW = massr$MonoMW)
 
 
 peak.positionR <- function(nrPeaks.user, DC, K41C = 6.730244, seq, MonoMW){

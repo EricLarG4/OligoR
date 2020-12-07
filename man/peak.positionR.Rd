@@ -4,12 +4,14 @@
 \alias{peak.positionR}
 \title{Oligonucleotide isotopic peak distribution calculation by FFT based on J. Proteome Res. 2018 Jan 5; 17(1): 751–758}
 \usage{
-peak.positionR(nrPeaks.user, DC, seq, MonoMW)
+peak.positionR(nrPeaks.user, DC, K41C = 6.730244, seq, MonoMW)
 }
 \arguments{
 \item{nrPeaks.user}{An integer controlling the number of calculated peaks.}
 
 \item{DC}{A numeric value defining the percentage of in solution deuterium.}
+
+\item{K41C}{A numeric value defining the percentage of 41K isotope. Defaults to the natural abundance of 6.730244%.}
 
 \item{seq}{A list created with the \code{sequenceR} function.}
 
@@ -22,5 +24,5 @@ A dataframe containing the isotopic distribution.
 Oligonucleotide isotopic peak distribution calculation by FFT based on J. Proteome Res. 2018 Jan 5; 17(1): 751–758
 }
 \examples{
-peak.positionR(nrPeaks.user = 32, DC = 9, seq = sequencer, MonoMW = massr$MonoMW)
+peak.positionR(nrPeaks.user = 32, DC = 9, K41C = 6.730244 seq = sequencer, MonoMW = massr$MonoMW)
 }
