@@ -4,7 +4,7 @@
 \alias{sequenceR}
 \title{Oligonucleotide sequence analysis}
 \usage{
-sequenceR(z, K, sequence, nX.user.input, nX.select)
+sequenceR(z, K, sequence, nX.user.input, nX.select, mol = 1)
 }
 \arguments{
 \item{z}{An integer, defining the absolute value of the charge state.}
