@@ -14,13 +14,16 @@
 #' sequenceR(z=4, K=2, sequence="TTGGGTGGGTGGGTGGGT", nX.user.input='', nX.select='C')
 
 
-sequenceR <- function(z, K, sequence, nX.user.input, nX.select){
+sequenceR <- function(z, K, sequence, nX.user.input, nX.select, mol = 1){
 
   #charge----
   z <- as.numeric(z)
 
   #number potassium adducts----
   K <- as.numeric(K)
+
+  #strand molecularity----
+  mol <- as.numeric(mol)
 
   #nucleotide extraction from sequence----
   seq2 <- data.frame(number=1:1, string=c(sequence), stringsAsFactors = F)
@@ -33,11 +36,26 @@ sequenceR <- function(z, K, sequence, nX.user.input, nX.select){
 
   nbC <- str_count(seq2$string, "C")
 
-  #Number of nucleotides----
+  #Number of nucleotides per strand----
   nb_nt <- nbA + nbT + nbG + nbC
 
-  #Number of phosphates----
+  #Number of phosphates per strand----
   nb_PO <- nb_nt - 1
+
+  #Total number of nucleotides----
+  nb_nt <- nb_nt*mol
+
+  #Total number of phosphates----
+  nb_PO <- nb_PO*mol
+
+  #total number of nucleotides----
+  nbA <- nbA * mol
+
+  nbT <- nbT * mol
+
+  nbG <- nbG * mol
+
+  nbC <- nbC * mol
 
   #Neutralized phosphate
   #(takes into account charge and potassium adducts that bring positive charges)
@@ -48,9 +66,9 @@ sequenceR <- function(z, K, sequence, nX.user.input, nX.select){
 
   #This is the total amount of hydrogen across isotopes (among which nX are exchangeable)
   #Charge taken into account here, so H will not be taken out when calculating m/z
-  nH <- nbA*12 + nbG*12 + nbC*12 + nbT*13 + 1 - z - K
+  nH <- nbA*12 + nbG*12 + nbC*12 + nbT*13 + 1*mol - z - K
 
-  nO <- nbA*5 + nbG*6 + nbC*6 + nbT*7 - 2
+  nO <- nbA*5 + nbG*6 + nbC*6 + nbT*7 - 2*mol
 
   nN <- nbA*5 + nbG*5 + nbC*3 + nbT*2
 
