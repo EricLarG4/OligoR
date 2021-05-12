@@ -634,6 +634,12 @@ ui <- dashboardPagePlus(
                 value = "",
                 width = "100%"
               ),
+              textInput(
+                inputId = 'mol',
+                label = 'Molecularity',
+                value = "1",
+                width = "100%"
+              ),
               splitLayout(
                 textInput(
                   inputId = "z",
@@ -1186,6 +1192,7 @@ server <- function(input, output, session) {
       z = input$z,
       K = input$K,
       sequence = input$sequence,
+      mol = input$mol,
       nX.user.input = input$nX.user,
       nX.select = input$nX.select
     )
