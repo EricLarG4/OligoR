@@ -1004,7 +1004,6 @@ ui <- dashboardPagePlus(
                             status = "primary",
                             solidHeader = T,
                             collapsible = T,
-                            # tableOutput("MSsnaps") #diagnostics for snapshots
                             plotOutput("plot7")
                           )
                         ),
@@ -2777,10 +2776,10 @@ server <- function(input, output, session) {
   centroidscaled <- reactive({
     if (isTRUE(input$manu2)) {
       centroidscaled.import() %>%
-        mutate(timescale = centroidscaled.import()$CFtime)
+        mutate(timescale = CFtime)
     } else {
       centroidscaled.import() %>%
-        mutate(timescale = centroidscaled.import()$mean.time)
+        mutate(timescale = mean.time)
     }
   })
 
