@@ -17,10 +17,10 @@ peakpickR <- function(raw.data, neighlim = 5, deriv.lim = 10000, int.thresh = 0.
   unpicked <- data.frame(raw.data)
 
   pp <- unpicked %>%
-    group_by(colorscale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
-    add_column( #applies pickpicking function from peakPick package
+    # group_by(colorscale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
+    mutate( #applies pickpicking function from peakPick package
       peak = peakPick::peakpick(
-        matrix(unpicked$intensum %>% #prepare input data as matrix
+        matrix(.$intensum %>% #prepare input data as matrix
                  magrittr::set_colnames(NULL),
                ncol = 1),
         neighlim = neighlim, #decrease when peaks are closer (higher z)
@@ -36,7 +36,7 @@ peakpickR <- function(raw.data, neighlim = 5, deriv.lim = 10000, int.thresh = 0.
       )
     )
 
-  return(pp)
+  # return(pp$peak)
 
 }
 
