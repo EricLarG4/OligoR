@@ -899,7 +899,7 @@ ui <- dashboardPagePlus(
                             solidHeader = T,
                             collapsible = T,
                             height = 1000,
-                            # tableOutput("MSsnaps") #diagnostics for snapshots
+                            # tableOutput("MSsnaps"), #diagnostics for snapshots
                             uiOutput("plot5.ui")
                           ),
                           boxPlus(
@@ -2623,21 +2623,26 @@ server <- function(input, output, session) {
 
 
 
-  MSsnaps1.table <- DT::renderDT(server = FALSE, {
-      datatable(data = MSsnaps1())
+  output$MSsnaps1.table <- DT::renderDT(server = FALSE, {
+    datatable(data = MSsnaps1(),
+              extensions = c('Buttons', 'Responsive', 'Scroller'),
+              selection = 'multiple',
+              editable = T,
+              rownames = F,
+              escape = T,
+              filter = 'top',
+              autoHideNavigation = T,
+              plugins = 'natural',
+              options = list(
+                deferRender = TRUE,
+                scrollY = 200,
+                scroller = TRUE,
+                autoWidth = F,
+                dom = 'Bfrtip', #button position
+                buttons = c('copy', 'csv', 'excel', 'colvis') #buttons
+              )
+    )
   })
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
