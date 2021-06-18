@@ -9,15 +9,19 @@
 
 massR <- function(seq, DC, K41C = 6.730244){
 
-  load('Data/listMass.Rda')
-  load('Data/listIso.Rda')
+  if(!exists('listIso')){
+    load('data/listIso.Rda')
+  }
+
+  if(!exists('listMass')){
+    load('data/listMass.Rda')
+  }
 
   listIso$D <- c(100-DC, DC)/100
 
   listIso$K <- c(sum(listIso$K)-K41C/100-listIso$K[2],
                  listIso$K[2],
                  K41C/100)
-
 
   #Monoisotopic mass
   MonoMW <- seq$nC*listMass$C[1] + seq$nH*listMass$H[1] +
