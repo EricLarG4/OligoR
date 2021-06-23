@@ -157,13 +157,13 @@ optiplotR <- function(p.pp = p.pp,
         size = 5, fontface = 'bold'
       ) +
       scale_color_gradient(low = 'steelblue4', high = 'tomato') +
-      facet_grid(distrib ~ colorscale)
+      facet_grid(distrib ~ round(colorscale,2))
 
   } else {
 
     ##faceting for normal mode----
     p.opt <- p.opt +
-      facet_wrap(~colorscale)
+      facet_wrap(~round(colorscale,2))
   }
 
 }
