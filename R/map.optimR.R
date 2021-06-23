@@ -1,5 +1,5 @@
 
-map.optimR <- function(input.data, method = 'L-BFGS-B', lmm = 10, DC.final=0, DC.init=100){
+map.optimR <- function(input.data, method = 'L-BFGS-B', lmm = 10, DC.final=0, DC.init=100, init.par = c(10,35,0.2,0.9)){
 
 
   if(method == 'L-BFGS-B'){
@@ -7,7 +7,7 @@ map.optimR <- function(input.data, method = 'L-BFGS-B', lmm = 10, DC.final=0, DC
 
     ## bimodal fit----
     par.bi <- optim(
-      par = c(10,35, 0.2, 0.9),
+      par = init.par,
       optimizer,
       bi = TRUE,
       pp = input.data,
@@ -36,7 +36,7 @@ map.optimR <- function(input.data, method = 'L-BFGS-B', lmm = 10, DC.final=0, DC
 
     ## monomodal fit----
     par.mono <- optim(
-      par = c(10, 1),
+      par = c(init.par[1], 1),
       optimizer,
       bi = FALSE,
       pp = input.data,
@@ -71,7 +71,7 @@ map.optimR <- function(input.data, method = 'L-BFGS-B', lmm = 10, DC.final=0, DC
 
     ## bimodal fit----
     par.bi <- optim(
-      par = c(10,35, 0.2, 0.9),
+      par = init.par,
       optimizer,
       bi = TRUE,
       pp = input.data,
@@ -95,7 +95,7 @@ map.optimR <- function(input.data, method = 'L-BFGS-B', lmm = 10, DC.final=0, DC
 
     ## monomodal fit----
     par.mono <- optim(
-      par = c(10, 1),
+      par = c(init.par[1], 1),
       optimizer,
       bi = FALSE,
       pp = input.data,
