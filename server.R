@@ -2,45 +2,16 @@
 
 ##libraries----
 
-library(BiocManager)
-options(repos = BiocManager::repositories())
-
-###data handling----
-library(tidyverse)
-library(readxl)
-library(data.table)
-library(DT)
-library(magrittr)
-library(data.table)
-library(readr)
-library(stringr)
-library(formattable)
-library(gnm)
-
-library(DescTools)
-
-###plotting----
-library(ggpubr)
-library(ggrepel)
-library(ggthemes)
-library(ggsci)
-library(ggpmisc)
-library(thematic)
-
-library(zoo) #useful?
-
-
-
-###MS---
-library(V8)
-
-# if (!requireNamespace("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
 # BiocManager::install("mzR")
-library(mzR)
 
+librarian::shelf(
+  tidyverse, readr, readxl, data.table, DT, tidytable, magrittr, stringr,
+  formattable, gnm, DescTools,
+  ggpubr, ggrepel, ggthemes, ggpmisc, thematic, zoo,
+  BiocManager, V8, mzR
+)
 
-##TO REMOVE IF PACKAGING================
+##custom functions----
 
 ###Theoretical isotopic distributions----
 source("R/peakpositionR.R")
@@ -50,10 +21,14 @@ source("R/massR.R")
 
 ###Peak picking and modeling----
 source("R/peakpickR.R")
+source("R/ppf.R")
 source("R/optimizR.R")
-source("R/optiplotR.R")
+source("R/map.optimR.R")
+source("R/optf.R")
+source("R/binomNUSf.R")
+# source("R/custom theme.R")
 
-# theme----
+## theme----
 custom.theme <- theme(
   panel.background = element_blank(),
   strip.background = element_blank(),
@@ -75,9 +50,9 @@ thematic_rmd(
 )
 
 
+
 #server---------
 server <- function(input, output, session) {
-
 
   #OligoR----------
 
@@ -133,6 +108,7 @@ server <- function(input, output, session) {
   output$oligo.data <- renderDT(server = FALSE, {
     datatable(
       oligo.data(),
+      style = "bootstrap",
       extensions = c('Buttons', 'Responsive', 'Scroller'),
       rownames = F,
       escape = T,
@@ -166,6 +142,7 @@ server <- function(input, output, session) {
   output$peak.position <- renderDT(server = FALSE, {
     datatable(
       peak.position(),
+      style = "bootstrap",
       extensions = c('Buttons', 'Responsive', 'Scroller'),
       rownames = F,
       escape = T,
@@ -330,48 +307,79 @@ server <- function(input, output, session) {
 
   sample.name <- "Sample 1"
 
-  inputms <- reactive({
-    #Progress bar. Appears upon file import, then again if m/z range is changed.
-    withProgress(message = 'Calculation in progress',
+  inputms.collection <- reactive({
+    #Progress bar. Appears upon file import.
+    withProgress(message = 'Reading data',
                  detail = 'Please wait', value = 0, {
 
                    incProgress(amount=1/5)
 
                    #extraction of ms data, binding of scan number, retention time
                    df.temp <- lapply(id(),function(i) {
-                     init <- data.frame(peaks(ms(), i))  %>%
-                       add_column(scan = i) %>%
-                       add_column(ret.time = ret.time()[i,]/60)
+
+                     #Dataframe version - archived
+                     # init <- data.frame(peaks(ms(), i))  %>%
+                     #   add_column(scan = i) %>%
+                     #   add_column(ret.time = ret.time()[i,]/60)
+
+                     init <- data.table(peaks(ms(), i))
+                     init[, scan := i]
+                     init[, ret.time := ret.time()[i,]/60]
+
                    })
 
                    incProgress(amount=2/5)
 
-                   #transformation to single dataframe
+                   #binding to single datatable
                    filling.df <- data.table::rbindlist(df.temp)
 
                    incProgress(amount=3/5)
 
                    #traceability
-                   filling.df$file <- inFile()$name
-                   # filling.df$sample <- input$sample.id
 
-                   #binning
-                   filling.df$X1 <- RoundTo(filling.df$X1, multiple = input$slider1, FUN = round)
+                   filling.df[,file := inFile()$name]
 
                    incProgress(amount=4/5)
 
                    #naming
-                   colnames(filling.df)[1:5] <- c("mz","intensity","scan", "time",'filename'#, 'sample'
-                   )
-
-                   #m/z range filtering
-                   filling.df <- filling.df %>%
-                     filter(mz > input$text11[1]) %>%  #m/z filtering
-                     filter(mz < input$text11[2])
+                   # colnames(filling.df)[1:5] <- c("mz","intensity","scan", "time",'filename')
+                   setnames(filling.df, old = c(1:ncol(filling.df)), new = c("mz","intensity","scan", "time",'filename'))
 
                    return(filling.df)
 
                    incProgress(amount=5/5)
+                 })
+  })
+
+  inputms.bin <- reactive({
+
+    withProgress(message = 'Binning in progress',
+                 detail = 'Please wait', value = 0, {
+
+                   incProgress(amount=1/2)
+
+                   inputms.bin <- inputms.collection()
+
+                   inputms.bin$mz =  RoundTo(inputms.bin$mz, multiple = input$slider1, FUN = round)
+
+                   return(inputms.bin)
+
+                   incProgress(amount=2/2)
+                 })
+  })
+
+  inputms <- reactive({
+
+    withProgress(message = 'Filtering in progress',
+                 detail = 'Please wait', value = 0, {
+
+                   incProgress(amount=1/2)
+
+                   inputms <- inputms.bin()[mz > input$text11[1] & mz < input$text11[2]]
+
+                   return(inputms)
+
+                   incProgress(amount=2/2)
                  })
   })
 
@@ -427,9 +435,10 @@ server <- function(input, output, session) {
     inputms() %>%
       filter(scan %in% scanstxt())
   })
+
   selecscansbrsh <- reactive({
-    inputms() %>%
-      filter(scan %in% scansbrsh())
+    as.data.table(inputms())[scan %in% scansbrsh()]
+
   })
 
   #time management--------
@@ -466,16 +475,17 @@ server <- function(input, output, session) {
   })
 
   specsumbrsh <- reactive({
-    selecscansbrsh() %>%
-      # filter(mz > min(ranges$x)) %>%
-      # filter(mz < max(ranges$x)) %>%
-      group_by(mz, filename) %>%
-      summarise("intensum" = sum(intensity)) %>%
-      add_column("mean.time" = mean(selecscansbrsh()$time) + as.numeric(input$deadtxt)) %>%
-      add_column("Species" = input$sample.id) %>%
-      add_column('CFtime' = time.min()) %>%
-      add_column('lgd.conc' = as.numeric(input$lgd.conc)) %>%
-      add_column('Stoich' = as.numeric(input$Stoich))
+
+    selecscansbrsh <- selecscansbrsh()[, keyby = .(mz, filename),
+                                       .(intensum = sum(intensity))][, ':=' (
+                                         mean.time = mean(selecscansbrsh()$time) + as.numeric(input$deadtxt),
+                                         Species = input$sample.id,
+                                         CFtime = time.min(),
+                                         lgd.conc = as.numeric(input$lgd.conc),
+                                         Stoich = as.numeric(input$Stoich)
+                                       )]
+
+
   })
 
   #Definition of initial mz range-------
@@ -514,9 +524,9 @@ server <- function(input, output, session) {
   })
 
   specsumbrsh.ms <- reactive({
-    specsumbrsh.ms <- specsumbrsh() %>%
-      filter(mz > min(ranges$x)) %>%
-      filter(mz < max(ranges$x))
+
+    specsumbrsh.ms <- specsumbrsh()[mz > min(ranges$x) & mz < max(ranges$x)]
+
   })
 
   # Double click event to reset the zoom
@@ -559,14 +569,18 @@ server <- function(input, output, session) {
 
   inputsnap <- reactive({
     if (isTRUE(input$switch69)) {
-      inputsnap <- specsumbrsh.ms() %>%
-        add_column(min.time = min(selectedData()$time), #traceability
-                   max.time = max(selectedData()$time),
-                   min.scan = min(selectedData()$scan),
-                   max.scan = max(selectedData()$scan),
-                   min.mz = min(specsumbrsh.ms()$mz),
-                   max.mz = max(specsumbrsh.ms()$mz))
+
+      inputsnap <- specsumbrsh.ms()[, ':=' (
+        min.time = min(selectedData()$time), #traceability
+        max.time = max(selectedData()$time),
+        min.scan = min(selectedData()$scan),
+        max.scan = max(selectedData()$scan),
+        min.mz = min(specsumbrsh.ms()$mz),
+        max.mz = max(specsumbrsh.ms()$mz)
+      )]
+
       return(inputsnap)
+
     } else {
       inputsnap <- specsumtxt() %>%
         add_column(min.time = "NA", #traceability
@@ -583,6 +597,10 @@ server <- function(input, output, session) {
   MSsnaps <- eventReactive(input$bttn1, {
     newrow <- data.frame(inputsnap())
     snaps <<- rbind(snaps, newrow)
+
+    #     newrow <- data.table(inputsnap())
+    #     snaps <<- rbindlist(list(snaps, newrow))
+
   })
 
 
@@ -782,6 +800,7 @@ server <- function(input, output, session) {
 
   output$k.table <-  DT::renderDT(server = FALSE, {
     datatable(data = k.norm.0(),
+              style = "bootstrap",
               extensions = c('Buttons', 'Responsive', 'Scroller'),
               selection = 'multiple',
               colnames = c('Species #' = 'Species.x',
@@ -823,6 +842,7 @@ server <- function(input, output, session) {
 
   output$k.wide <-  DT::renderDT(server = FALSE, {
     datatable(data = k.wide(),
+              style = "bootstrap",
               extensions = c('Buttons', 'Responsive', 'Scroller'),
               selection = 'multiple',
               colnames = c('Mean Time (min)' = 'mean.time'),
@@ -845,6 +865,7 @@ server <- function(input, output, session) {
 
   output$k.spectra <-  DT::renderDT(server = FALSE, {
     datatable(data = k.spectra(),
+              style = "bootstrap",
               callback = callback,
               extensions = c('Buttons', 'Responsive', 'Scroller'),
               selection = 'multiple',
@@ -1001,6 +1022,7 @@ server <- function(input, output, session) {
     } else {
 
       datatable(data = eq.raw(),
+                style = "bootstrap",
                 extensions = c('Buttons', 'Responsive', 'Scroller'),
                 selection = 'multiple',
                 colnames = c(
@@ -1204,6 +1226,7 @@ server <- function(input, output, session) {
   output$corr.C <- renderDT({
 
     datatable(data = corr.C(),
+              style = "bootstrap",
               extensions = c('Buttons', 'Responsive', 'Scroller'),
               selection = 'multiple',
               editable = T,
@@ -1264,7 +1287,10 @@ server <- function(input, output, session) {
   # })
 
 
-  #snaps plotting---------
+
+  #MS STACKING AND DECONVOLUTION----
+
+  ##snaps plotting---------
 
   #snaps scaling
   MSsnaps1 <- reactive({
@@ -1280,7 +1306,6 @@ server <- function(input, output, session) {
         mutate(intensum = 1-(max(intensum)-intensum)/(max(intensum)-min(intensum)))
     }
   })
-
 
   #variable to select a common or independent x axis. Useful to compare across samples with a fixed axis or across adducts/charge states when not fixed
   common.scale <- reactive({
@@ -1333,7 +1358,7 @@ server <- function(input, output, session) {
     )
   })
 
-  #plot stacked spectra----
+  ###plot stacked spectra----
   Plot5 <- reactive({
     ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
                                   color = colorscale)) +
@@ -1357,56 +1382,48 @@ server <- function(input, output, session) {
   })
 
 
+  ##Peak picking----
+
   MSsnaps.pp <- reactive({
 
-    peak.picked <- peakpickR(raw.data = MSsnaps1(),
-                             neighlim = input$neighlim,
-                             deriv.lim = input$deriv.lim,
-                             int.thresh = input$int.thresh)
+    ppf(raw = as.data.frame(MSsnaps1()),
+        neigh = input$neighlim,
+        deriv = input$deriv.lim,
+        thresh = input$int.thresh
+    )
 
-    return(peak.picked)
-
-  })
-
-
-  peak.position.pp <- reactive({
-    peak.positionR(nrPeaks.user = input$nrPeaks.user.pp,
-                   DC = input$DC.pp,
-                   K41C = as.numeric(input$K41C), ## what is this for? ##########
-                   seq = sequencer(),
-                   MonoMW = massr()$MonoMW)
   })
 
 
   Plot5bi <- reactive({
-    ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
-                                  color = colorscale)) +
-      geom_line(size = 1) +
-      scale_color_gradient(name = 't (min)', low=input$col.snap1, high=input$col.snap2,
-                           guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
-                           # breaks = breaks,
-                           trans = input$trans.user) +
-      geom_point(data = MSsnaps.pp() %>%
-                   filter(peak > 0),
-                 aes(x = mz, y = intensum),
-                 inherit.aes = F,
-                 color = 'green',
-                 size = 5,
-                 alpha = 0.5) +
-      geom_point(data = peak.position.pp(),
-                 aes(x = mz.th, y = Iso.Pattern),
-                 color = "tomato",
-                 inherit.aes = F,
-                 size = 5,
-                 alpha = 0.5) +
-      geom_line(data = peak.position.pp(),
-                aes(x = mz.th, y = Iso.Pattern),
-                color = "tomato",
-                size = 1.5,
-                inherit.aes = F) +
+    ggplot(
+      data = MSsnaps.pp(),
+      aes(
+        x = mz,
+        color = colorscale
+      )
+    ) +
+      geom_line(
+        aes(y = intensum),
+        size = 1
+      ) +
+      geom_point(
+        data = MSsnaps.pp() %>%
+          filter(peak > 0),
+        aes(y = intensum),
+        color = 'green',
+        size = 5,
+        alpha = 0.5
+      ) +
       xlab("m/z") +
       facet_grid(colorscale ~ Species,
                  scales = common.scale()
+      ) +
+      scale_color_gradient(
+        name = 't (min)',
+        low=input$col.snap1, high=input$col.snap2,
+        guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
+        trans = input$trans.user
       ) +
       custom.theme +
       theme(strip.text = element_blank(),
@@ -1419,75 +1436,528 @@ server <- function(input, output, session) {
   })
 
 
+  ## Optimization----
 
-  #OPTIMIZR----
+  ### Least-square minimization----
+  opt.0 <- eventReactive(input$optibtn, {
 
-  opt <- reactive({
-    optim(c(10), optimizer,
-          z=input$z,
-          raw.data=MSsnaps1(),
-          K=input$K,
-          nX.select=input$nX.select,
-          nrPeaks.user=input$nrPeaks.user.pp,
-          bi=input$switchbi,
-          pp=MSsnaps.pp(),
-          sequencer=sequencer(),
-          massr=massr(),
-          method = 'L-BFGS-B',
-          lower = c(0,0,0,0),
-          upper = c(100, 100, 1, 1))
-  })
+    withProgress(
+      message = 'Optimizing data',
+      detail = 'Please wait', value = 0, {
 
+        incProgress(amount=1/2)
 
-  optiplot <- eventReactive(input$optibtn,{
-    optiplotR(z=input$z,
-              raw.data=MSsnaps1(),
-              nX.select=input$nX.select,
-              K=input$K,
-              nrPeaks.user=input$nrPeaks.user.pp,
-              sequencer=sequencer(),
-              massr=massr(),
-              pp=opt())
-  })
-
-
-
-  output$MSsnaps1.table <- DT::renderDT(server = FALSE, {
-    datatable(data = MSsnaps1(),
-              extensions = c('Buttons', 'Responsive', 'Scroller'),
-              selection = 'multiple',
-              editable = T,
-              rownames = F,
-              escape = T,
-              filter = 'top',
-              autoHideNavigation = T,
-              plugins = 'natural',
-              options = list(
-                deferRender = TRUE,
-                scrollY = 200,
-                scroller = TRUE,
-                autoWidth = F,
-                dom = 'Bfrtip', #button position
-                buttons = c('copy', 'csv', 'excel', 'colvis') #buttons
+        opt.0 <- MSsnaps.pp() %>%
+          as.data.frame() %>%
+          group_by(Species, colorscale) %>%
+          nest() %>%
+          mutate(
+            par = map(
+              data,
+              ~map.optimR(
+                input.data = .,
+                method = 'L-BFGS-B',
+                lmm = 10, #number of BFGS updates
+                seq = sequencer(),
+                massr = massr(),
+                init.par = c(10,0.2), #initial parameters
+                DC.final = min(input$DC.pp), #lower threshold for deuterium content
+                DC.init = max(input$DC.pp),  #higher threshold for deuterium content
+                peaks = input$nrPeaks.user.pp #number of isotopic peaks to calculate
               )
+            )
+          ) %>%
+          as.data.frame() %>%
+          unnest(par) %>%
+          unnest(par)
+
+        incProgress(amount=2/2)
+
+        return(opt.0)
+
+      })
+
+  })
+
+  ### Generation of optimized distributions----
+
+  #### All distributions----
+  opt <- reactive({
+
+    withProgress(
+      message = 'Generating optimized distributions',
+      detail = 'Please wait', value = 0, {
+
+        incProgress(amount=1/2)
+
+        opt <- opt.f(opt.0(), seq = sequencer(), mass = massr(), peaks = input$nrPeaks.user.pp)
+
+        incProgress(amount=2/2)
+
+        return(opt)
+
+      })
+  })
+
+  #### Filtered distributions----
+
+  alpha <- reactive({as.numeric(input$alpha)})
+
+  bi.t.limit <- reactive({as.numeric(input$b.t.limit)})
+
+  opt.filter <- reactive({
+
+    ##automatic data filtering based on RSS----
+    if(isTRUE(input$model.selection)){
+      opt.filter <- opt() %>%
+        filter(
+          distrib == 'mono' & p.F >= alpha() |
+            distrib == 'bi' & p.F < alpha()
+        )
+    } else{
+      ##manual data filtering based on user input (data frame)----
+      opt.filter <- opt() %>%
+        filter(
+          distrib == 'mono' & colorscale > bi.t.limit() |
+            distrib == 'bi' & colorscale <= bi.t.limit()
+        )
+    }
+
+    return(opt.filter)
+  })
+
+
+  ### Derived values----
+
+  #### All values----
+  binom.NUS <- reactive({
+    binom.NUS.f(
+      opt(),
+      sequencer(),
+      DC.init = max(input$DC.pp),
+      DC.final = min(input$DC.pp),
+      ref = as.numeric(input$user.hdx.ref)
+    )
+  })
+
+  ### Filtered values----
+
+  binom.filter <- reactive({
+
+    ##automatic data filtering based on RSS----
+    if(isTRUE(input$model.selection)){
+      binom.filter <- binom.NUS() %>%
+        filter(
+          distrib == 'mono' & p.F >= alpha() |
+            distrib == 'bi' & p.F < alpha()
+        )
+    } else {
+      ##manual data filtering based on user input (data frame)----
+      binom.filter <- binom.NUS() %>%
+        filter(
+          distrib == 'mono' & colorscale > bi.t.limit() |
+            distrib == 'bi' & colorscale <= bi.t.limit()
+        )
+    }
+
+    return(binom.filter)
+  })
+
+
+  ## Peak picking and modeling table outputs----
+  output$MSsnaps.pp.table <- DT::renderDT(server = FALSE, {
+    datatable(
+      data = MSsnaps.pp() %>%
+        select(c(filename, Species, colorscale, mean.time, CFtime, mz, intensum, peak)),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        "Time (min)" = "colorscale",
+        "m/z" = "mz",
+        "Filename" = "filename",
+        "Intensity" = "intensum",
+        "TIC time (min)" = "mean.time",
+        "Manual time (min)" = "CFtime",
+        "Peak picked" = "peak"
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = list(
+          list(extend='copy'),
+          list(extend='csv',
+               title=NULL,
+               filename="Peak-picked data"),
+          list(extend='excel',
+               title=NULL,
+               filename="Peak-picked data"),
+          list(extend='colvis')
+        ),
+        columnDefs = list(list(visible=FALSE, targets=c(0,3,4)))
+      )
+    ) %>%
+      formatStyle(
+        0:8,
+        target = 'row',
+        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+      )
+  })
+
+  output$opt.table <- DT::renderDT(server = FALSE, {
+    datatable(
+      data = opt() %>%
+        select(
+          Species, colorscale, distrib,
+          mz.th, iso, iso.1, iso.2
+        ),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        "Time (min)" = "colorscale",
+        "Modality" = "distrib",
+        "m/z" = "mz.th",
+        "Global isotopic abundance" = 'iso',
+        "Isotopic abundance 1" = 'iso.1',
+        "Isotopic abundance 2" = 'iso.2'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = list(
+          list(extend='copy'),
+          list(extend='csv',
+               title=NULL,
+               filename="Optimized distributions"),
+          list(extend='excel',
+               title=NULL,
+               filename="Optimized distributions"),
+          list(extend='colvis')
+        )
+      )
+    ) %>%
+      formatStyle(
+        0:7,
+        target = 'row',
+        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+      )
+  })
+
+  output$opt.stat <- DT::renderDT(server = FALSE, {
+    datatable(
+      data = opt() %>%
+        select(
+          Species, colorscale, distrib,
+          convergence,
+          DC1, DC2,
+          ab1, ab2,
+          n, df,
+          p, F.test, p.F, MSE, RSS
+        ) %>%
+        unique() %>%
+        #mutate error codes to messages
+        mutate(
+          convergence = case_when(
+            convergence == 0 ~ 'yes',
+            convergence == 1 ~ 'max iterations',
+            convergence == 10 ~ 'degeneracy',
+            convergence == 51 ~ 'warning',
+            convergence == 52 ~ 'error'
+          )
+        ),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        "Time (min)" = "colorscale",
+        "Modality" = "distrib",
+        "DC 1" = "DC1",
+        "DC 2" = "DC2",
+        "Abundance 1" = "ab1",
+        "Abundance 2" = "ab2",
+        "Number of points" = "n",
+        "Degrees of freedom" = "df",
+        "Convergence" = "convergence"
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = list(
+          list(extend='copy'),
+          list(extend='csv',
+               title=NULL,
+               filename="Optimization results"),
+          list(extend='excel',
+               title=NULL,
+               filename="Optimization results"),
+          list(extend='colvis')
+        ),
+        columnDefs = list(list(visible=FALSE, targets=c(4:7)))
+      )
+    ) %>%
+      formatStyle(
+        0:15,
+        target = 'row',
+        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+      )
+  })
+
+  output$binom.NUS.table <- DT::renderDT(server = TRUE, {
+    datatable(
+      data = binom.NUS() %>%
+        select(
+          Species, colorscale, distrib,
+          DC1, DC2, DC.mean,
+          centroid, centroid.1, centroid.2,
+          USE.1, USE.2, USE.mean, delta.USE,
+          ab1, ab2,
+          fraction.1, fraction.2
+        ),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        "Time (min)" = "colorscale",
+        "Modality" = "distrib",
+        "DC 1" = "DC1",
+        "DC 2" = "DC2",
+        "DC mean" = "DC.mean",
+        "NUS 1" = "USE.1",
+        "NUS 2" = "USE.2",
+        "NUS mean" = "USE.mean",
+        "Delta NUS" = "delta.USE",
+        "Global centroid" = "centroid",
+        "Centroid 1" = "centroid.1",
+        "Centroid 2" = "centroid.2",
+        "Abundance 1" = "ab1",
+        "Abundance 2" = "ab2",
+        "Fraction 1" = "fraction.1",
+        "Fraction 2" = "fraction.2"
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = list(
+          list(extend='copy'),
+          list(extend='csv',
+               title=NULL,
+               filename="Derived values"),
+          list(extend='excel',
+               title=NULL,
+               filename="Derived values"),
+          list(extend='colvis')
+        ),
+        columnDefs = list(list(visible=FALSE, targets=c(3:8, 13,14)))
+      )
+    ) %>%
+      formatStyle(
+        0:17,
+        target = 'row',
+        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+      )
+  })
+
+  output$opt.filter.table <- DT::renderDT(server = TRUE, {
+    datatable(
+      data = opt.filter() %>%
+        select(
+          Species, colorscale, distrib,
+          mz.th, iso, iso.1, iso.2
+        ),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        "Time (min)" = "colorscale",
+        "Modality" = "distrib",
+        "m/z" = "mz.th",
+        "Global isotopic abundance" = 'iso',
+        "Isotopic abundance 1" = 'iso.1',
+        "Isotopic abundance 2" = 'iso.2'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = list(
+          list(extend='copy'),
+          list(extend='csv',
+               title=NULL,
+               filename="Optimized distributions"),
+          list(extend='excel',
+               title=NULL,
+               filename="Optimized distributions"),
+          list(extend='colvis')
+        )
+      )
+    ) %>%
+      formatStyle(
+        0:7,
+        target = 'row',
+        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+      )
+  })
+
+  output$binom.filter.table <- DT::renderDT(server = TRUE, {
+    datatable(
+      data = binom.filter()%>%
+        select(
+          Species, colorscale, distrib,
+          DC1, DC2, DC.mean,
+          centroid, centroid.1, centroid.2,
+          USE.1, USE.2, USE.mean, delta.USE,
+          ab1, ab2,
+          fraction.1, fraction.2
+        ),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        "Time (min)" = "colorscale",
+        "Modality" = "distrib",
+        "DC 1" = "DC1",
+        "DC 2" = "DC2",
+        "DC mean" = "DC.mean",
+        "NUS 1" = "USE.1",
+        "NUS 2" = "USE.2",
+        "NUS mean" = "USE.mean",
+        "Delta NUS" = "delta.USE",
+        "Global centroid" = "centroid",
+        "Centroid 1" = "centroid.1",
+        "Centroid 2" = "centroid.2",
+        "Abundance 1" = "ab1",
+        "Abundance 2" = "ab2",
+        "Fraction 1" = "fraction.1",
+        "Fraction 2" = "fraction.2"
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = list(
+          list(extend='copy'),
+          list(extend='csv',
+               title=NULL,
+               filename="Derived values"),
+          list(extend='excel',
+               title=NULL,
+               filename="Derived values"),
+          list(extend='colvis')
+        ),
+        columnDefs = list(list(visible=FALSE, targets=c(3:8, 13,14)))
+      )
+    ) %>%
+      formatStyle(
+        0:17,
+        target = 'row',
+        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+      )
+  })
+
+  ## Modeling plot outputs-------
+
+  output$optiplot <- renderPlot({
+
+    Plot5bi() +
+      geom_point(data = opt.filter(),
+                 aes(x = mz.th, y = iso.1),
+                 size = 5, color = '#8b2e62', alpha = 0.75) +
+      geom_line(data = opt.filter(),
+                aes(x = mz.th, y = iso.1),
+                size = 1, color = '#8b2e62', alpha = 0.75) +
+      geom_point(data = opt.filter(),
+                 aes(x = mz.th, y = iso.2),
+                 size = 5, color = 'seagreen4', alpha = 0.75) +
+      geom_line(data = opt.filter(),
+                aes(x = mz.th, y = iso.2),
+                size = 1, color = 'seagreen4', alpha = 0.75)  +
+      geom_point(data = opt.filter(),
+                 aes(x = mz.th, y = iso),
+                 size = 5, color = 'tomato', alpha = 0.75) +
+      geom_line(data = opt.filter(),
+                aes(x = mz.th, y = iso),
+                size = 1, color = 'tomato', alpha = 0.75) +
+      geom_segment(data = opt.filter() %>% distinct(., colorscale, Species, distrib, centroid),
+                   aes(x = centroid, xend = centroid, y = 0, yend = 1),
+                   color = 'tomato',
+                   size = 1, alpha = 0.75,
+                   linetype = 'dashed')  +
+      geom_segment(data = opt.filter() %>% distinct(., colorscale, Species, distrib, centroid.1),
+                   aes(x = centroid.1, xend = centroid.1, y = 0, yend = 1),
+                   color = '#8b2e62',
+                   size = 1, alpha = 0.75,
+                   linetype = 'dashed') +
+      geom_segment(data = opt.filter() %>% distinct(., colorscale, Species, distrib, centroid.2),
+                   aes(x = centroid.2, xend = centroid.2, y = 0, yend = 1),
+                   color = 'seagreen4',
+                   size = 1, alpha = 0.75,
+                   linetype = 'dashed')
+
+  })
+
+
+  output$optiplot.ui <- renderUI({
+    plotOutput("optiplot",
+               width = as.numeric(input$plot5.w),
+               height = as.numeric(input$plot5.h)
     )
   })
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  #download spectra----------
+  ##download spectra----------
   output$dwnspec <- downloadHandler(
     filename = function() { paste("stacked spectra", '.png', sep='') },
     content = function(file) {
@@ -1508,7 +1978,7 @@ server <- function(input, output, session) {
     }
   )
 
-  #centroids and NUS--------
+  #CENTROIDS AND NUS--------
 
   #centroid calculation
   centroids <- reactive({
@@ -1528,10 +1998,10 @@ server <- function(input, output, session) {
 
     NUS.init0 <- data.frame(Species = unique(centroids()$Species),
                             Name = unique(centroids()$Species),
-                            Reference = rep(1500, length(unique(centroids()$Species))),
-                            Charge = rep(4, length(unique(centroids()$Species))),
-                            D.initial = rep(90, length(unique(centroids()$Species))),
-                            D.final = rep(9, length(unique(centroids()$Species)))
+                            Reference = rep(massr()$Avemz, length(unique(centroids()$Species))),
+                            Charge = rep(as.numeric(input$z), length(unique(centroids()$Species))),
+                            D.initial = rep(max(input$DC.pp), length(unique(centroids()$Species))),
+                            D.final = rep(min(input$DC.pp), length(unique(centroids()$Species)))
     )
   })
 
@@ -1618,23 +2088,32 @@ server <- function(input, output, session) {
   })
 
   output$centroids <- DT::renderDT(server = FALSE, {
-    datatable(data = centroidscaled(),  #data = NUS(),
+    datatable(data = centroidscaled() %>%
+                select(
+                  filename, min.time, max.time, min.scan, max.scan,
+                  Species, Name, timescale, mean.time, mean.time.s, CFtime, CFtime.s,
+                  centroid, Reference, Charge, NUS
+                  ),
+              style = "bootstrap",
               extensions = c('Buttons', 'Responsive', 'Scroller'),
               selection = 'multiple',
-              colnames = c('TIC Time (min)' = 'mean.time',
-                           'TIC Time (s)' = 'mean.time.s',
-                           'Centroid' = 'centroid',
-                           "Manual time (min)" = 'CFtime',
-                           'Manual time (s)' = 'CFtime.s',
-                           'File name' = 'filename',
-                           'Start TIC time' = 'min.time',
-                           'End TIC time' = 'max.time',
-                           'Start scan' = 'min.scan',
-                           'End scan' = 'max.scan',
-                           'Start m/z' = 'min.mz',
-                           'End m/z'= 'max.mz',
-                           'Species number' = 'Species',
-                           'Species name' = 'Name'),
+              colnames = c(
+                'TIC Time (min)' = 'mean.time',
+                'TIC Time (s)' = 'mean.time.s',
+                'Centroid' = 'centroid',
+                "Manual time (min)" = 'CFtime',
+                'Manual time (s)' = 'CFtime.s',
+                'Filename' = 'filename',
+                'Start TIC time' = 'min.time',
+                'End TIC time' = 'max.time',
+                'Start scan' = 'min.scan',
+                'End scan' = 'max.scan',
+                'Start m/z' = 'min.mz',
+                'End m/z'= 'max.mz',
+                'Species number' = 'Species',
+                'Species name' = 'Name',
+                "Time (min)" = "timescale"
+              ),
               editable = T,
               rownames = F,
               escape = T,
@@ -1648,10 +2127,15 @@ server <- function(input, output, session) {
                 autoWidth = F,
                 dom = 'Bfrtip', #button position
                 buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
-                columnDefs = list(list(visible=FALSE, targets=c(11, 12, 13, 14, 15, 16, 17)))
+                columnDefs = list(list(visible=FALSE, targets=c(0:4, 8:14)))
               )
     ) %>%
-      formatRound(c('TIC Time (min)', 'Centroid', 'NUS', "TIC Time (s)"), digits = 2)
+      formatRound(c('TIC Time (min)', 'Centroid', 'NUS', "TIC Time (s)"), digits = 2) %>%
+      formatStyle(
+        0:17,
+        target = 'row',
+        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+      )
   })
 
   #Select all lines
