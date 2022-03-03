@@ -44,15 +44,3 @@ peakpickR <- function(raw.data, neighlim = 5, deriv.lim = 10000, int.thresh = 0.
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
