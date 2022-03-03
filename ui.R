@@ -1,18 +1,36 @@
 #dependencies----
-library(shiny)
-library(shinydashboard)
-library(shinydashboardPlus)
-library(shinyWidgets)
-library(shinyBS) #useful?
-library(shinysky) #useful?   devtools::install_github("AnalytixWare/ShinySky")
+# if (require(devtools)) install.packages("devtools")#if not already installed
+# devtools::install_github("AnalytixWare/ShinySky")
 
-library(DT)
+packages <- c("librarian")
 
-library(colourpicker)
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
 
-# install.packages("remotes")
-# remotes::install_github("DavidBarke/QWUtils")
-library(QWUtils) #useful?
+
+library(shinysky)
+
+librarian::shelf(
+  shiny, shinydashboard, shinydashboardPlus, shinyBS, shinyWidgets,
+  DT, colourpicker, DavidBarke/QWUtils
+)
+
+# library(shiny)
+# library(shinydashboard)
+# library(shinydashboardPlus)
+# library(shinyWidgets)
+# library(shinyBS) #useful?
+# library(shinysky) #useful?   devtools::install_github("AnalytixWare/ShinySky")
+#
+# library(DT)
+#
+# library(colourpicker)
+#
+# # install.packages("remotes")
+# # remotes::install_github("DavidBarke/QWUtils")
+# library(QWUtils) #useful?
 
 
 ui <- dashboardPage(
@@ -70,7 +88,6 @@ ui <- dashboardPage(
           round = -3,
           ticks = TRUE,
           animate = FALSE,
-          width = 12,
           sep = " ",
           dragRange = TRUE
         )
@@ -310,60 +327,98 @@ ui <- dashboardPage(
       ),
       box(
         id = "peak.picking",
+        title = "Peak Picking",
         status = 'danger',
         solidHeader = F,
         collapsible = T,
         collapsed = F,
         width = 12,
-        sliderInput(inputId = 'neighlim',
-                    label = 'neighbour limit',
-                    min = 0,
-                    max = 100,
-                    step = 1,
-                    value = 5),
-        sliderInput(inputId = 'deriv.lim',
-                    label = 'derivative limit',
-                    min = 0,
-                    max = 100000,
-                    step = 1000,
-                    value = 10000),
-        sliderInput(inputId = 'int.thresh',
-                    label = 'intensity limit',
-                    min = 0,
-                    max = 0.25,
-                    step = 0.0001,
-                    value = 0.02),
         sliderInput(
-          inputId = "DC.pp",
-          label = 'D%',
-          value = 90,
-          min = 0, max = 100,
-          step = 0.5
+          inputId = 'neighlim',
+          label = 'neighbour limit',
+          min = 0,
+          max = 100,
+          step = 1,
+          value = 5,
+          ticks = FALSE
         ),
+        sliderInput(
+          inputId = 'deriv.lim',
+          label = 'derivative limit',
+          min = 0,
+          max = 100000,
+          step = 1000,
+          value = 10000,
+          ticks = FALSE
+        ),
+        sliderInput(
+          inputId = 'int.thresh',
+          label = 'intensity limit',
+          min = 0,
+          max = 0.1,
+          step = 0.001,
+          value = 0.01,
+          ticks = FALSE
+        )
+      ),
+      box(
+        id = "optim",
+        title = "Optimization",
+        status = "info",
+        solidHeader = FALSE,
+        collapsible = TRUE,
+        width = 12,
         sliderInput(
           inputId = "nrPeaks.user.pp",
           label = 'Number of peaks',
           value =72,
           min = 8, max = 128,
-          step = 4
+          step = 4,
+          ticks = FALSE
         ),
-        switchInput(inputId = 'switchbi',
-                    label = 'Distribution',
-                    value = T,
-                    onLabel = 'mono',
-                    offLabel = 'bi',
-                    onStatus = 'danger',
-                    offStatus = 'info',
-                    size = 'normal',
-                    width = 12),
-        actionBttn(inputId = "optibtn",
-                   label = "Model",
-                   icon = icon('check-circle', class = 'solid'),
-                   style = "simple",
-                   color = "primary",
-                   size = "sm",
-                   block = F,
-                   no_outline = TRUE)
+        sliderInput(
+          inputId = "DC.pp",
+          label = 'D%',
+          value = c(9,90),
+          min = 0, max = 100,
+          step = 0.5,
+          ticks = FALSE
+        ),
+        textInput(
+          inputId = "user.hdx.ref",
+          label = "Exchanged reference m/z (0 = auto)",
+          value = 0
+        ),
+        prettyToggle(
+          inputId = "model.selection",
+          label_on = "F-test-based model selection",
+          label_off = "Manual model selection",
+          value = TRUE,
+          shape = "round",
+          width = "100%",
+          bigger = TRUE,
+          animation = "pulse"
+        ),
+        textInput(
+          inputId = "alpha",
+          label = "alpha for automated model selection",
+          value = 0.8
+        ),
+        textInput(
+          inputId = "b.t.limit",
+          label = "manual bimodal time threshold",
+          value = -1
+        ),
+        actionBttn(
+          inputId = "optibtn",
+          label = "Optimization",
+          icon = icon('check-circle', class = 'solid'),
+          style = "simple",
+          color = "primary",
+          size = "sm",
+          block = F,
+          no_outline = TRUE
+        )
       )
     ),
     #sidebar KineticR-------------
@@ -525,7 +580,7 @@ ui <- dashboardPage(
           textInput(
             inputId = "sequence",
             label = "Sequence",
-            value = ""
+            value = "TTGTGGTGGGTGGGTGGGT"
           ),
           textInput(
             inputId = 'mol',
@@ -536,12 +591,12 @@ ui <- dashboardPage(
             textInput(
               inputId = "z",
               label = "Charge",
-              value = ""
+              value = "4"
             ),
             textInput(
               inputId = "K",
               label = "Potassium",
-              value = ""
+              value = "2"
             )
           ),
           br(),
@@ -552,12 +607,20 @@ ui <- dashboardPage(
             label = 'K41%',
             value = 6.730244
           ),
+          br(),
           sliderInput(
             inputId = "DC",
             label = 'D%',
-            value = 0,
+            value = 9,
             min = 0, max = 100,
             step = 0.5
+          ),
+          sliderInput(
+            inputId = "nrPeaks.user",
+            label = "Number of peaks",
+            value = 72,
+            min = 8, max = 128,
+            step = 8
           ),
           br(),
           textInput(
@@ -591,11 +654,12 @@ ui <- dashboardPage(
     # useShinyjs(),
     # extendShinyjs(text = jscode, functions = c("shinyjs.collapse")),
     tags$style(HTML('table.dataTable tr.selected td, table.dataTable td.selected {background-color: pink !important;}')),
-    tags$style(type="text/css", #hides error messages
-               # ".shiny-output-warning { visibility: hidden; }",
-               # ".shiny-output-warning:before { visibility: hidden; }",
-               ".shiny-output-error { visibility: hidden; }",
-               ".shiny-output-error:before { visibility: hidden; }"
+    tags$style(
+      type="text/css", #hides error messages
+      # ".shiny-output-warning { visibility: hidden; }",
+      # ".shiny-output-warning:before { visibility: hidden; }",
+      ".shiny-output-error { visibility: hidden; }",
+      ".shiny-output-error:before { visibility: hidden; }"
     ),
     navbarPage('Navigation',
                id = 'tabs',
@@ -621,19 +685,6 @@ ui <- dashboardPage(
                               title = 'Theoretical distribution',
                               width = 6,
                               collapsible = TRUE,
-                              sidebar = boxSidebar(
-                                id = "th.distrib",
-                                icon = shiny::icon("cogs"),
-                                startOpen = TRUE,
-                                width = 25,
-                                sliderInput(
-                                  inputId = "nrPeaks.user",
-                                  label = "Number of peaks",
-                                  value = 72,
-                                  min = 8, max = 128,
-                                  step = 8
-                                )
-                              ),
                               plotOutput('p.hdx.ref')
                           ),
                           box(id = 'Oligoutput7-2',
@@ -763,7 +814,7 @@ ui <- dashboardPage(
                             uiOutput("plot5.ui")
                           ),
                           box(
-                            title = "Peak picking plot",
+                            title = "Peak picking",
                             width = 6,
                             status = "danger",
                             collapsible = T,
@@ -772,51 +823,106 @@ ui <- dashboardPage(
                             uiOutput("plot5bi.ui")
                           ),
                           box(
-                            title = "diag",
-                            width = 12,
+                            title = "Optimized data",
+                            width = 6,
+                            status = "info",
+                            collapsible = TRUE,
+                            collapsed = FALSE,
+                            height = 1000,
+                            uiOutput("optiplot.ui")
+                          ),
+                          box(
+                            title = "Peak-picked data",
+                            width = 6,
                             status = "info",
                             collapsible = T,
-                            collapsed = F,
+                            collapsed = T,
                             height = 1000,
-                            DTOutput('MSsnaps1.table')
+                            DTOutput('MSsnaps.pp.table')
+                          ),
+                          box(
+                            title = "Optimized distributions",
+                            width = 6,
+                            status = "success",
+                            collapsible = T,
+                            collapsed = T,
+                            height = 1000,
+                            DTOutput('opt.table')
+                          ),
+                          box(
+                            title = "Optimization results",
+                            width = 6,
+                            status = "success",
+                            collapsible = T,
+                            collapsed = T,
+                            height = 1000,
+                            DTOutput('opt.stat')
+                          ),
+                          box(
+                            title = "Derived values",
+                            width = 6,
+                            status = "success",
+                            collapsible = T,
+                            collapsed = T,
+                            height = 1000,
+                            DTOutput('binom.NUS.table')
+                          ),
+                          box(
+                            title = "Filtered optimized distributions",
+                            width = 6,
+                            status = "danger",
+                            collapsible = T,
+                            collapsed = T,
+                            height = 1000,
+                            DTOutput('opt.filter.table')
+                          ),
+                          box(
+                            title = "Filtered derived values",
+                            width = 6,
+                            status = "danger",
+                            collapsible = T,
+                            collapsed = T,
+                            height = 1000,
+                            DTOutput('binom.filter.table')
                           )
                         ),
                         absolutePanel(
                           bottom = 200, right = 40, width = 200,
                           draggable = TRUE,
-                          wellPanel(h3("Customisation"),
-                                    colourInput("col.snap1", "Gradient start", "tomato"),
-                                    colourInput("col.snap2", "Gradient end", "steelblue4"),
-                                    selectInput("trans.user", 'color guide',
-                                                choices = list("identity", "log10"),
-                                                selected = 'identity'),
-                                    sliderInput('plot5.w', 'Plot width',
-                                                min=100, max=2000, value=500,
-                                                step=20, round=0),
-                                    sliderInput('plot5.h', 'Plot height',
-                                                min=100, max=3000, value= 700,
-                                                step=20, round=0),
-                                    switchInput(inputId = "com.scale",
-                                                label = 'm/z axis',
-                                                value = TRUE,
-                                                width = 12,
-                                                onLabel = 'fixed',
-                                                offLabel = 'free',
-                                                onStatus = 'danger',
-                                                offStatus = 'info',
-                                                size = 'normal'),
-                                    switchInput(inputId = "t.indic",
-                                                label = 'scale',
-                                                value = TRUE,
-                                                width = 12,
-                                                onLabel = 'color guide',
-                                                offLabel = 'text',
-                                                onStatus = 'danger',
-                                                offStatus = 'info',
-                                                size = 'normal')
-                                    # sliderInput('plot5.ncol', 'number of columns',
-                                    #             min=1, max=5, value=1,
-                                    #             step=1, round=0)
+                          wellPanel(
+                            h3("Customisation"),
+                            colourInput("col.snap1", "Gradient start", "tomato"),
+                            colourInput("col.snap2", "Gradient end", "steelblue4"),
+                            selectInput("trans.user", 'color guide',
+                                        choices = list("identity", "log10"),
+                                        selected = 'identity'),
+                            sliderInput('plot5.w', 'Plot width',
+                                        min=100, max=2000, value=500,
+                                        step=20, round=0),
+                            sliderInput('plot5.h', 'Plot height',
+                                        min=100, max=3000, value= 700,
+                                        step=20, round=0),
+                            switchInput(inputId = "com.scale",
+                                        label = 'm/z axis',
+                                        value = TRUE,
+                                        width = 12,
+                                        onLabel = 'fixed',
+                                        offLabel = 'free',
+                                        onStatus = 'danger',
+                                        offStatus = 'info',
+                                        size = 'normal'),
+                            switchInput(inputId = "t.indic",
+                                        label = 'scale',
+                                        value = TRUE,
+                                        width = 12,
+                                        onLabel = 'color guide',
+                                        offLabel = 'text',
+                                        onStatus = 'danger',
+                                        offStatus = 'info',
+                                        size = 'normal')
+                            # sliderInput('plot5.ncol', 'number of columns',
+                            #             min=1, max=5, value=1,
+                            #             step=1, round=0)
                           ),
                           style = "opacity: 0.9"
                         )
