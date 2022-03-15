@@ -1336,8 +1336,7 @@ server <- function(input, output, session) {
 
   output$plot5 <- renderPlot({
     Plot5()
-  }
-  )
+  })
 
   output$plot5.ui <- renderUI({
     plotOutput("plot5",
@@ -1828,10 +1827,10 @@ server <- function(input, output, session) {
           list(extend='copy'),
           list(extend='csv',
                title=NULL,
-               filename="Optimized distributions"),
+               filename="Filtered optimized distributions"),
           list(extend='excel',
                title=NULL,
-               filename="Optimized distributions"),
+               filename="Filtered optimized distributions"),
           list(extend='colvis')
         )
       )
@@ -1891,10 +1890,10 @@ server <- function(input, output, session) {
           list(extend='copy'),
           list(extend='csv',
                title=NULL,
-               filename="Derived values"),
+               filename="Filtered derived values"),
           list(extend='excel',
                title=NULL,
-               filename="Derived values"),
+               filename="Filtered derived values"),
           list(extend='colvis')
         ),
         columnDefs = list(list(visible=FALSE, targets=c(3:8, 13,14)))
@@ -1978,9 +1977,9 @@ server <- function(input, output, session) {
     }
   )
 
-  #CENTROIDS AND NUS--------
+  ##CENTROIDS AND NUS--------
 
-  #centroid calculation
+  ###centroid calculation----
   centroids <- reactive({
 
     req(MSsnaps)
@@ -1991,7 +1990,7 @@ server <- function(input, output, session) {
       summarise(centroid = weighted.mean(mz, intensum)) #calculation of centroids
   })
 
-  #hot table
+  ####hot table----
   NUS.init0 <- reactive({
 
     req(centroids())
@@ -2016,7 +2015,7 @@ server <- function(input, output, session) {
     NUS.init0()
   }, readOnly = F)
 
-  #NUS calculation
+  ###NUS calculation----
   NUS <- reactive({
     centroids() %>%
       left_join(NUS.change(), by = "Species") %>%
@@ -2029,7 +2028,7 @@ server <- function(input, output, session) {
                     Reference, Charge, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz)
   })
 
-  #time scaling
+  ####time scaling----
   centroidscaled.init <- reactive({
     if (isTRUE(input$manu2)) {
       NUS() %>%
@@ -2040,7 +2039,7 @@ server <- function(input, output, session) {
     }
   })
 
-  #upload already processed data
+  ####upload already processed data----
   file.old <- reactive({
     if(is.null(input$file.old))
       return(NULL)
@@ -2093,7 +2092,7 @@ server <- function(input, output, session) {
                   filename, min.time, max.time, min.scan, max.scan,
                   Species, Name, timescale, mean.time, mean.time.s, CFtime, CFtime.s,
                   centroid, Reference, Charge, NUS
-                  ),
+                ),
               style = "bootstrap",
               extensions = c('Buttons', 'Responsive', 'Scroller'),
               selection = 'multiple',
@@ -2114,7 +2113,7 @@ server <- function(input, output, session) {
                 'Species name' = 'Name',
                 "Time (min)" = "timescale"
               ),
-              editable = T,
+              editable = F,
               rownames = F,
               escape = T,
               filter = 'top',
@@ -2165,31 +2164,10 @@ server <- function(input, output, session) {
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
       xlab("time (min)") +
       ylab("centroid (m/z)") +
-      theme(strip.text.y = element_blank(),
-            strip.background = element_blank(),
-            panel.border = element_blank(),
-            panel.grid.major = element_line(colour = "black"),
-            panel.grid.minor = element_line(colour = "grey"),
-            panel.background = element_blank(),
-            axis.line.x = element_line(colour = "black", size = 0.75),
-            axis.line.y = element_line(colour = "black", size = 0.75),
-            axis.ticks.length=unit(0.1, "in"),
-            axis.ticks.x = element_line(size = 0.75),
-            axis.ticks.y = element_line(size = 0.75),
-            axis.text.y = element_text(colour="black", size = 16, color = "black", angle = 0),
-            axis.text.x = element_text(colour="black", size = 16, color = "black", angle = 0),
-            axis.title.x = element_text(size=18,face="bold"),
-            axis.title.y = element_text(size=18,face="bold"),
-            # plot.margin = margin(25, 0.5, 0.5, 0.5),
-            legend.position="right",
-            legend.box = "vertical",
-            legend.title = element_blank(),
-            legend.key = element_rect(fill = "white"),
-            legend.text = element_text(size=16, face="bold")) +
-      coord_cartesian(expand = T)
+      custom.theme
   })
 
-  #HDX fit initialization----
+  ##HDX fit initialization----
   hdx.fit.init <- reactive({
     as.data.frame(hot.to.df(input$hotable3))
   })
@@ -2251,7 +2229,7 @@ server <- function(input, output, session) {
   },
   readOnly = F)
 
-  #HDX fit plot----
+  ##HDX fit plot----
   plot7 <- reactive({
 
     req(centroidscaled()) #computes only once centroidscaled() is populated
@@ -2309,27 +2287,7 @@ server <- function(input, output, session) {
       xlab("time (min)") +
       ylab("NUS") +
       scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
-      theme(strip.text.y = element_blank(),
-            strip.background = element_blank(),
-            panel.border = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.background = element_blank(),
-            axis.line.x = element_line(colour = "black", size = 0.75),
-            axis.line.y = element_line(colour = "black", size = 0.75),
-            axis.ticks.length=unit(0.1, "in"),
-            axis.ticks.x = element_line(size = 0.75),
-            axis.ticks.y = element_line(size = 0.75),
-            axis.text.y = element_text(colour="black", size = 16, color = "black", angle = 0),
-            axis.text.x = element_text(colour="black", size = 16, color = "black", angle = 0),
-            axis.title.x = element_text(size=18,face="bold"),
-            axis.title.y = element_text(size=18,face="bold"),
-            # plot.margin = margin(25, 0.5, 0.5, 0.5),
-            legend.position="right",
-            legend.box = "vertical",
-            legend.title = element_blank(),
-            legend.key = element_rect(fill = "white"),
-            legend.text = element_text(size=16, face="bold")) +
+      custom.theme +
       coord_cartesian(expand = T)
 
     if (isTRUE(input$fit.hdx)) { #displays fit lines and labeling is requested by user
@@ -2363,10 +2321,62 @@ server <- function(input, output, session) {
 
   })
 
+  ###HDX optim kinetics----
+
+  output$optim.nus.plot <- renderPlot({
+    binom.filter() %>%
+      ungroup() %>%
+      select(colorscale, USE.1, USE.2, USE.mean) %>%
+      pivot_longer(
+        cols = 2:ncol(.),
+        values_to = "NUS",
+        names_to = "Population"
+      ) %>%
+      mutate(
+        Population = case_when(
+          Population == "USE.mean" ~ "overall",
+          Population == "USE.1" ~ "high exchange",
+          Population == "USE.2" ~ "low exchange"
+        )
+      ) %>%
+      ggplot(
+        aes(x = colorscale, y = NUS, color = Population)
+      ) +
+      geom_point(size = 4) +
+      custom.theme +
+      labs(x = "time (min)")
+  })
+
+  output$optim.ab.plot <- renderPlot({
+    binom.filter() %>%
+      ungroup() %>%
+      select(colorscale, fraction.1, fraction.2) %>%
+      pivot_longer(
+        cols = 2:ncol(.),
+        values_to = "fraction",
+        names_to = "Population"
+      ) %>%
+      mutate(
+        Population = case_when(
+          Population == "fraction.1" ~ "high exchange",
+          Population == "fraction.2" ~ "low exchange"
+        )
+      ) %>%
+      ggplot(
+        aes(x = colorscale, y = fraction, color = Population)
+      ) +
+      geom_point(size = 4) +
+      custom.theme +
+      labs(x = "time (min)")
+  })
+
+
+
   #Download kinetics plots-----------
   Plot6 <- reactive({
     ggplot(data = centroids(), aes(x = centroids()$mean.time, y = centroids()$centroid)) +
-      geom_point(color = "steelblue", size = 3)
+      geom_point(color = "steelblue", size = 3) +
+      custom.theme
   })
 
   output$dwnplot <- downloadHandler(
@@ -2549,8 +2559,8 @@ server <- function(input, output, session) {
 
 
   # #output options-----------
-  # outputOptions(output, "plot5", suspendWhenHidden = FALSE)
-  # outputOptions(output, "plot5bi", suspendWhenHidden = FALSE)
+  outputOptions(output, "plot5", suspendWhenHidden = FALSE)
+  outputOptions(output, "plot5bi", suspendWhenHidden = FALSE)
   # outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
   # outputOptions(output, "eq.raw", suspendWhenHidden = FALSE)
 

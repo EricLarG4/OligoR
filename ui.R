@@ -945,7 +945,11 @@ ui <- dashboardPage(
                                      title = 'Kinetics data',
                                      icon = icon('table'),
                                      DTOutput("centroids"),
-                                     checkboxInput("centroids_sel", "select all")
+                                     checkboxInput(
+                                       inputId = "centroids_sel",
+                                       label = "select all",
+                                       value = FALSE
+                                     )
                                    ),
                                    tabPanel(
                                      title = 'Fit initialization',
@@ -955,20 +959,32 @@ ui <- dashboardPage(
                                  )
                           ),
                           box(
-                            title = "Exchange plot (raw)",
-                            width = 6,
-                            status = "info",
-                            solidHeader = T,
-                            collapsible = T,
-                            # tableOutput("MSsnaps") #diagnostics for snapshots
-                            plotOutput("plot6")),
-                          box(
-                            title = "Exchange plot (NUS)",
+                            title = "Raw exchange data",
                             width = 6,
                             status = "primary",
-                            solidHeader = T,
+                            collapsible = T,
+                            plotOutput("plot6")
+                          ),
+                          box(
+                            title = "Exchange plot: from raw data",
+                            width = 6,
+                            status = "primary",
                             collapsible = T,
                             plotOutput("plot7")
+                          ),
+                          box(
+                            title = "Exchange plot: from optimization",
+                            width = 6,
+                            status = "danger",
+                            collapsible = TRUE,
+                            plotOutput("optim.nus.plot")
+                          ),
+                          box(
+                            title = "Population abundances: from optimization",
+                            width = 6,
+                            status = "danger",
+                            collapsible = TRUE,
+                            plotOutput("optim.ab.plot")
                           )
                         ),
                         absolutePanel(
