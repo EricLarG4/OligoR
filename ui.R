@@ -211,19 +211,6 @@ ui <- dashboardPage(
     conditionalPanel(
       condition = "input.tabs == 'HDXplotR'",
       box(
-        width = 12,
-        title = "Import processed data",
-        status = 'primary',
-        solidHeader = F,
-        collapsible = T,
-        enable_dropdown = T,
-        dropdown_icon = 'upload',
-        fileInput(
-          'file.old',
-          'Select Excel file'
-        )
-      ),
-      box(
         title = 'Time scale',
         id = 'timescale2',
         collapsible = T,
@@ -287,6 +274,19 @@ ui <- dashboardPage(
     #sidebar MSstackR-------------
     conditionalPanel(
       condition = "input.tabs == 'MSstackR'",
+      box(
+        width = 12,
+        title = "Import peak-picked data",
+        status = 'primary',
+        solidHeader = F,
+        collapsible = T,
+        enable_dropdown = T,
+        dropdown_icon = 'upload',
+        fileInput(
+          'exported.snaps',
+          'Select Excel file'
+        )
+      ),
       box(
         title = 'Time scale',
         id = 'timescale1',

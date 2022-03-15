@@ -123,7 +123,12 @@ server <- function(input, output, session) {
         buttons = c('copy', 'csv', 'excel') #buttons
       )
     ) %>%
-      formatRound(c('Values'), digits = 5, interval = 3, mark = '')
+      formatRound(c('Values'), digits = 5, interval = 3, mark = '') %>%
+      formatStyle(
+        columns = 0:6,
+        target = 'row',
+        background = '#272c30'
+      )
 
   })
 
@@ -161,7 +166,13 @@ server <- function(input, output, session) {
       )
     ) %>%
       formatRound(c('m/z'), digits = 5) %>%
-      formatRound(c('Abundance'), digits = 3)
+      formatRound(c('Abundance'), digits = 3) %>%
+      formatStyle(
+        columns = 0:6,
+        target = 'row',
+        background = '#272c30'
+      )
+
 
   })
 
@@ -1288,7 +1299,7 @@ server <- function(input, output, session) {
 
 
 
-  #MS STACKING AND DECONVOLUTION----
+  #MS STACKING AND HDX DECONVOLUTION----
 
   ##snaps plotting---------
 
@@ -1383,7 +1394,7 @@ server <- function(input, output, session) {
 
   ##Peak picking----
 
-  MSsnaps.pp <- reactive({
+  MSsnaps.pp.0 <- reactive({
 
     ppf(raw = as.data.frame(MSsnaps1()),
         neigh = input$neighlim,
@@ -1393,7 +1404,61 @@ server <- function(input, output, session) {
 
   })
 
+  ### Import already peak-picked data----
 
+  ####upload already processed data----
+  exported.snaps <- reactive({
+    if(is.null(input$exported.snaps))
+      return(NULL)
+
+    input$exported.snaps
+  })
+
+  exported.snaps.import <- reactive({
+
+    if(is.null(input$exported.snaps)) {
+      return(NULL)
+    } else {
+      readxl::read_excel(
+        exported.snaps()$datapath
+      ) %>%
+        rename(
+          "colorscale" = "Time (min)",
+          "mz" = "m/z",
+          "filename" = "Filename",
+          "intensum" = "Intensity",
+          "mean.time" = "TIC time (min)",
+          "CFtime" = "Manual time (min)",
+          "peak" = "Peak picked",
+          "min.time" = "start time",
+          "max.time" = "end time",
+          "min.scan" = "start scan",
+          "max.scan" = "end scan",
+          'min.mz' = "start m/z",
+          "max.mz" = "end m/z"
+        ) %>%
+        as.data.frame()
+    }
+  })
+
+  MSsnaps.pp <- reactive({
+    if(is.null(exported.snaps)) {
+      return(MSsnaps.pp.0())
+    } else {
+      if(is.null(input$file1)) {
+        return(exported.snaps.import())
+      } else{
+        exported.snaps.import() %>%
+          rbind(MSsnaps.pp.0() %>%
+                  select(filename, Species, colorscale, mean.time, CFtime, mz, intensum, peak,
+                         min.time, max.time, min.scan, max.scan, min.mz, max.mz)
+          )
+      }
+    }
+  })
+
+
+  ### Plot peak-picked data----
   Plot5bi <- reactive({
     ggplot(
       data = MSsnaps.pp(),
@@ -1567,7 +1632,8 @@ server <- function(input, output, session) {
   output$MSsnaps.pp.table <- DT::renderDT(server = FALSE, {
     datatable(
       data = MSsnaps.pp() %>%
-        select(c(filename, Species, colorscale, mean.time, CFtime, mz, intensum, peak)),
+        select(c(filename, Species, colorscale, mean.time, CFtime, mz, intensum, peak,
+                 min.time, max.time, min.scan, max.scan, min.mz, max.mz)),
       style = "bootstrap",
       extensions = c('Buttons', 'Responsive', 'Scroller'),
       selection = 'multiple',
@@ -1578,7 +1644,13 @@ server <- function(input, output, session) {
         "Intensity" = "intensum",
         "TIC time (min)" = "mean.time",
         "Manual time (min)" = "CFtime",
-        "Peak picked" = "peak"
+        "Peak picked" = "peak",
+        "start time" = "min.time",
+        "end time" = "max.time",
+        "start scan" = "min.scan",
+        "end scan" = "max.scan",
+        "start m/z" = 'min.mz',
+        "end m/z" = "max.mz"
       ),
       editable = T,
       rownames = F,
@@ -1602,11 +1674,11 @@ server <- function(input, output, session) {
                filename="Peak-picked data"),
           list(extend='colvis')
         ),
-        columnDefs = list(list(visible=FALSE, targets=c(0,3,4)))
+        columnDefs = list(list(visible=FALSE, targets=c(0,3,4,7:12)))
       )
     ) %>%
       formatStyle(
-        0:8,
+        0:12,
         target = 'row',
         backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
       )
@@ -1982,9 +2054,9 @@ server <- function(input, output, session) {
   ###centroid calculation----
   centroids <- reactive({
 
-    req(MSsnaps)
+    req(MSsnaps.pp())
 
-    MSsnaps() %>%
+    MSsnaps.pp() %>%
       # group_by(mean.time, Species) %>%
       group_by(mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
       summarise(centroid = weighted.mean(mz, intensum)) #calculation of centroids
@@ -2039,49 +2111,12 @@ server <- function(input, output, session) {
     }
   })
 
-  ####upload already processed data----
-  file.old <- reactive({
-    if(is.null(input$file.old))
-      return(NULL)
-
-    input$file.old
-  })
-
-  processed.data <- reactive({
-
-    if(is.null(input$file.old)) {
-      return(NULL)
-    } else {
-      processed.data <- data.frame(read_excel(file.old()$datapath,
-                                              skip = 1))
-
-      colnames(processed.data) <- c('Species', 'Name', 'mean.time', 'mean.time.s', 'CFtime', 'CFtime.s', 'centroid', 'NUS',
-                                    'Reference', 'Charge', 'filename', 'min.time', 'max.time', 'min.scan',
-                                    'max.scan', 'min.mz', 'max.mz',	"timescale")
-
-      return(processed.data)
-    }
-  })
-
-  centroidscaled.import <- reactive({
-    if (is.null(file.old)) {
-      return(centroidscaled.init())
-    } else {
-      if (is.null(input$file1)) {
-        return(processed.data())
-      } else{
-        processed.data() %>%
-          rbind(centroidscaled.init())
-      }
-    }
-  })
-
   centroidscaled <- reactive({
     if (isTRUE(input$manu2)) {
-      centroidscaled.import() %>%
+      centroidscaled.init() %>%
         mutate(timescale = CFtime)
     } else {
-      centroidscaled.import() %>%
+      centroidscaled.init() %>%
         mutate(timescale = mean.time)
     }
   })
@@ -2131,9 +2166,9 @@ server <- function(input, output, session) {
     ) %>%
       formatRound(c('TIC Time (min)', 'Centroid', 'NUS', "TIC Time (s)"), digits = 2) %>%
       formatStyle(
-        0:17,
+        columns = 0:17,
         target = 'row',
-        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+        background = '#272c30'
       )
   })
 
@@ -2326,9 +2361,9 @@ server <- function(input, output, session) {
   output$optim.nus.plot <- renderPlot({
     binom.filter() %>%
       ungroup() %>%
-      select(colorscale, USE.1, USE.2, USE.mean) %>%
+      select(Species, colorscale, USE.1, USE.2, USE.mean) %>%
       pivot_longer(
-        cols = 2:ncol(.),
+        cols = 3:ncol(.),
         values_to = "NUS",
         names_to = "Population"
       ) %>%
@@ -2340,7 +2375,7 @@ server <- function(input, output, session) {
         )
       ) %>%
       ggplot(
-        aes(x = colorscale, y = NUS, color = Population)
+        aes(x = colorscale, y = NUS, color = Population, shape = Species)
       ) +
       geom_point(size = 4) +
       custom.theme +
@@ -2350,9 +2385,9 @@ server <- function(input, output, session) {
   output$optim.ab.plot <- renderPlot({
     binom.filter() %>%
       ungroup() %>%
-      select(colorscale, fraction.1, fraction.2) %>%
+      select(Species, colorscale, fraction.1, fraction.2) %>%
       pivot_longer(
-        cols = 2:ncol(.),
+        cols = 3:ncol(.),
         values_to = "fraction",
         names_to = "Population"
       ) %>%
@@ -2363,7 +2398,7 @@ server <- function(input, output, session) {
         )
       ) %>%
       ggplot(
-        aes(x = colorscale, y = fraction, color = Population)
+        aes(x = colorscale, y = fraction, color = Population, shape = Species)
       ) +
       geom_point(size = 4) +
       custom.theme +
