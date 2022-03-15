@@ -25,7 +25,8 @@ opt.f <- function(opt.0, seq, massr, peaks=72){
           massr = massr,
           peaks = peaks)
       )
-    ) %>%unnest(theo) %>%
+    ) %>%
+    unnest(theo) %>%
     unnest(data) %>%
     #sort population (DC1: low mass, DC2: high mass)
     mutate(
