@@ -1546,21 +1546,66 @@ server <- function(input, output, session) {
   ### Generation of optimized distributions----
 
   #### All distributions----
-  opt <- reactive({
+  opt.distrib <- reactive({
 
     withProgress(
       message = 'Generating optimized distributions',
       detail = 'Please wait', value = 0, {
 
-        incProgress(amount=1/2)
+        incProgress(amount=1/3)
 
         opt <- opt.f(opt.0(), seq = sequencer(), mass = massr(), peaks = input$nrPeaks.user.pp)
 
-        incProgress(amount=2/2)
+        incProgress(amount=2/3)
+
+        opt <- opt %>%
+          select(Species, colorscale, distrib, mz.th, iso, iso.1, iso.2, everything())
 
         return(opt)
 
       })
+  })
+
+  ##### Import already optimized data----
+
+  exported.opt <- reactive({
+    if(is.null(input$exported.opt))
+      return(NULL)
+
+    input$exported.opt
+  })
+
+  exported.opt.import <- reactive({
+
+    if(is.null(input$exported.opt)) {
+      return(NULL)
+    } else {
+      readxl::read_excel(
+        exported.opt()$datapath
+      ) %>%
+        rename(
+          "colorscale" = "Time (min)",
+          "mz.th" = "m/z",
+          "distrib" = "Modality",
+          'iso' = "Global isotopic abundance",
+          'iso.1' = "Isotopic abundance 1",
+          'iso.2' = "Isotopic abundance 2"
+        ) %>%
+        as.data.frame()
+    }
+  })
+
+  opt <- reactive({
+    if(is.null(exported.opt)) {
+      return(opt.distrib())
+    } else {
+      if(is.null(input$file1)) {
+        return(exported.opt.import())
+      } else{
+        exported.opt.import() %>%
+          rbind(opt.distrib())
+      }
+    }
   })
 
   #### Filtered distributions----
@@ -1686,11 +1731,7 @@ server <- function(input, output, session) {
 
   output$opt.table <- DT::renderDT(server = FALSE, {
     datatable(
-      data = opt() %>%
-        select(
-          Species, colorscale, distrib,
-          mz.th, iso, iso.1, iso.2
-        ),
+      data = opt(),
       style = "bootstrap",
       extensions = c('Buttons', 'Responsive', 'Scroller'),
       selection = 'multiple',
@@ -1723,7 +1764,8 @@ server <- function(input, output, session) {
                title=NULL,
                filename="Optimized distributions"),
           list(extend='colvis')
-        )
+        ),
+        columnDefs = list(list(visible=FALSE, targets=c(7:(ncol(opt())-1))))
       )
     ) %>%
       formatStyle(

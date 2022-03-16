@@ -276,7 +276,7 @@ ui <- dashboardPage(
       condition = "input.tabs == 'MSstackR'",
       box(
         width = 12,
-        title = "Import peak-picked data",
+        title = "Import pre-processed data",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
@@ -284,7 +284,11 @@ ui <- dashboardPage(
         dropdown_icon = 'upload',
         fileInput(
           'exported.snaps',
-          'Select Excel file'
+          'Select peak-picked data file'
+        ),
+        fileInput(
+          'exported.opt',
+          'Select optimized data file'
         )
       ),
       box(
@@ -580,7 +584,7 @@ ui <- dashboardPage(
           textInput(
             inputId = "sequence",
             label = "Sequence",
-            value = "TTGTGGTGGGTGGGTGGGT"
+            value = "TAGGGTTAGGGTTAGGGTTAGGG"
           ),
           textInput(
             inputId = 'mol',
