@@ -56,7 +56,7 @@ ui <- dashboardPage(
         enable_dropdown = T,
         dropdown_icon = 'upload',
         fileInput(
-          'file1',
+          'mzml.file',
           'Select mzML or mzXML file'
         )
       ),

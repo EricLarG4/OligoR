@@ -58,7 +58,7 @@ optimizer <- function(par, z, nX.select, K,
                 mutate(rmz = RoundTo(mz.th, multiple = 1/seq$z, FUN = round)),
               by = 'rmz') %>%
     #grouping by timepoint
-    # group_by(colorscale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz, rmz) %>%
+    # group_by(time.scale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz, rmz) %>%
     mutate(diff.2 = (Iso.Pattern - intensum)^2) %>% #square of residuals of each point
     ungroup() %>%
     summarise(RSS = sum(diff.2)) %>%  #sum of squares of residuals

@@ -1,7 +1,7 @@
 ppf <- function(raw, neigh = 5, deriv = 10000, thresh = 0){
   raw %>%
-    mutate(colorscale = round(colorscale, 2)) %>%
-    group_by(Species, colorscale) %>%
+    mutate(time.scale = round(time.scale, 2)) %>%
+    group_by(Species, time.scale) %>%
     nest() %>%
     mutate(
       peak = map(

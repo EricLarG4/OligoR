@@ -4,12 +4,12 @@ binom.NUS.f <- function(opt, seq, DC.init = 90, DC.final = 9, ref = 0){
 
   opt %>%
     select(
-      colorscale, Species, distrib,
+      time.scale, Species, distrib,
       DC1, DC2, ab1, ab2, centroid, centroid.1, centroid.2,
       p.F
     ) %>%
     unique() %>%
-    group_by(colorscale, Species, distrib) %>%
+    group_by(time.scale, Species, distrib) %>%
     mutate(
       fraction.1 = ab1/(ab1+ab2),
       fraction.2 = ab2/(ab1+ab2),

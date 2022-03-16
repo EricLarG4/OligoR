@@ -3,7 +3,7 @@ opt.f <- function(opt.0, seq, massr, peaks=72){
   opt.0 %>%
     select(-data) %>%
     mutate(distrib.group = distrib) %>%
-    group_by(Species, colorscale) %>%
+    group_by(Species, time.scale) %>%
     mutate(
       #F statistic
       #how much of the variance cannot be explained by monomodal compared to bimodal
@@ -14,7 +14,7 @@ opt.f <- function(opt.0, seq, massr, peaks=72){
       #alternate hypothesis: the bimodal model does a better job than the monomodal model
       p.F = pf(F.test, df[distrib == 'mono'], df[distrib == 'bi'], lower.tail = FALSE)
     ) %>%
-    group_by(colorscale, Species, distrib.group) %>%
+    group_by(time.scale, Species, distrib.group) %>%
     nest() %>%
     mutate(
       theo = map(
