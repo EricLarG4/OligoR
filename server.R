@@ -48,17 +48,18 @@ custom.theme <- theme(
   axis.line = element_line(size = 0.5)
 )
 
-thematic_rmd(
+sequential.colors <-
+
+thematic_shiny(
   bg = '#272c30', fg = '#EEE8D5', accent = 'auto',
   sequential = hcl.colors(n = 42, palette = 'viridis')
 )
 
 
-
 #server---------
 server <- function(input, output, session) {
 
-  #OligoRef----------
+  #1. OligoRef----------
 
   sequencer <- reactive({
     sequenceR(
@@ -269,7 +270,7 @@ server <- function(input, output, session) {
     }
   )
 
-  #MSxploR----
+  #2. MSxploR----
 
   mzlimits <- c(400,4000) #hard limit on data range
 
@@ -619,8 +620,12 @@ server <- function(input, output, session) {
     }
   })
 
+  snaps.counter <- 0
 
   MSsnaps <- eventReactive(input$bttn1, {
+
+    snaps.counter <<- snaps.counter + 1
+
     newrow <- data.frame(inputsnap())
     snaps <<- rbind(snaps, newrow)
 
@@ -629,7 +634,7 @@ server <- function(input, output, session) {
 
   })
 
-  #MS STACKING AND HDX DECONVOLUTION----
+  #3. MSstackR----
 
   ##snaps plotting---------
 
@@ -658,57 +663,59 @@ server <- function(input, output, session) {
   })
 
   #variables to define if time indicated by a label or a color guide
-  time.label <- reactive({
-    if (isTRUE(input$t.indic)) {
-      return(element_blank())
-    } else {
-      return(element_text(size = 16, color = "black", face = "bold", angle = 0))
-    }
+  # time.label <- reactive({
+  #   if (isTRUE(input$t.indic)) {
+  #     return(element_blank())
+  #   } else {
+  #     return(element_text(size = 16, color = "black", face = "bold", angle = 0))
+  #   }
+  # })
+  #
+  # color.guide <- reactive({
+  #   if (isTRUE(input$t.indic)) {
+  #     return('right')
+  #   } else {
+  #     return('none')
+  #   }
+  # })
+
+
+  output$plot.snaps <- renderPlot({
+    plot.snaps()
   })
 
-  color.guide <- reactive({
-    if (isTRUE(input$t.indic)) {
-      return('right')
-    } else {
-      return('none')
-    }
-  })
-
-
-  output$plot5 <- renderPlot({
-    Plot5()
-  })
-
-  output$plot5.ui <- renderUI({
-    plotOutput("plot5",
-               width = as.numeric(input$plot5.w),
-               height = as.numeric(input$plot5.h)
+  output$plot.snaps.ui <- renderUI({
+    plotOutput("plot.snaps",
+               width = as.numeric(input$plot.snaps.w),
+               height = as.numeric(input$plot.snaps.h)
     )
   })
 
-  output$plot5bi <- renderPlot({
-    Plot5bi()
+  output$plot.pp <- renderPlot({
+    plot.pp()
   }
   )
 
-  output$plot5bi.ui <- renderUI({
-    plotOutput("plot5bi",
-               width = as.numeric(input$plot5.w),
-               height = as.numeric(input$plot5.h)
+  output$plot.pp.ui <- renderUI({
+    plotOutput("plot.pp",
+               width = as.numeric(input$plot.snaps.w),
+               height = as.numeric(input$plot.snaps.h)
     )
   })
 
   ###plot stacked spectra----
-  Plot5 <- reactive({
+  plot.snaps <- reactive({
     ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
                                   color = time.scale)) +
       geom_line(size = 1) +
-      scale_color_gradient(name = 't (min)', low=input$col.snap1, high=input$col.snap2,
-                           guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
-                           # breaks = breaks,
-                           trans = input$trans.user) +
+      scale_color_gradient(
+        name = 't (min)', low=input$col.snap1, high=input$col.snap2,
+        guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
+        # breaks = breaks,
+        trans = input$trans.user
+      ) +
       xlab("m/z") +
-      facet_grid(time.scale ~ Species,
+      facet_grid(signif(time.scale, 3) ~ Species,
                  scales = common.scale()
       ) +
       custom.theme  +
@@ -717,7 +724,7 @@ server <- function(input, output, session) {
             axis.text.y = element_blank(),
             axis.line.y = element_blank(),
             axis.ticks.y = element_blank(),
-            legend.position = "right") +
+            legend.position = "none") +
       coord_cartesian(expand = FALSE)
   })
 
@@ -787,9 +794,64 @@ server <- function(input, output, session) {
     }
   })
 
+  ### Table output----
+  output$MSsnaps.pp.table <- DT::renderDT(server = FALSE, {
+    datatable(
+      data = MSsnaps.pp() %>%
+        select(c(filename, Species, time.scale, mean.time, CFtime, mz, intensum, peak,
+                 min.time, max.time, min.scan, max.scan, min.mz, max.mz)),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        "Time (min)" = "time.scale",
+        "m/z" = "mz",
+        "Filename" = "filename",
+        "Intensity" = "intensum",
+        "TIC time (min)" = "mean.time",
+        "Manual time (min)" = "CFtime",
+        "Peak picked" = "peak",
+        "start time" = "min.time",
+        "end time" = "max.time",
+        "start scan" = "min.scan",
+        "end scan" = "max.scan",
+        "start m/z" = 'min.mz',
+        "end m/z" = "max.mz"
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = list(
+          list(extend='copy'),
+          list(extend='csv',
+               title=NULL,
+               filename="Peak-picked data"),
+          list(extend='excel',
+               title=NULL,
+               filename="Peak-picked data"),
+          list(extend='colvis')
+        ),
+        columnDefs = list(list(visible=FALSE, targets=c(0,3,4,7:12)))
+      )
+    ) %>%
+      formatStyle(
+        0:12,
+        target = 'row',
+        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
+      )
+  })
 
-  ### Plot peak-picked data----
-  Plot5bi <- reactive({
+  ### Plot output----
+  plot.pp <- reactive({
     ggplot(
       data = MSsnaps.pp(),
       aes(
@@ -805,27 +867,29 @@ server <- function(input, output, session) {
         data = MSsnaps.pp() %>%
           filter(peak > 0),
         aes(y = intensum),
-        color = 'green',
+        color = '#CC79A7',
         size = 5,
         alpha = 0.5
       ) +
       xlab("m/z") +
-      facet_grid(time.scale ~ Species,
+      facet_grid(signif(time.scale, 3) ~ Species,
                  scales = common.scale()
       ) +
       scale_color_gradient(
         name = 't (min)',
         low=input$col.snap1, high=input$col.snap2,
-        guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
+        # guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
         trans = input$trans.user
       ) +
       custom.theme +
-      theme(strip.text = element_blank(),
+      theme(
+        # strip.text = element_blank(),
             axis.title.y = element_blank(),
             axis.text.y = element_blank(),
             axis.line.y = element_blank(),
             axis.ticks.y = element_blank(),
-            legend.position = "right") +
+            legend.position = "none"
+        ) +
       coord_cartesian(expand = TRUE)
   })
 
@@ -948,7 +1012,7 @@ server <- function(input, output, session) {
 
   opt.filter <- reactive({
 
-    ##automatic data filtering based on RSS----
+    ##automatic data filtering based on RSS
     if(isTRUE(input$model.selection)){
       opt.filter <- opt() %>%
         filter(
@@ -956,7 +1020,7 @@ server <- function(input, output, session) {
             distrib == 'bi' & p.F < alpha()
         )
     } else{
-      ##manual data filtering based on user input (data frame)----
+      ##manual data filtering based on user input (data frame)
       opt.filter <- opt() %>%
         filter(
           distrib == 'mono' & time.scale > bi.t.limit() |
@@ -981,11 +1045,11 @@ server <- function(input, output, session) {
     )
   })
 
-  ### Filtered values----
+  #### Filtered values----
 
   binom.filter <- reactive({
 
-    ##automatic data filtering based on RSS----
+    ##automatic data filtering based on RSS
     if(isTRUE(input$model.selection)){
       binom.filter <- binom.NUS() %>%
         filter(
@@ -993,7 +1057,7 @@ server <- function(input, output, session) {
             distrib == 'bi' & p.F < alpha()
         )
     } else {
-      ##manual data filtering based on user input (data frame)----
+      ##manual data filtering based on user input (data frame)
       binom.filter <- binom.NUS() %>%
         filter(
           distrib == 'mono' & time.scale > bi.t.limit() |
@@ -1005,61 +1069,7 @@ server <- function(input, output, session) {
   })
 
 
-  ## Peak picking and modeling table outputs----
-  output$MSsnaps.pp.table <- DT::renderDT(server = FALSE, {
-    datatable(
-      data = MSsnaps.pp() %>%
-        select(c(filename, Species, time.scale, mean.time, CFtime, mz, intensum, peak,
-                 min.time, max.time, min.scan, max.scan, min.mz, max.mz)),
-      style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
-      selection = 'multiple',
-      colnames = c(
-        "Time (min)" = "time.scale",
-        "m/z" = "mz",
-        "Filename" = "filename",
-        "Intensity" = "intensum",
-        "TIC time (min)" = "mean.time",
-        "Manual time (min)" = "CFtime",
-        "Peak picked" = "peak",
-        "start time" = "min.time",
-        "end time" = "max.time",
-        "start scan" = "min.scan",
-        "end scan" = "max.scan",
-        "start m/z" = 'min.mz',
-        "end m/z" = "max.mz"
-      ),
-      editable = T,
-      rownames = F,
-      escape = T,
-      filter = 'top',
-      autoHideNavigation = T,
-      plugins = 'natural',
-      options = list(
-        deferRender = TRUE,
-        scrollY = 200,
-        scroller = TRUE,
-        autoWidth = F,
-        dom = 'Bfrtip', #button position
-        buttons = list(
-          list(extend='copy'),
-          list(extend='csv',
-               title=NULL,
-               filename="Peak-picked data"),
-          list(extend='excel',
-               title=NULL,
-               filename="Peak-picked data"),
-          list(extend='colvis')
-        ),
-        columnDefs = list(list(visible=FALSE, targets=c(0,3,4,7:12)))
-      )
-    ) %>%
-      formatStyle(
-        0:12,
-        target = 'row',
-        backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
-      )
-  })
+  ## modeling table outputs----
 
   output$opt.table <- DT::renderDT(server = FALSE, {
     datatable(
@@ -1352,52 +1362,69 @@ server <- function(input, output, session) {
       )
   })
 
-  ## Modeling plot outputs-------
+  ## Optimized  plot outputs-------
 
   output$optiplot <- renderPlot({
 
-    Plot5bi() +
+    if(!is.null(input$mzml.file)){
+
+      optiplot <- plot.pp()
+    } else {
+      optiplot <- ggplot() +
+        custom.theme +
+        theme(strip.text = element_blank(),
+              axis.title.y = element_blank(),
+              axis.text.y = element_blank(),
+              axis.line.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              legend.position = "right") +
+        coord_cartesian(expand = TRUE)
+    }
+
+    optiplot <- optiplot +
       geom_point(data = opt.filter(),
                  aes(x = mz.th, y = iso.1),
-                 size = 5, color = '#8b2e62', alpha = 0.75) +
+                 size = 5, color = '#E69F00', alpha = 0.75) +
       geom_line(data = opt.filter(),
                 aes(x = mz.th, y = iso.1),
-                size = 1, color = '#8b2e62', alpha = 0.75) +
+                size = 1, color = '#E69F00', alpha = 0.75) +
       geom_point(data = opt.filter(),
                  aes(x = mz.th, y = iso.2),
-                 size = 5, color = 'seagreen4', alpha = 0.75) +
+                 size = 5, color = '#009E73', alpha = 0.75) +
       geom_line(data = opt.filter(),
                 aes(x = mz.th, y = iso.2),
-                size = 1, color = 'seagreen4', alpha = 0.75)  +
+                size = 1, color = '#009E73', alpha = 0.75)  +
       geom_point(data = opt.filter(),
                  aes(x = mz.th, y = iso),
-                 size = 5, color = 'tomato', alpha = 0.75) +
+                 size = 5, color = '#0072B2', alpha = 0.75) +
       geom_line(data = opt.filter(),
                 aes(x = mz.th, y = iso),
-                size = 1, color = 'tomato', alpha = 0.75) +
+                size = 1, color = '#0072B2', alpha = 0.75) +
       geom_segment(data = opt.filter() %>% distinct(., time.scale, Species, distrib, centroid),
                    aes(x = centroid, xend = centroid, y = 0, yend = 1),
-                   color = 'tomato',
+                   color = '#0072B2',
                    size = 1, alpha = 0.75,
                    linetype = 'dashed')  +
       geom_segment(data = opt.filter() %>% distinct(., time.scale, Species, distrib, centroid.1),
                    aes(x = centroid.1, xend = centroid.1, y = 0, yend = 1),
-                   color = '#8b2e62',
+                   color = '#E69F00',
                    size = 1, alpha = 0.75,
                    linetype = 'dashed') +
       geom_segment(data = opt.filter() %>% distinct(., time.scale, Species, distrib, centroid.2),
                    aes(x = centroid.2, xend = centroid.2, y = 0, yend = 1),
-                   color = 'seagreen4',
+                   color = '#009E73',
                    size = 1, alpha = 0.75,
                    linetype = 'dashed')
+
+    return(optiplot)
 
   })
 
 
   output$optiplot.ui <- renderUI({
     plotOutput("optiplot",
-               width = as.numeric(input$plot5.w),
-               height = as.numeric(input$plot5.h)
+               width = as.numeric(input$plot.snaps.w),
+               height = as.numeric(input$plot.snaps.h)
     )
   })
 
@@ -1406,9 +1433,9 @@ server <- function(input, output, session) {
   output$dwnspec <- downloadHandler(
     filename = function() { paste("stacked spectra", '.png', sep='') },
     content = function(file) {
-      ggsave(file, plot = Plot5(), device = "png",
-             width = as.numeric(input$plot5.w),
-             height = as.numeric(input$plot5.h),
+      ggsave(file, plot = plot.snaps(), device = "png",
+             width = as.numeric(input$plot.snaps.w),
+             height = as.numeric(input$plot.snaps.h),
              units = 'mm')
     }
   )
@@ -1416,14 +1443,14 @@ server <- function(input, output, session) {
   output$dwnspec.pdf <- downloadHandler(
     filename = function() { paste("stacked spectra", '.pdf', sep='') },
     content = function(file) {
-      ggsave(file, plot = Plot5(), device = "pdf",
-             width = as.numeric(input$plot5.w),
-             height = as.numeric(input$plot5.h),
+      ggsave(file, plot = plot.snaps(), device = "pdf",
+             width = as.numeric(input$plot.snaps.w),
+             height = as.numeric(input$plot.snaps.h),
              units = 'mm')
     }
   )
 
-  ##CENTROIDS AND NUS--------
+  ## 4. HDXplotR--------
 
   ###centroid calculation----
   centroids <- reactive({
@@ -1438,16 +1465,26 @@ server <- function(input, output, session) {
 
   ####hot table----
   NUS.init0 <- reactive({
+    #
+    #     if(!is.null(class(binom.NUS())) & !is.null(class(centroids()))){
+    #       species.list <- unique(c(centroids()$Species, opt()$Species))
+    #     } else if(is.null(class(binom.NUS())) & !is.null(class(centroids()))){
+    #       species.list <- unique(centroids()$Species)
+    #     } else if(!is.null(class(binom.NUS())) & is.null(class(centroids()))){
+    #       species.list <- unique(opt()$Species)
+    #     } else {
+    #       species.list <- c("no species processed")
+    #     }
 
-    req(centroids())
-
-    NUS.init0 <- data.frame(Species = unique(centroids()$Species),
-                            Name = unique(centroids()$Species),
-                            Reference = rep(massr()$Avemz, length(unique(centroids()$Species))),
-                            Charge = rep(as.numeric(input$z), length(unique(centroids()$Species))),
-                            D.initial = rep(max(input$DC.pp), length(unique(centroids()$Species))),
-                            D.final = rep(min(input$DC.pp), length(unique(centroids()$Species)))
+    data.frame(Species = paste("Species", c(1:8)),
+               Name = paste("Species", c(1:8)),
+               Reference = rep(massr()$Avemz, 8),
+               Charge = rep(as.numeric(input$z), 8),
+               D.initial = rep(max(input$DC.pp), 8),
+               D.final = rep(min(input$DC.pp), 8)
     )
+
+
   })
 
   NUS.change <- reactive({
@@ -1457,7 +1494,7 @@ server <- function(input, output, session) {
   })
 
   output$hotable2 <- renderHotable({
-    req(centroids())
+    # req(centroids())
     NUS.init0()
   }, readOnly = F)
 
@@ -1732,6 +1769,7 @@ server <- function(input, output, session) {
 
   ###HDX optim kinetics----
 
+  #### Optimized NUS plot----
   output$optim.nus.plot <- renderPlot({
     binom.filter() %>%
       ungroup() %>%
@@ -1748,14 +1786,16 @@ server <- function(input, output, session) {
           Population == "USE.2" ~ "low exchange"
         )
       ) %>%
+      left_join(NUS.change() %>% select(Species, Name), by = "Species") %>%
       ggplot(
-        aes(x = time.scale, y = NUS, color = Population, shape = Species)
+        aes(x = time.scale, y = NUS, color = Population, shape = Name)
       ) +
       geom_point(size = 4) +
       custom.theme +
       labs(x = "time (min)")
   })
 
+  #### Optimized abundance plto----
   output$optim.ab.plot <- renderPlot({
     binom.filter() %>%
       ungroup() %>%
@@ -1771,8 +1811,9 @@ server <- function(input, output, session) {
           Population == "fraction.2" ~ "low exchange"
         )
       ) %>%
+      left_join(NUS.change() %>% select(Species, Name), by = "Species") %>%
       ggplot(
-        aes(x = time.scale, y = fraction, color = Population, shape = Species)
+        aes(x = time.scale, y = fraction, color = Population, shape = Name)
       ) +
       geom_point(size = 4) +
       custom.theme +
@@ -2162,7 +2203,7 @@ server <- function(input, output, session) {
 
   eq.raw <- reactive({
 
-    if (is.null(input$mzml.file)) {
+    if(is.null(input$mzml.file)) {
       return(processed.titr())
     } else {
       eq.raw <- MSsnaps24() %>%
@@ -2650,8 +2691,8 @@ server <- function(input, output, session) {
 
 
   # #output options-----------
-  outputOptions(output, "plot5", suspendWhenHidden = FALSE)
-  outputOptions(output, "plot5bi", suspendWhenHidden = FALSE)
+  outputOptions(output, "plot.snaps", suspendWhenHidden = FALSE)
+  outputOptions(output, "plot.pp", suspendWhenHidden = FALSE)
   # outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
   # outputOptions(output, "eq.raw", suspendWhenHidden = FALSE)
 

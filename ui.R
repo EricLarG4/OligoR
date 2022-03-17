@@ -288,7 +288,7 @@ ui <- dashboardPage(
         ),
         fileInput(
           'exported.opt',
-          'Select optimized data file'
+          'Select optimized distribution file'
         )
       ),
       box(
@@ -617,14 +617,16 @@ ui <- dashboardPage(
             label = 'D%',
             value = 9,
             min = 0, max = 100,
-            step = 0.5
+            step = 0.5,
+            ticks = FALSE
           ),
           sliderInput(
             inputId = "nrPeaks.user",
             label = "Number of peaks",
             value = 72,
             min = 8, max = 128,
-            step = 8
+            step = 8,
+            ticks = FALSE
           ),
           br(),
           textInput(
@@ -815,7 +817,7 @@ ui <- dashboardPage(
                             collapsible = T,
                             height = 1000,
                             # tableOutput("MSsnaps"), #diagnostics for snapshots
-                            uiOutput("plot5.ui")
+                            uiOutput("plot.snaps.ui")
                           ),
                           box(
                             title = "Peak picking",
@@ -824,7 +826,7 @@ ui <- dashboardPage(
                             collapsible = T,
                             collapsed = F,
                             height = 1000,
-                            uiOutput("plot5bi.ui")
+                            uiOutput("plot.pp.ui")
                           ),
                           box(
                             title = "Optimized data",
@@ -893,40 +895,54 @@ ui <- dashboardPage(
                         absolutePanel(
                           bottom = 200, right = 40, width = 200,
                           draggable = TRUE,
-                          wellPanel(
-                            h3("Customisation"),
-                            colourInput("col.snap1", "Gradient start", "tomato"),
-                            colourInput("col.snap2", "Gradient end", "steelblue4"),
-                            selectInput("trans.user", 'color guide',
-                                        choices = list("identity", "log10"),
-                                        selected = 'identity'),
-                            sliderInput('plot5.w', 'Plot width',
-                                        min=100, max=2000, value=500,
-                                        step=20, round=0),
-                            sliderInput('plot5.h', 'Plot height',
-                                        min=100, max=3000, value= 700,
-                                        step=20, round=0),
-                            switchInput(inputId = "com.scale",
-                                        label = 'm/z axis',
-                                        value = TRUE,
-                                        width = 12,
-                                        onLabel = 'fixed',
-                                        offLabel = 'free',
-                                        onStatus = 'danger',
-                                        offStatus = 'info',
-                                        size = 'normal'),
-                            switchInput(inputId = "t.indic",
-                                        label = 'scale',
-                                        value = TRUE,
-                                        width = 12,
-                                        onLabel = 'color guide',
-                                        offLabel = 'text',
-                                        onStatus = 'danger',
-                                        offStatus = 'info',
-                                        size = 'normal')
-                            # sliderInput('plot5.ncol', 'number of columns',
-                            #             min=1, max=5, value=1,
-                            #             step=1, round=0)
+                          fixed = TRUE,
+                          tags$head(
+                            tags$style(
+                              HTML('
+                              .panel-title {
+                              color: white !important;
+                              font-weight: bold;
+                              }
+                              .panel-body {background-color: #272c30 !important;}
+                              .panel-heading {background-color: steelblue !important;}
+                              .irs-min {
+                              background-color: forestgreen !important;
+                              color: white !important;
+                              }
+                              .irs-max {
+                              background-color: tomato !important;
+                              color: white !important;
+                              }
+                            ')
+                            )
+                          ),
+                          bsCollapse(
+                            open = "Customisation",
+                            bsCollapsePanel(
+                              "Customisation",
+                              colourInput("col.snap1", "Gradient start", "#d0d0d0"),
+                              colourInput("col.snap2", "Gradient end", "#a7a7a7"),
+                              selectInput("trans.user", 'color guide',
+                                          choices = list("identity", "log10"),
+                                          selected = 'identity'),
+                              sliderInput('plot.snaps.w', 'Plot width',
+                                          min=100, max=2000, value=750,
+                                          step=20, round=0,
+                                          ticks = FALSE),
+                              sliderInput('plot.snaps.h', 'Plot height',
+                                          min=100, max=3000, value= 750,
+                                          step=20, round=0,
+                                          ticks = FALSE),
+                              switchInput(inputId = "com.scale",
+                                          label = 'm/z axis',
+                                          value = TRUE,
+                                          width = 12,
+                                          onLabel = 'fixed',
+                                          offLabel = 'free',
+                                          onStatus = 'danger',
+                                          offStatus = 'info',
+                                          size = 'normal')
+                            )
                           ),
                           style = "opacity: 0.9"
                         )
