@@ -211,6 +211,14 @@ server <- function(input, output, session) {
       custom.theme
   })
 
+  output$plot.ref.ui <- renderUI({
+    plotOutput(
+      "p.hdx.ref",
+      width = as.numeric(input$plot.ref.w),
+      height = as.numeric(input$plot.ref.h)
+    )
+  })
+
   p.hdx.ref.vs.exp <- reactive({
     ggplot(data = peak.position(),
            aes(x = mz.th, y = Iso.Pattern)) +
@@ -246,26 +254,42 @@ server <- function(input, output, session) {
     p.hdx.ref.vs.exp()
   })
 
+  output$p.hdx.ref.vs.exp.ui <- renderUI({
+    plotOutput(
+      "p.hdx.ref.vs.exp",
+      width = as.numeric(input$plot.ref.w),
+      height = as.numeric(input$plot.ref.h)
+    )
+  })
+
   ####Download----
   output$ref.accu.pdf <- downloadHandler(
-    filename = function() { paste("stacked spectra", '.pdf', sep='') },
+    filename = function() { paste("Reference HDX", '.pdf', sep='') },
     content = function(file) {
-      ggsave(file, plot = p.hdx.ref.vs.exp(), device = "pdf",
-             width = 200,
-             height = 100,
-             units = 'mm',
-             dpi = 600)
+      ggsave(
+        file,
+        plot = p.hdx.ref.vs.exp(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm',
+        bg = NULL
+      )
     }
   )
 
   output$ref.accu.png <- downloadHandler(
-    filename = function() { paste("stacked spectra", '.png', sep='') },
+    filename = function() { paste("Reference HDX", '.png', sep='') },
     content = function(file) {
-      ggsave(file, plot = p.hdx.ref.vs.exp(), device = "png",
-             # width = 25,
-             # height = 8,
-             # units = 'mm',
-             dpi = 300)
+      ggsave(
+        file,
+        plot = p.hdx.ref.vs.exp(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm',
+        bg = NULL
+      )
     }
   )
 
@@ -596,24 +620,6 @@ server <- function(input, output, session) {
       return('free_x')
     }
   })
-
-  #variables to define if time indicated by a label or a color guide
-  # time.label <- reactive({
-  #   if (isTRUE(input$t.indic)) {
-  #     return(element_blank())
-  #   } else {
-  #     return(element_text(size = 16, color = "black", face = "bold", angle = 0))
-  #   }
-  # })
-  #
-  # color.guide <- reactive({
-  #   if (isTRUE(input$t.indic)) {
-  #     return('right')
-  #   } else {
-  #     return('none')
-  #   }
-  # })
-
 
   output$plot.snaps <- renderPlot({
     plot.snaps()
@@ -1364,24 +1370,32 @@ server <- function(input, output, session) {
   })
 
 
-  ##download spectra----------
+  ##Download spectra----------
   output$dwnspec <- downloadHandler(
     filename = function() { paste("stacked spectra", '.png', sep='') },
     content = function(file) {
-      ggsave(file, plot = plot.snaps(), device = "png",
-             width = as.numeric(input$plot.snaps.w),
-             height = as.numeric(input$plot.snaps.h),
-             units = 'mm')
+      ggsave(
+        file,
+        plot = plot.snaps(),
+        device = "png",
+        width = 21,
+        height = 21*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm'
+      )
     }
   )
 
   output$dwnspec.pdf <- downloadHandler(
     filename = function() { paste("stacked spectra", '.pdf', sep='') },
     content = function(file) {
-      ggsave(file, plot = plot.snaps(), device = "pdf",
-             width = as.numeric(input$plot.snaps.w),
-             height = as.numeric(input$plot.snaps.h),
-             units = 'mm')
+      ggsave(
+        file,
+        plot = plot.snaps(),
+        device = "pdf",
+        width = 21,
+        height = 21*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm'
+      )
     }
   )
 
@@ -2478,151 +2492,6 @@ server <- function(input, output, session) {
              dpi = 600)
     }
   )
-
-  #PALETTE MODS-------
-  palette.modifier <- function(plot = NULL){
-    if (input$select.melting.palette.fam == 'd3') {
-      plot <- plot + scale_color_d3(palette = input$select.melting.palette,
-                                    labels = tm.init.change()$legend)
-    } else {
-      if (input$select.melting.palette.fam == "Brewer - qualitative") {
-        plot <- plot + scale_color_brewer(palette = input$select.melting.palette,
-                                          labels = tm.init.change()$legend)
-      } else{
-        if (input$select.melting.palette.fam == "Brewer - sequential") {
-          plot <- plot + scale_color_brewer(palette = input$select.melting.palette,
-                                            labels = tm.init.change()$legend)
-        } else {
-          if (input$select.melting.palette.fam == "Brewer - diverging") {
-            plot <- plot + scale_color_brewer(palette = input$select.melting.palette,
-                                              labels = tm.init.change()$legend)
-          } else {
-            if (input$select.melting.palette.fam == "NPG") {
-              plot <- plot + scale_color_npg(labels = tm.init.change()$legend)
-            } else {
-              if (input$select.melting.palette.fam == "AAAS") {
-                plot <- plot + scale_color_aaas(labels = tm.init.change()$legend)
-              } else {
-                if (input$select.melting.palette.fam == "NEJM") {
-                  plot <- plot + scale_color_nejm(labels = tm.init.change()$legend)
-                } else {
-                  if (input$select.melting.palette.fam == "Lancet") {
-                    plot <- plot + scale_color_lancet(labels = tm.init.change()$legend)
-                  } else {
-                    if (input$select.melting.palette.fam == "JAMA") {
-                      plot <- plot + scale_color_jama(labels = tm.init.change()$legend)
-                    } else {
-                      if (input$select.melting.palette.fam == "JCO") {
-                        plot <- plot + scale_color_jco(labels = tm.init.change()$legend)
-                      } else {
-                        if (input$select.melting.palette.fam == "UCSCGB") {
-                          plot <- plot + scale_color_ucscgb(labels = tm.init.change()$legend)
-                        } else {
-                          if (input$select.melting.palette.fam == "LocusZoom") {
-                            plot <- plot + scale_color_locuszoom(labels = tm.init.change()$legend)
-                          } else {
-                            if (input$select.melting.palette.fam == "IGV") {
-                              plot <- plot + scale_color_igv(palette = input$select.melting.palette,
-                                                             labels = tm.init.change()$legend)
-                            } else {
-                              if (input$select.melting.palette.fam == "UChicago") {
-                                plot <- plot + scale_color_uchicago(palette = input$select.melting.palette,
-                                                                    labels = tm.init.change()$legend)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  #Palette family selector
-  output$select.melting.palette.fam <- renderUI({
-    pickerInput("select.melting.palette.fam",
-                label = "Choose palette family",
-                choices = list("d3",
-                               "Brewer - qualitative", "Brewer - diverging", "Brewer - sequential",
-                               "AAAS", "IGV", "JAMA", "JCO", "Lancet", 'LocusZoom', 'NEJM', "NPG",
-                               "UChicago", "UCSCGB"),
-                multiple = F
-    )
-  })
-
-  #Palette subcategory selector
-  output$select.melting.palette <- renderUI({
-
-    if (input$select.melting.palette.fam == 'd3') {
-      pickerInput("select.melting.palette",
-                  label = "Choose palette",
-                  choices = list("d3a" = "category20",
-                                 "d3b" = "category20b",
-                                 "d3c" = "category20c"),
-                  multiple = F
-      )
-    } else {
-      if (input$select.melting.palette.fam == 'Brewer - qualitative') {
-        pickerInput("select.melting.palette",
-                    label = "Choose palette",
-                    choices = list("Accent", "Dark2", "Paired",
-                                   "Pastel1", "Pastel2", "Set1",
-                                   "Set2", "Set3"),
-                    multiple = F
-        )
-      } else {
-        if (input$select.melting.palette.fam == 'Brewer - diverging') {
-          pickerInput("select.melting.palette",
-                      label = "Choose palette",
-                      choices = list("BrBG", 'PiYG', 'PRGn',
-                                     'PuOr', 'RdBu', 'RdGy',
-                                     'RdYlBu', 'RdYlGn', 'Spectral'),
-                      multiple = F
-          )
-        } else {
-          if (input$select.melting.palette.fam == 'Brewer - sequential') {
-            pickerInput("select.melting.palette",
-                        label = "Choose palette",
-                        choices = list('Blues', 'BuGn', 'BuPu', 'GnBu',
-                                       'Greens', 'Greys', 'Oranges', 'OrRd',
-                                       'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
-                                       'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd'),
-                        multiple = F
-            )
-          } else {
-            if (input$select.melting.palette.fam == 'IGV') {
-              pickerInput("select.melting.palette",
-                          label = "Choose palette",
-                          choices = list("default", "alternating"),
-                          multiple = F
-              )
-            } else {
-              if (input$select.melting.palette.fam == 'UChicago') {
-                pickerInput("select.melting.palette",
-                            label = "Choose palette",
-                            choices = list("default", "light", "dark"),
-                            multiple = F
-                )
-              } else {
-                return(NULL)
-              }
-            }
-          }
-        }
-      }
-    }
-
-  })
-
-
-
-
 
 
   # #output options-----------

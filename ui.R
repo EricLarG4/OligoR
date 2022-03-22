@@ -17,20 +17,7 @@ librarian::shelf(
   DT, colourpicker, DavidBarke/QWUtils
 )
 
-# library(shiny)
-# library(shinydashboard)
-# library(shinydashboardPlus)
-# library(shinyWidgets)
-# library(shinyBS) #useful?
 # library(shinysky) #useful?   devtools::install_github("AnalytixWare/ShinySky")
-#
-# library(DT)
-#
-# library(colourpicker)
-#
-# # install.packages("remotes")
-# # remotes::install_github("DavidBarke/QWUtils")
-# library(QWUtils) #useful?
 
 
 ui <- dashboardPage(
@@ -295,25 +282,6 @@ ui <- dashboardPage(
           size = 'normal',
           onStatus = 'danger',
           offStatus = 'info'
-        )
-      ),
-      box(
-        title = "Downloads",
-        id = "NUSdown",
-        collapsible = T,
-        solidHeader = F,
-        width = 12,
-        downloadBttn(
-          outputId = "dwnspec",
-          label = "png",
-          style = "material-flat",
-          size = 'sm'
-        ),
-        downloadBttn(
-          outputId = "dwnspec.pdf",
-          label = "pdf",
-          style = "material-flat",
-          size = 'sm'
         )
       ),
       box(
@@ -621,31 +589,18 @@ ui <- dashboardPage(
             label = 'Exchangeable sites',
             placeholder = 'defaults to preset'
           ),
-          selectInput("nX.select",
-                      label = 'presets',
-                      choices = list("all sites" = 'A', "no phosphates" = 'B', "no phosphates nor termini" = 'C'),
-                      selected = "C")
-      ),
-      downloadBttn(
-        outputId = "ref.accu.png",
-        label = "png",
-        style = "material-flat",
-        size = 'sm'
-      ),
-      downloadBttn(
-        outputId = "ref.accu.pdf",
-        label = "pdf",
-        style = "material-flat",
-        size = 'sm'
+          selectInput(
+            "nX.select",
+            label = 'presets',
+            choices = list("all sites" = 'A', "no phosphates" = 'B', "no phosphates nor termini" = 'C'),
+            selected = "C"
+          )
       )
     ),
     verbatimTextOutput("value")
-    # extendShinyjs(text = jscode, functions = c('shinyjs.collapse'))
   ),
   #body--------------
   dashboardBody(
-    # useShinyjs(),
-    # extendShinyjs(text = jscode, functions = c("shinyjs.collapse")),
     tags$style(HTML('table.dataTable tr.selected td, table.dataTable td.selected {background-color: pink !important;}')),
     tags$style(
       type="text/css", #hides error messages
@@ -678,13 +633,33 @@ ui <- dashboardPage(
                               title = 'Theoretical distribution',
                               width = 6,
                               collapsible = TRUE,
-                              plotOutput('p.hdx.ref')
+                              uiOutput('plot.ref.ui')
                           ),
-                          box(id = 'Oligoutput7-2',
-                              title = 'Reference accuracy',
-                              width = 6,
-                              collapsible = T,
-                              plotOutput('p.hdx.ref.vs.exp')
+                          box(
+                            id = 'Oligoutput7-2',
+                            title = 'Reference accuracy',
+                            width = 6,
+                            collapsible = T,
+                            uiOutput('p.hdx.ref.vs.exp.ui'),
+                            sidebar = boxSidebar(
+                              id = "dwn.sidebar.1",
+                              width = 25,
+                              startOpen = FALSE,
+                              icon = icon("download"),
+                              downloadBttn(
+                                outputId = "ref.accu.png",
+                                label = "Save as png",
+                                style = "simple",
+                                size = 'sm'
+                              ),
+                              br(), br(),
+                              downloadBttn(
+                                outputId = "ref.accu.pdf",
+                                label = "Save as pdf",
+                                style = "simple",
+                                size = 'sm'
+                              )
+                            )
                           )
                         ),
                         absolutePanel(
@@ -700,22 +675,42 @@ ui <- dashboardPage(
                               colourInput("col.centroid.th", "Theory centroid colour", "tomato"),
                               colourInput("col.line.exp", "Reference line colour", "#BDD1E3"),
                               colourInput("col.centroid.exp", "Centroid line colour", "#BDD1E3"),
-                              sliderInput('size.dot.th', 'Theory dot size',
-                                          min=0, max=10, value=4,
-                                          step=0.25, round=0,
-                                          tick = FALSE),
-                              sliderInput('size.line.th', 'Theory line size',
-                                          min=0, max=5, value=1,
-                                          step=0.25, round=0,
-                                          tick = FALSE),
-                              sliderInput('size.line.exp', 'Reference line size',
-                                          min=0, max=5, value=1,
-                                          step=0.25, round=0,
-                                          tick = FALSE),
-                              sliderInput('size.centroid.th', 'Centroid line size',
-                                          min=0, max=5, value=1,
-                                          step=0.25, round=0,
-                                          tick = FALSE)
+                              sliderInput(
+                                'size.dot.th', 'Theory dot size',
+                                min=0, max=10, value=4,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'size.line.th', 'Theory line size',
+                                min=0, max=5, value=1,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'size.line.exp', 'Reference line size',
+                                min=0, max=5, value=1,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'size.centroid.th', 'Centroid line size',
+                                min=0, max=5, value=1,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'plot.ref.w', 'Plot width',
+                                min=100, max=2000, value=750,
+                                step=20, round=0,
+                                ticks = FALSE
+                              ),
+                              sliderInput(
+                                'plot.ref.h', 'Plot height',
+                                min=100, max=3000, value= 500,
+                                step=20, round=0,
+                                ticks = FALSE
+                              )
                             )
                           ),
                           style = "opacity: 0.9"
@@ -757,14 +752,17 @@ ui <- dashboardPage(
                               title = "MS spectrum", p("Brush to zoom, double click to reset zoom"),
                               status = "danger",
                               collapsible = TRUE,
-                              plotOutput("plot3",
-                                         height = 750,
-                                         dblclick = "plot3_dblclick",
-                                         brush = brushOpts(
-                                           id = "plot3_brush",
-                                           fill = "#fff5e7", stroke = "#fff5e7", direction = "xy",
-                                           resetOnNew = TRUE
-                                         ))),
+                              plotOutput(
+                                "plot3",
+                                height = 750,
+                                dblclick = "plot3_dblclick",
+                                brush = brushOpts(
+                                  id = "plot3_brush",
+                                  fill = "#fff5e7", stroke = "#fff5e7", direction = "xy",
+                                  resetOnNew = TRUE
+                                )
+                              )
+                          ),
                           box(
                             title = "Selected m/z",
                             width = 2,
@@ -774,7 +772,6 @@ ui <- dashboardPage(
                             textOutput("info2", inline = F)
                           )
                         ),
-                        # DT::dataTableOutput(outputId = 'inputms69'),
                         absolutePanel(
                           bottom = 200, right = 40, width = 200,
                           draggable = TRUE,
@@ -783,16 +780,24 @@ ui <- dashboardPage(
                             open = "Customisation",
                             bsCollapsePanel(
                               "Customisation",
-                              colourInput("col.TIC", "TIC colour", "steelblue"),
-                              colourInput("col.MS", "Spectrum colour", "steelblue"),
-                              sliderInput('size.line.TIC', 'TIC line size',
-                                          min=0.25, max=5, value=1,
-                                          step=0.25, round=0,
-                                          ticks = FALSE),
-                              sliderInput('size.line.MS', 'Spectrum line size',
-                                          min=0.25, max=5, value=1,
-                                          step=0.25, round=0,
-                                          ticks = FALSE)
+                              colourInput(
+                                "col.TIC", "TIC colour", "steelblue"
+                              ),
+                              colourInput(
+                                "col.MS", "Spectrum colour", "steelblue"
+                              ),
+                              sliderInput(
+                                'size.line.TIC', 'TIC line size',
+                                min=0.25, max=5, value=1,
+                                step=0.25, round=0,
+                                ticks = FALSE
+                              ),
+                              sliderInput(
+                                'size.line.MS', 'Spectrum line size',
+                                min=0.25, max=5, value=1,
+                                step=0.25, round=0,
+                                ticks = FALSE
+                              )
                             )
                           ),
                           style = "opacity: 0.9"
@@ -808,8 +813,26 @@ ui <- dashboardPage(
                             status = "danger",
                             collapsible = T,
                             height = 1000,
-                            # tableOutput("MSsnaps"), #diagnostics for snapshots
-                            uiOutput("plot.snaps.ui")
+                            uiOutput("plot.snaps.ui"),
+                            sidebar = boxSidebar(
+                              id = "dwn.sidebar.2",
+                              width = 25,
+                              startOpen = FALSE,
+                              icon = icon("download"),
+                              downloadBttn(
+                                outputId = "dwnspec",
+                                label = "Save as png",
+                                style = "simple",
+                                size = 'sm'
+                              ),
+                              br(), br(),
+                              downloadBttn(
+                                outputId = "dwnspec.pdf",
+                                label = "Save as pdf",
+                                style = "simple",
+                                size = 'sm'
+                              )
+                            )
                           ),
                           box(
                             title = "Peak picking",
@@ -907,14 +930,18 @@ ui <- dashboardPage(
                                 bigger = TRUE,
                                 animation = "pulse"
                               ),
-                              sliderInput('plot.snaps.w', 'Plot width',
-                                          min=100, max=2000, value=750,
-                                          step=20, round=0,
-                                          ticks = FALSE),
-                              sliderInput('plot.snaps.h', 'Plot height',
-                                          min=100, max=3000, value= 750,
-                                          step=20, round=0,
-                                          ticks = FALSE)
+                              sliderInput(
+                                'plot.snaps.w', 'Plot width',
+                                min=100, max=2000, value=750,
+                                step=20, round=0,
+                                ticks = FALSE
+                              ),
+                              sliderInput(
+                                'plot.snaps.h', 'Plot height',
+                                min=100, max=3000, value= 750,
+                                step=20, round=0,
+                                ticks = FALSE
+                              )
                             )
                           ),
                           style = "opacity: 0.9"
