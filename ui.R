@@ -690,24 +690,33 @@ ui <- dashboardPage(
                         absolutePanel(
                           top = 300, right = 40, width = 200,
                           draggable = TRUE,
-                          wellPanel(h3("Customisation"),
-                                    colourInput("col.dot.th", "Theory  dot colour", "tomato"),
-                                    colourInput("col.line.th", "Theory line colour", "tomato"),
-                                    colourInput("col.centroid.th", "Theory centroid colour", "tomato"),
-                                    colourInput("col.line.exp", "Reference line colour", "#BDD1E3"),
-                                    colourInput("col.centroid.exp", "Centroid line colour", "#BDD1E3"),
-                                    sliderInput('size.dot.th', 'Theory dot size',
-                                                min=0, max=10, value=4,
-                                                step=0.25, round=0),
-                                    sliderInput('size.line.th', 'Theory line size',
-                                                min=0, max=5, value=1,
-                                                step=0.25, round=0),
-                                    sliderInput('size.line.exp', 'Reference line size',
-                                                min=0, max=5, value=1,
-                                                step=0.25, round=0),
-                                    sliderInput('size.centroid.th', 'Centroid line size',
-                                                min=0, max=5, value=1,
-                                                step=0.25, round=0)
+                          fixed = TRUE,
+                          bsCollapse(
+                            open = "Customisation",
+                            bsCollapsePanel(
+                              "Customisation",
+                              colourInput("col.dot.th", "Theory  dot colour", "tomato"),
+                              colourInput("col.line.th", "Theory line colour", "tomato"),
+                              colourInput("col.centroid.th", "Theory centroid colour", "tomato"),
+                              colourInput("col.line.exp", "Reference line colour", "#BDD1E3"),
+                              colourInput("col.centroid.exp", "Centroid line colour", "#BDD1E3"),
+                              sliderInput('size.dot.th', 'Theory dot size',
+                                          min=0, max=10, value=4,
+                                          step=0.25, round=0,
+                                          tick = FALSE),
+                              sliderInput('size.line.th', 'Theory line size',
+                                          min=0, max=5, value=1,
+                                          step=0.25, round=0,
+                                          tick = FALSE),
+                              sliderInput('size.line.exp', 'Reference line size',
+                                          min=0, max=5, value=1,
+                                          step=0.25, round=0,
+                                          tick = FALSE),
+                              sliderInput('size.centroid.th', 'Centroid line size',
+                                          min=0, max=5, value=1,
+                                          step=0.25, round=0,
+                                          tick = FALSE)
+                            )
                           ),
                           style = "opacity: 0.9"
                         )
@@ -769,15 +778,22 @@ ui <- dashboardPage(
                         absolutePanel(
                           bottom = 200, right = 40, width = 200,
                           draggable = TRUE,
-                          wellPanel(h3("Customisation"),
-                                    colourInput("col.TIC", "TIC colour", "steelblue"),
-                                    colourInput("col.MS", "Spectrum colour", "steelblue"),
-                                    sliderInput('size.line.TIC', 'TIC line size',
-                                                min=0.25, max=5, value=1,
-                                                step=0.25, round=0),
-                                    sliderInput('size.line.MS', 'Spectrum line size',
-                                                min=0.25, max=5, value=1,
-                                                step=0.25, round=0)
+                          fixed = TRUE,
+                          bsCollapse(
+                            open = "Customisation",
+                            bsCollapsePanel(
+                              "Customisation",
+                              colourInput("col.TIC", "TIC colour", "steelblue"),
+                              colourInput("col.MS", "Spectrum colour", "steelblue"),
+                              sliderInput('size.line.TIC', 'TIC line size',
+                                          min=0.25, max=5, value=1,
+                                          step=0.25, round=0,
+                                          ticks = FALSE),
+                              sliderInput('size.line.MS', 'Spectrum line size',
+                                          min=0.25, max=5, value=1,
+                                          step=0.25, round=0,
+                                          ticks = FALSE)
+                            )
                           ),
                           style = "opacity: 0.9"
                         )
@@ -967,18 +983,25 @@ ui <- dashboardPage(
                         absolutePanel(
                           bottom = 200, right = 40, width = 200,
                           draggable = TRUE,
-                          wellPanel(h3("Customisation"),
-                                    colourInput("col.kin", "Unselected points", "#777F85"),
-                                    colourInput("col.kin.high1", "Series 1", "#1f77b4"),
-                                    colourInput("col.kin.high2", "Series 2", "#ff7f0e"),
-                                    colourInput("col.kin.high3", "Series 3", "#2ca02c"),
-                                    colourInput("col.kin.high4", "Series 4", "#d62728"),
-                                    sliderInput('size.kin', 'Dot Size',
-                                                min=1, max=10, value=3,
-                                                step=0.5, round=0),
-                                    sliderInput('trans.kin', 'Opacity',
-                                                min=0, max=1, value=0.9,
-                                                step=0.05)
+                          fixed = TRUE,
+                          bsCollapse(
+                            open = "Customisation",
+                            bsCollapsePanel(
+                              "Customisation",
+                              colourInput("col.kin", "Unselected points", "#777F85"),
+                              colourInput("col.kin.high1", "Series 1", "#1f77b4"),
+                              colourInput("col.kin.high2", "Series 2", "#ff7f0e"),
+                              colourInput("col.kin.high3", "Series 3", "#2ca02c"),
+                              colourInput("col.kin.high4", "Series 4", "#d62728"),
+                              sliderInput('size.kin', 'Dot Size',
+                                          min=1, max=10, value=3,
+                                          step=0.5, round=0,
+                                          ticks = FALSE),
+                              sliderInput('trans.kin', 'Opacity',
+                                          min=0, max=1, value=0.9,
+                                          step=0.05,
+                                          ticks = FALSE)
+                            )
                           ),
                           style = "opacity: 0.9"
                         )
