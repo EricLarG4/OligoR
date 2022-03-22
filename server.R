@@ -48,7 +48,6 @@ custom.theme <- theme(
   axis.line = element_line(size = 0.5)
 )
 
-sequential.colors <-
 
 thematic_shiny(
   bg = '#272c30', fg = '#EEE8D5', accent = 'auto',
@@ -415,26 +414,12 @@ server <- function(input, output, session) {
     brushedPoints(TIC(), input$plot_brush)
   })
 
-  ###textinput-------------
-  scanstxt <- reactive({
-    input$text1:input$text2
-  })
-
-  mztxt <- reactive({
-    input$text3:input$text4
-  })
-
   ###brushinput-----------
   scansbrsh <- reactive({
     min(selectedData()$scan):max(selectedData()$scan)
   })
 
   ###Selection of defined scans in MS data---------
-  selecscanstxt <- reactive({
-    inputms() %>%
-      filter(scan %in% scanstxt())
-  })
-
   selecscansbrsh <- reactive({
     as.data.table(inputms())[scan %in% scansbrsh()]
 
@@ -462,21 +447,6 @@ server <- function(input, output, session) {
 
   ###Scan summing-----------
 
-  ####from text----
-  specsumtxt <- reactive({
-    selecscanstxt() %>%
-      filter(mz > min(mztxt())) %>%
-      filter(mz < max(mztxt())) %>%
-      group_by(mz, filename) %>%
-      summarise("intensum" = sum(intensity)) %>%
-      add_column("mean.time" = mean(selecscanstxt()$time) + as.numeric(input$deadtxt)) %>%
-      add_column("Species" = input$sample.id) %>%
-      add_column('CFtime' = time.min()) %>%
-      add_column('lgd.conc' = as.numeric(input$lgd.conc)) %>%
-      add_column('Stoich' = as.numeric(input$Stoich))
-  })
-
-  ####from brush----
   specsumbrsh <- reactive({
 
     selecscansbrsh <- selecscansbrsh()[, keyby = .(mz, filename),
@@ -517,7 +487,6 @@ server <- function(input, output, session) {
   ####Definition of initial mz range-------
   ranges <- reactiveValues(x = mzlimits, y = NULL)   #place above to save on calculation time
 
-  #### from brush----------------
   output$plot3 <- renderPlot({
 
     req(input$mzml.file)
@@ -529,18 +498,6 @@ server <- function(input, output, session) {
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
   })
 
-
-  ####from txt----------
-  output$plot4 <- renderPlot({
-
-    req(input$mzml.file)
-
-    ggplot(data = specsumtxt(), aes(x = mz, y = intensum)) +
-      geom_line(color = input$col.MS, size = input$size.line.MS) +
-      xlab("m/z") +
-      custom.theme +
-      coord_cartesian(xlim = c(min(mztxt()), max(mztxt())), expand = FALSE)
-  })
 
   ####Zoom event on MS plot---------
   observeEvent(input$plot3_brush, {
@@ -573,20 +530,9 @@ server <- function(input, output, session) {
   ##MS snapshots------------
 
   ###MS ref snapshots------------
-  snaps.ref <- data.frame()
-
-  inputsnap.ref <- reactive({
-    if (isTRUE(input$switch69)) {
-      inputsnap.ref <- specsumbrsh.ms()
-      return(inputsnap.ref)
-    } else {
-      inputsnap.ref <- specsumtxt()
-      return(inputsnap.ref)
-    }
-  })
 
   MSsnaps.ref <- eventReactive(input$bttn99, {
-    newrow.ref <- data.frame(inputsnap.ref())
+    newrow.ref <- data.frame(specsumbrsh.ms())
     # snaps.ref <<- rbind(snaps.ref, newrow.ref)
   })
 
@@ -595,29 +541,18 @@ server <- function(input, output, session) {
   snaps <- data.frame()
 
   inputsnap <- reactive({
-    if (isTRUE(input$switch69)) {
 
-      inputsnap <- specsumbrsh.ms()[, ':=' (
-        min.time = min(selectedData()$time), #traceability
-        max.time = max(selectedData()$time),
-        min.scan = min(selectedData()$scan),
-        max.scan = max(selectedData()$scan),
-        min.mz = min(specsumbrsh.ms()$mz),
-        max.mz = max(specsumbrsh.ms()$mz)
-      )]
+    inputsnap <- specsumbrsh.ms()[, ':=' (
+      min.time = min(selectedData()$time), #traceability
+      max.time = max(selectedData()$time),
+      min.scan = min(selectedData()$scan),
+      max.scan = max(selectedData()$scan),
+      min.mz = min(specsumbrsh.ms()$mz),
+      max.mz = max(specsumbrsh.ms()$mz)
+    )]
 
-      return(inputsnap)
+    return(inputsnap)
 
-    } else {
-      inputsnap <- specsumtxt() %>%
-        add_column(min.time = "NA", #traceability
-                   max.time = "NA",
-                   min.scan = input$text1,
-                   max.scan = input$text2,
-                   min.mz = input$text3,
-                   max.mz = input$text4)
-      return(inputsnap)
-    }
   })
 
   snaps.counter <- 0
@@ -884,12 +819,12 @@ server <- function(input, output, session) {
       custom.theme +
       theme(
         # strip.text = element_blank(),
-            axis.title.y = element_blank(),
-            axis.text.y = element_blank(),
-            axis.line.y = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.position = "none"
-        ) +
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "none"
+      ) +
       coord_cartesian(expand = TRUE)
   })
 

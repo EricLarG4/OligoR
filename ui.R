@@ -43,8 +43,27 @@ ui <- dashboardPage(
   ),
   #sidebar-------------
   dashboardSidebar(
-    # useShinyjs(),
-    # setSliderColor(c("tomato"), c(1)),
+    tags$head(
+      tags$style(
+        HTML('
+          .panel-title {
+          color: white !important;
+          font-weight: bold;
+          }
+          .panel-body {background-color: #272c30 !important;}
+          .panel-heading {background-color: steelblue !important;}
+          .irs-min {
+          background-color: forestgreen !important;
+          color: white !important;
+          }
+          .irs-max {
+          background-color: tomato !important;
+          color: white !important;
+          }
+        ')
+      )
+    ),
+    chooseSliderSkin("HTML5", color = "steelblue"),
     #sidebar MSxplorR-------------
     conditionalPanel(
       condition = "input.tabs == 'MSxploR'",
@@ -62,7 +81,7 @@ ui <- dashboardPage(
       ),
       box(
         width = 12,
-        title = "m/z range narrowing",
+        title = "m/z range",
         status = 'info',
         solidHeader = F,
         collapsible = T,
@@ -70,6 +89,7 @@ ui <- dashboardPage(
         sliderInput(
           inputId = "text11",
           label = NULL,
+          ticks = FALSE,
           min = 400, max = 4000,
           value = c(800, 2500),
           step = 50
@@ -97,15 +117,6 @@ ui <- dashboardPage(
           status = 'warning',
           collapsible = T,
           collapsed = F,
-          switchInput(inputId = 'switch69',
-                      label = 'Combine method',
-                      value = T,
-                      onLabel = 'Brush',
-                      offLabel = 'Text',
-                      onStatus = 'danger',
-                      offStatus = 'info',
-                      size = 'normal',
-                      width = 12),
           textInput(inputId = 'deadtxt',
                     label = "Dead time (min)",
                     value = 0),
@@ -181,30 +192,6 @@ ui <- dashboardPage(
                      size = "sm",
                      block = F,
                      no_outline = TRUE)
-      ),
-      box(
-        width = 12,
-        title = "Scan range selection",
-        status = 'success',
-        solidHeader = F,
-        collapsible = T,
-        collapsed = TRUE,
-        splitLayout(
-          cellWidths = "50%",
-          textInput(inputId = "text1", "start", "1"),
-          textInput(inputId = "text2", "end", "1000"))
-      ),
-      box(
-        width = 12,
-        title = "m/z range selection",
-        status = 'success',
-        solidHeader = F,
-        collapsible = T,
-        collapsed = TRUE,
-        splitLayout(
-          cellWidths = "50%",
-          textInput(inputId = "text3", "start", "1000"),
-          textInput(inputId = "text4", "end", "2500"))
       )
     ),
     #sidebar HDXplotR-------------
@@ -762,7 +749,7 @@ ui <- dashboardPage(
                               status = "danger",
                               collapsible = TRUE,
                               plotOutput("plot3",
-                                         height = 400,
+                                         height = 750,
                                          dblclick = "plot3_dblclick",
                                          brush = brushOpts(
                                            id = "plot3_brush",
@@ -777,17 +764,6 @@ ui <- dashboardPage(
                             collapsible = T,
                             textOutput("info2", inline = F)
                           )
-                        ),
-                        fluidRow(
-                          box(
-                            id = "box4",
-                            width = 10,
-                            title = "MS spectrum (text input)", p("select scans and zoom from text input in sidebar"),
-                            collapsible = TRUE,
-                            collapsed = TRUE,
-                            plotOutput("plot4",
-                                       height = 400,
-                            ))
                         ),
                         # DT::dataTableOutput(outputId = 'inputms69'),
                         absolutePanel(
@@ -896,35 +872,25 @@ ui <- dashboardPage(
                           bottom = 200, right = 40, width = 200,
                           draggable = TRUE,
                           fixed = TRUE,
-                          tags$head(
-                            tags$style(
-                              HTML('
-                              .panel-title {
-                              color: white !important;
-                              font-weight: bold;
-                              }
-                              .panel-body {background-color: #272c30 !important;}
-                              .panel-heading {background-color: steelblue !important;}
-                              .irs-min {
-                              background-color: forestgreen !important;
-                              color: white !important;
-                              }
-                              .irs-max {
-                              background-color: tomato !important;
-                              color: white !important;
-                              }
-                            ')
-                            )
-                          ),
                           bsCollapse(
                             open = "Customisation",
                             bsCollapsePanel(
                               "Customisation",
                               colourInput("col.snap1", "Gradient start", "#d0d0d0"),
                               colourInput("col.snap2", "Gradient end", "#a7a7a7"),
-                              selectInput("trans.user", 'color guide',
+                              selectInput("trans.user", 'Color guide',
                                           choices = list("identity", "log10"),
                                           selected = 'identity'),
+                              prettyToggle(
+                                inputId = "com.scale",
+                                label_on = "fixed m/z axis",
+                                label_off = "free m/z axis",
+                                value = TRUE,
+                                shape = "round",
+                                width = "100%",
+                                bigger = TRUE,
+                                animation = "pulse"
+                              ),
                               sliderInput('plot.snaps.w', 'Plot width',
                                           min=100, max=2000, value=750,
                                           step=20, round=0,
@@ -932,16 +898,7 @@ ui <- dashboardPage(
                               sliderInput('plot.snaps.h', 'Plot height',
                                           min=100, max=3000, value= 750,
                                           step=20, round=0,
-                                          ticks = FALSE),
-                              switchInput(inputId = "com.scale",
-                                          label = 'm/z axis',
-                                          value = TRUE,
-                                          width = 12,
-                                          onLabel = 'fixed',
-                                          offLabel = 'free',
-                                          onStatus = 'danger',
-                                          offStatus = 'info',
-                                          size = 'normal')
+                                          ticks = FALSE)
                             )
                           ),
                           style = "opacity: 0.9"
