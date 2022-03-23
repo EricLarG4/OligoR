@@ -48,7 +48,7 @@ ui <- dashboardPage(
         ')
       )
     ),
-    chooseSliderSkin("HTML5", color = "steelblue"),
+    chooseSliderSkin("Flat", color = "steelblue"),
     #sidebar MSxplorR-------------
     conditionalPanel(
       condition = "input.tabs == 'MSxploR'",
@@ -202,18 +202,21 @@ ui <- dashboardPage(
       ),
       box(
         width = 12,
-        title = "Fitting initialization",
+        title = "Fitting",
         status = "maroon",
         solidHeader = F,
         collapsible = T,
         collapsed = F,
-        switchInput(inputId = "fit.hdx", #toggles baseline on/off
-                    label = "fit HDX plots",
-                    onLabel = 'fit',
-                    offLabel = 'no fit',
-                    value = FALSE,
-                    size = 'normal',
-                    width = 'auto')
+        prettyToggle(
+          inputId = "fit.hdx",
+          label_on = "Fit",
+          label_off = "No fit",
+          value = FALSE,
+          shape = "round",
+          width = "100%",
+          bigger = TRUE,
+          animation = "pulse"
+        )
       ),
       box(
         title = "Downloads",
@@ -224,19 +227,6 @@ ui <- dashboardPage(
         downloadBttn(
           outputId = "dwnplot",
           label = "Raw plot",
-          style = "material-flat",
-          size = 'sm'
-        ),
-        br(),
-        downloadBttn(
-          outputId = "dwnplot2",
-          label = "NUS plot png",
-          style = "material-flat",
-          size = 'sm'
-        ),
-        downloadBttn(
-          outputId = "dwnplot3",
-          label = "NUS plot pdf",
           style = "material-flat",
           size = 'sm'
         )
@@ -604,6 +594,18 @@ ui <- dashboardPage(
       # ".shiny-output-warning:before { visibility: hidden; }",
       ".shiny-output-error { visibility: hidden; }",
       ".shiny-output-error:before { visibility: hidden; }"
+    ),
+    tags$head(
+      tags$style(
+        HTML(
+          '
+          .handsontable th, .handsontable td {
+            background-color: #272c30 !important;
+            color: #bec5cb !important;
+          }
+          '
+        )
+      )
     ),
     navbarPage('Navigation',
                id = 'tabs',
@@ -977,46 +979,54 @@ ui <- dashboardPage(
                tabPanel("HDXplotR",
                         icon = icon('stopwatch'),
                         fluidRow(
-                          column(12,
-                                 collapsible_tabBox(
-                                   id = 'kinetic.hdx',
-                                   title = 'HDX kinetics',
-                                   width = 12,
-                                   tabPanel(
-                                     title = 'NUS calculation',
-                                     icon = icon('calculation'),
-                                     hotable("hotable2"),
-                                   ),
-                                   tabPanel(
-                                     title = 'Kinetics data',
-                                     icon = icon('table'),
-                                     DTOutput("centroids"),
-                                     checkboxInput(
-                                       inputId = "centroids_sel",
-                                       label = "select all",
-                                       value = FALSE
-                                     )
-                                   ),
-                                   tabPanel(
-                                     title = 'Fit initialization',
-                                     icon = icon("edit"),
-                                     hotable('hotable3')
-                                   )
-                                 )
+                          box(
+                            title = 'Kinetics data',
+                            width = 6,
+                            collapsible = TRUE,
+                            status = "success",
+                            p("Select the data points to be processed by
+                              clicking on the rows, or select them all with
+                              the checkbox below."),
+                            checkboxInput(
+                              inputId = "centroids_sel",
+                              label = "select all",
+                              value = FALSE
+                            ),
+                            DTOutput("centroids")
                           ),
                           box(
-                            title = "Raw exchange data",
+                            title = 'User input',
+                            width = 6,
+                            collapsible = TRUE,
+                            status = "success",
+                            h4("NUS calculation"),
+                            hotable("hotable2"),
+                            br(),
+                            h4("Fit Initialization"),
+                            hotable('hotable3')
+                          ),
+                          box(
+                            title = 'Fit results',
+                            DTOutput("hdx.fit.app"),
+                            width = 6,
+                            collapsible = TRUE,
+                            collapsed = TRUE
+                          )
+                        ),
+                        fluidRow(
+                          box(
+                            title = "Apparent centroids",
                             width = 6,
                             status = "primary",
                             collapsible = T,
-                            plotOutput("plot6")
+                            plotOutput("p.app.cent")
                           ),
                           box(
-                            title = "Exchange plot: from raw data",
+                            title = "Apparent exchange plot",
                             width = 6,
                             status = "primary",
                             collapsible = T,
-                            plotOutput("plot7")
+                            plotOutput("p.hdx.fit.app")
                           ),
                           box(
                             title = "Exchange plot: from optimization",
@@ -1041,19 +1051,33 @@ ui <- dashboardPage(
                             open = "Customisation",
                             bsCollapsePanel(
                               "Customisation",
-                              colourInput("col.kin", "Unselected points", "#777F85"),
-                              colourInput("col.kin.high1", "Series 1", "#1f77b4"),
-                              colourInput("col.kin.high2", "Series 2", "#ff7f0e"),
-                              colourInput("col.kin.high3", "Series 3", "#2ca02c"),
-                              colourInput("col.kin.high4", "Series 4", "#d62728"),
-                              sliderInput('size.kin', 'Dot Size',
-                                          min=1, max=10, value=3,
-                                          step=0.5, round=0,
-                                          ticks = FALSE),
-                              sliderInput('trans.kin', 'Opacity',
-                                          min=0, max=1, value=0.9,
-                                          step=0.05,
-                                          ticks = FALSE)
+                              colourInput("col.kin", "Unselected points", "#777F85", allowTransparent = TRUE),
+                              colourInput("col.kin.high1", "Series 1", "#E69F00", allowTransparent = TRUE),
+                              colourInput("col.kin.high2", "Series 2", "#56B4E9", allowTransparent = TRUE),
+                              colourInput("col.kin.high3", "Series 3", "#009E73", allowTransparent = TRUE),
+                              colourInput("col.kin.high4", "Series 4", "#F0E442", allowTransparent = TRUE),
+                              colourInput("col.kin.high5", "Series 5", "#0072B2", allowTransparent = TRUE),
+                              colourInput("col.kin.high6", "Series 6", "#D55E00", allowTransparent = TRUE),
+                              colourInput("col.kin.high7", "Series 7", "#CC79A7", allowTransparent = TRUE),
+                              colourInput("col.kin.high8", "Series 8", "black", allowTransparent = TRUE),
+                              sliderInput(
+                                'size.kin', 'Dot Size',
+                                min=1, max=10, value=3,
+                                step=0.5, round=0,
+                                ticks = FALSE
+                              ),
+                              sliderInput(
+                                'size.line.kin', 'Line size',
+                                min=0, max=5, value=1,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'size.txt.kin', 'Text size',
+                                min=1, max=10, value=5,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              )
                             )
                           ),
                           style = "opacity: 0.9"

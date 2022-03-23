@@ -1401,7 +1401,7 @@ server <- function(input, output, session) {
 
   ## 4. HDXplotR--------
 
-  ###centroid calculation----
+  ###4.1. Centroid calculation----
   centroids <- reactive({
 
     req(MSsnaps.pp())
@@ -1412,18 +1412,8 @@ server <- function(input, output, session) {
       summarise(centroid = weighted.mean(mz, intensum)) #calculation of centroids
   })
 
-  ####hot table----
+  #### Species naming
   NUS.init0 <- reactive({
-    #
-    #     if(!is.null(class(binom.NUS())) & !is.null(class(centroids()))){
-    #       species.list <- unique(c(centroids()$Species, opt()$Species))
-    #     } else if(is.null(class(binom.NUS())) & !is.null(class(centroids()))){
-    #       species.list <- unique(centroids()$Species)
-    #     } else if(!is.null(class(binom.NUS())) & is.null(class(centroids()))){
-    #       species.list <- unique(opt()$Species)
-    #     } else {
-    #       species.list <- c("no species processed")
-    #     }
 
     data.frame(Species = paste("Species", c(1:8)),
                Name = paste("Species", c(1:8)),
@@ -1447,7 +1437,9 @@ server <- function(input, output, session) {
     NUS.init0()
   }, readOnly = F)
 
-  ###NUS calculation----
+  ### 4.2 NUS calculation----
+
+  #### 4.2.1 Apparent NUS----
   NUS <- reactive({
     centroids() %>%
       left_join(NUS.change(), by = "Species") %>%
@@ -1542,9 +1534,12 @@ server <- function(input, output, session) {
       DT::selectRows(centroids_proxy, NULL)
     }
   })
+
+
   output$selected_rows <- renderPrint(print(input$centroids_rows_selected))
 
-  output$plot6 <- renderPlot({
+
+  output$p.app.cent <- renderPlot({
 
     req(centroidscaled()) #computes only once centroidscaled() is populated
 
@@ -1552,171 +1547,295 @@ server <- function(input, output, session) {
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
 
-    ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = centroidscaled()$centroid)) +
-      geom_point(color = input$col.kin, size = input$size.kin) +
-      geom_point(data = selected.points, size = input$size.kin,
-                 aes(x = timescale, y = centroid, color = Name), inherit.aes = F) +
-      scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
-      xlab("time (min)") +
+    ggplot(
+      data = centroidscaled(),
+      aes(x = centroidscaled()$timescale, y = centroidscaled()$centroid)
+    ) +
+      geom_point(
+        color = input$col.kin, size = input$size.kin
+      ) +
+      geom_point(
+        data = selected.points,
+        aes(x = timescale, y = centroid, color = Name),
+        inherit.aes = F,
+        size = input$size.kin
+      ) +
+      scale_color_manual(
+        values = c(
+          input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4,
+          input$col.kin.high5, input$col.kin.high6, input$col.kin.high7,input$col.kin.high8
+          )
+      ) +
+      xlab("tTime (min)") +
       ylab("centroid (m/z)") +
       custom.theme
   })
 
-  ##HDX fit initialization----
-  hdx.fit.init <- reactive({
-    as.data.frame(hot.to.df(input$hotable3))
-  })
 
-  output$hotable3 <- renderHotable({
+  ### 4.3 Non-linear fit----
 
-    s = input$centroids_rows_selected
-    selected.points <- centroidscaled()[ s,]
+  #### 4.3.1. Apparent NUS----
 
-    #automated N1, N2, NUS0 initialization
-    parm.init <- selected.points %>%
-      select(Name, NUS) %>% #gets names and NUS
-      group_by(Name) %>%
-      filter(NUS == max(NUS) | NUS == min(NUS)) %>% #calculates min and max NUS for each name
-      mutate(#calculates initial values for number of sites and offset
-        N1 = max(NUS)/2, #assumes same number of sites for both exponentials (may be quite inacurate)
-        N2 = max(NUS)/2,
-        NUS0 = min(NUS) #offset should be spot on
-      ) %>%
-      ungroup() %>%
-      select(Name, N1, N2, NUS0) %>% #discard unnecessary data
-      unique() #keep a single row per name
+  ##### 4.3.1.1 Initialisation----
 
-
-    #automated k1 and k2 initialization
-    lm.prep <- selected.points %>%
-      select(Name, NUS, timescale) %>% #get names, NUS, and timescale
-      group_by(Name) %>%
-      mutate(tr = NUS - min(NUS)) %>%
-      filter(tr > 0) %>% #removes non strictly positive values before calculating log
-      mutate(tr = log(tr)) #calculates neperian log
-
-    lm.results <- data.frame() #initializes data frame to gather linear fit results
-
-    for (i in unique(lm.prep$Name)) {
-      selected.species <- lm.prep %>%
-        filter(Name == i) #loops across Names
-
-      #linear fit of tr = f(timescale)
-      fit <- lm(data = selected.species,
-                formula = tr ~ timescale)
-
-      #k1, k2 initial values estimated from slope of log(NUS) = f(timescale)
-      buffer <- data.frame(k1 = -coef(fit)[2] * 10/3,
-                           k2 = -coef(fit)[2] / 3,
-                           Name = i) #adds Name to join to other parameters below
-
-      lm.results <- rbind(lm.results, buffer) #added to the result data frame
-    }
-
-    parm.init <- left_join(parm.init, lm.results) %>%
-      select(Name, NUS0, k1, N1, k2, N2) #reorders of columns
-
-    lm.prep <- NULL #empties lm.prep
-    lm.results <- NULL #empties lm.results
-
-    return(parm.init)
-
-  },
-  readOnly = F)
-
-  ##HDX fit plot----
-  plot7 <- reactive({
-
-    req(centroidscaled()) #computes only once centroidscaled() is populated
+  hdx.fit.app.init <- reactive({
 
     #data selection
     s = input$centroids_rows_selected
     selected.points <- centroidscaled()[ s,]
 
-    #fitting (for labeling only, fit lines are calculated directly in the plot)
-    if (isTRUE(input$fit.hdx)) { #calculates fit labeling is requested by user
-      fit.list <- data.frame()
 
-      for (i in unique(selected.points$Name)) {
-
-        selected.species <- selected.points %>%
-          filter(Name == i) #select one species per loop iteration
-
-        start.df <- hdx.fit.init() %>%
-          filter(Name == i) #select corresponding fit parameter start value
-
-        #fit start value vector
-        start <- c(N1 = as.numeric(start.df$N1), k1=as.numeric(start.df$k1),
-                   N2=as.numeric(start.df$N2), k2=as.numeric(start.df$k2),
-                   NUS0=as.numeric(start.df$NUS0))
-
-        #non linear fitting
-        fit <- nls(data = selected.species ,
-                   formula = NUS~NUS0+N1*exp(-k1*timescale)+N2*exp(-k2*timescale),
-                   start = start,
-                   control = nls.control(maxiter = 100000, warnOnly = T))
-
-        #result collection
-        buffer <- data.frame(label = paste0('k1 = ', round(coef(fit)[2], 5), ' (N = ', round(coef(fit)[1], 1), '), ',
-                                            'k2 = ', round(coef(fit)[4], 5), ' (N = ', round(coef(fit)[3], 1), '), ',
-                                            'NUS0 = ', round(coef(fit)[5], 1)),
-                             species.name = i,
-                             position.x = min(selected.species$timescale),
-                             position.y = max(selected.species$NUS))
-
-        fit.list <- rbind(fit.list, buffer)
-      }
-
-      buffer <- NULL #empties buffer
-      start.df <- NULL #empties start.df
-      selected.species <- NULL #empties selected.species
-
-    }
-
-    #plot
-    p7 <- ggplot(data = centroidscaled(), aes(x = centroidscaled()$timescale, y = NUS()$NUS)) +
-      geom_point(data = selected.points,
-                 size = input$size.kin, aes(x = timescale, y = NUS, color = Name),
-                 alpha = as.numeric(input$trans.kin),
-                 inherit.aes = F) +
-      xlab("time (min)") +
-      ylab("NUS") +
-      scale_color_manual(values = c(input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4)) +
-      custom.theme +
-      coord_cartesian(expand = T)
-
-    if (isTRUE(input$fit.hdx)) { #displays fit lines and labeling is requested by user
-      p7 <- p7 + geom_line(stat = "smooth", #This instead of geom_smooth to be able to apply alpha on fit line
-                           method = "nls",
-                           data = selected.points,
-                           formula=y~NUS0+N1*exp(-k1*x)+N2*exp(-k2*x),
-                           method.args = list(start = start,
-                                              nls.control(maxiter = 100000, warnOnly = T)),
-                           se = F,
-                           inherit.aes = T,
-                           aes(x = timescale, y = NUS, color = Name),
-                           alpha = 0.5,
-                           size = 1) +
-        geom_text_repel(data = fit.list,
-                        inherit.aes = F,
-                        aes(x = position.x,
-                            y = position.y,
-                            colour = species.name,
-                            label = label),
-                        show.legend = F,
-                        force = 3,
-                        point.padding = 2,
-                        alpha = 0.9,
-                        size = 5,
-                        fontface = "bold"
+    selected.points %>%
+      mutate(timescale.s = timescale*60) %>%
+      select(Species, timescale.s, NUS) %>%
+      group_by(Species) %>%
+      #initialization of offset and amplitude from raw data and linearization
+      mutate(
+        init.y0 = min(NUS),
+        init.A = max(NUS)-min(NUS),
+        log.NUS = log(NUS)
+      ) %>%
+      nest() %>%
+      #initialisation of an apparent rate constant by linear fit
+      mutate(
+        init.k = map(
+          data,
+          ~summary(
+            lm(
+              formula = log.NUS ~ timescale.s,
+              data = .
+            )
+          )$coefficient[2]*(-1)
         )
-    }
+      ) %>%
+      unnest(c(init.k, data)) %>%
+      select(-log.NUS) %>%
+      group_by(Species, init.y0, init.k, init.A) %>%
+      nest() %>%
+      ##### Monoexponential fitting
+      mutate(
+        init.fit = map(
+          data,
+          ~summary(
+            nls(
+              formula = NUS~y0+A*exp(-k*timescale.s),
+              data = .,
+              start = list(
+                y0 = init.y0,
+                k = init.k,
+                A = init.A
+              ),
+              control = nls.control(maxiter = 99999)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            mutate(param = rownames(.)) %>%
+            select(param, Estimate)
+        )
+      ) %>%
+      unnest(init.fit) %>%
+      pivot_wider(
+        names_from = param,
+        values_from = Estimate
+      )
+  })
 
-    return(p7)
+
+  ##### 4.3.1.2 User input----
+  output$hotable3 <- renderHotable({
+
+    hdx.fit.app.init() %>%
+      group_by(Species) %>%
+      mutate(
+        init.k1 = 1.1*k,
+        init.k2 = 0.9*k,
+        init.A1 = 1.1*A/2,
+        init.A2 = 0.9*A/2
+      ) %>%
+      select(Species, y0, init.k1, init.k2, init.A1, init.A2)
+  },
+  readOnly = F
+  )
+
+
+  hdx.fit.app.hot <- reactive({
+    as.data.frame(hot.to.df(input$hotable3))
+  })
+
+
+  ##### 4.3.1.3 Biexponential fitting----
+  hdx.fit.app <- reactive({
+    hdx.fit.app.init() %>%
+      #replace init. parameters by those of hotable
+      #remains unchanged if user did not alter values
+      select(Species, data) %>%
+      left_join(
+        hdx.fit.app.hot(),
+        by = "Species"
+      ) %>%
+      mutate(
+        nls.fit = map(
+          data,
+          ~ summary(
+            nls(
+              formula = NUS ~ y0 + A1*exp(-k1*timescale.s) + A2*exp(-k2*timescale.s),
+              data = .,
+              control = nls.control(maxiter = 99999),
+              start = list(
+                y0 = y0,
+                k1 = init.k1,
+                k2 = init.k2,
+                A1 = init.A1,
+                A2 = init.A2
+              )
+            )
+          )$parameters %>%
+            as.data.frame() %>%
+            mutate(param = rownames(.))
+        )
+      ) %>%
+      ungroup() %>%
+      select(Species, data, nls.fit) %>%
+      unnest(nls.fit)
+  })
+
+
+  output$hdx.fit.app <- renderDT({
+    datatable(
+      data = hdx.fit.app() %>%
+        left_join(NUS.change() %>%
+                    select(Species, Name)
+                  ) %>%
+        select(Species, Name, param, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        "Parameter" = "param",
+        "Standard Error" =  "Std. Error"
+      ),
+      editable = F,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+        columnDefs = list(list(visible=FALSE, targets=c(0,5,6)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:5,
+        target = 'row',
+        background = '#272c30'
+      ) %>%
+      formatSignif(
+        .,
+        columns = 4:5,
+        digits = 2
+      )
+  })
+
+
+  output$p.hdx.fit.app <- renderPlot({
+
+    label <- hdx.fit.app() %>%
+      unnest(data) %>%
+      left_join(NUS.change() %>%
+                  select(Species, Name)
+      ) %>%
+      select(Species, Name, param, Estimate, timescale.s, NUS) %>%
+      pivot_wider(
+        names_from = param,
+        values_from = Estimate
+      ) %>%
+      mutate(
+        label = paste0(
+          "y0 = ", signif(y0, 2),
+          ", k1 = ", signif(k1, 2), ", k2 = ", signif(k2, 2),
+          ", N1 = ", signif(A1, 2), ", N2 = ", signif(A2, 2)
+        ),
+        x = (mean(timescale.s)),
+        y = max(NUS)
+      ) %>%
+      select(Species, Name, label, x, y) %>%
+      unique()
+
+
+    if(isTRUE(input$fit.hdx)) {
+      hdx.fit.app() %>%
+        left_join(NUS.change() %>%
+                    select(Species, Name)
+        ) %>%
+        select(Species, Name, data, param, Estimate) %>%
+        pivot_wider(
+          names_from = param,
+          values_from = Estimate
+        ) %>%
+        unnest(data) %>%
+        group_by(Species, Name) %>%
+        mutate(
+          NUS.fit = y0 + A1*exp(-k1*timescale.s) + A2*exp(-k2*timescale.s)
+        ) %>%
+        select(-c(y0, k1, k2, A1, A2)) %>%
+        ggplot(
+          data = .,
+          aes(timescale.s, color = Name)
+        ) +
+        geom_point(
+          aes(y = NUS),
+          size = input$size.kin
+        ) +
+        geom_line(
+          aes(y = NUS.fit),
+          size = input$size.line.kin
+        ) +
+        geom_text_repel(
+          data = label,
+          aes(x = 1.1*x, y = y, label = label),
+          fontface = "bold",
+          size = input$size.txt.kin,
+          show.legend = FALSE
+        ) +
+        custom.theme +
+        scale_color_manual(
+          values = c(
+            input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4,
+            input$col.kin.high5, input$col.kin.high6, input$col.kin.high7,input$col.kin.high8
+          )
+        ) +
+        labs(
+          x = "Time (s)"
+        )
+    } else {
+      #data selection
+      s = input$centroids_rows_selected
+
+      centroidscaled()[ s,] %>%
+        ggplot(aes(timescale, NUS, color = Name)) +
+        geom_point(size = input$size.kin) +
+        custom.theme +
+        scale_color_manual(
+          values = c(
+            input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4,
+            input$col.kin.high5, input$col.kin.high6, input$col.kin.high7,input$col.kin.high8
+          )
+        ) +
+        labs(x = "Time (min)")
+
+    }
 
   })
 
-  ###HDX optim kinetics----
+
+
+  ### 4.4 HDX optim kinetics----
 
   #### Optimized NUS plot----
   output$optim.nus.plot <- renderPlot({
@@ -2467,31 +2586,6 @@ server <- function(input, output, session) {
     }
   )
 
-  output$plot7 <- renderPlot({
-    plot7()
-  })
-
-  output$dwnplot2 <- downloadHandler(
-    filename = function() { paste("kinetics-NUS", '.png', sep='') },
-    content = function(file) {
-      gggsave(file, plot = plot7(), device = "png",
-              width = 200,
-              height = 125,
-              units = 'mm',
-              dpi = 600)
-    }
-  )
-
-  output$dwnplot3 <- downloadHandler(
-    filename = function() { paste("kinetics-NUS", '.pdf', sep='') },
-    content = function(file) {
-      ggsave(file, plot = plot7(), device = "pdf",
-             width = 200,
-             height = 125,
-             units = 'mm',
-             dpi = 600)
-    }
-  )
 
 
   # #output options-----------
