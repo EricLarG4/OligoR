@@ -648,7 +648,7 @@ server <- function(input, output, session) {
   plot.snaps <- reactive({
     ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
                                   color = time.scale)) +
-      geom_line(size = 1) +
+      geom_line(size = input$size.line.snap) +
       scale_color_gradient(
         name = 't (min)', low=input$col.snap1, high=input$col.snap2,
         guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
@@ -802,14 +802,14 @@ server <- function(input, output, session) {
     ) +
       geom_line(
         aes(y = intensum),
-        size = 1
+        size = input$size.line.snap
       ) +
       geom_point(
         data = MSsnaps.pp() %>%
           filter(peak > 0),
         aes(y = intensum),
         color = '#CC79A7',
-        size = 5,
+        size = input$size.dot.pp,
         alpha = 0.5
       ) +
       xlab("m/z") +
@@ -1325,36 +1325,36 @@ server <- function(input, output, session) {
     optiplot <- optiplot +
       geom_point(data = opt.filter(),
                  aes(x = mz.th, y = iso.1),
-                 size = 5, color = '#E69F00', alpha = 0.75) +
+                 size = input$size.dot.opt, color = '#E69F00', alpha = 0.75) +
       geom_line(data = opt.filter(),
                 aes(x = mz.th, y = iso.1),
-                size = 1, color = '#E69F00', alpha = 0.75) +
+                size = input$size.line.opt, color = '#E69F00', alpha = 0.75) +
       geom_point(data = opt.filter(),
                  aes(x = mz.th, y = iso.2),
-                 size = 5, color = '#009E73', alpha = 0.75) +
+                 size = input$size.dot.opt, color = '#009E73', alpha = 0.75) +
       geom_line(data = opt.filter(),
                 aes(x = mz.th, y = iso.2),
-                size = 1, color = '#009E73', alpha = 0.75)  +
+                size = input$size.line.opt, color = '#009E73', alpha = 0.75)  +
       geom_point(data = opt.filter(),
                  aes(x = mz.th, y = iso),
-                 size = 5, color = '#0072B2', alpha = 0.75) +
+                 size = input$size.dot.opt, color = '#0072B2', alpha = 0.75) +
       geom_line(data = opt.filter(),
                 aes(x = mz.th, y = iso),
-                size = 1, color = '#0072B2', alpha = 0.75) +
+                size = input$size.line.opt, color = '#0072B2', alpha = 0.75) +
       geom_segment(data = opt.filter() %>% distinct(., time.scale, Species, distrib, centroid),
                    aes(x = centroid, xend = centroid, y = 0, yend = 1),
                    color = '#0072B2',
-                   size = 1, alpha = 0.75,
+                   size = input$size.line.cent, alpha = 0.75,
                    linetype = 'dashed')  +
       geom_segment(data = opt.filter() %>% distinct(., time.scale, Species, distrib, centroid.1),
                    aes(x = centroid.1, xend = centroid.1, y = 0, yend = 1),
                    color = '#E69F00',
-                   size = 1, alpha = 0.75,
+                   size = input$size.line.cent, alpha = 0.75,
                    linetype = 'dashed') +
       geom_segment(data = opt.filter() %>% distinct(., time.scale, Species, distrib, centroid.2),
                    aes(x = centroid.2, xend = centroid.2, y = 0, yend = 1),
                    color = '#009E73',
-                   size = 1, alpha = 0.75,
+                   size = input$size.line.cent, alpha = 0.75,
                    linetype = 'dashed')
 
     return(optiplot)

@@ -9,15 +9,13 @@ if (any(installed_packages == FALSE)) {
   install.packages(packages[!installed_packages])
 }
 
-
+devtools::install_github("AnalytixWare/ShinySky", force = FALSE)
 library(shinysky)
 
 librarian::shelf(
   shiny, shinydashboard, shinydashboardPlus, shinyBS, shinyWidgets,
   DT, colourpicker, DavidBarke/QWUtils
 )
-
-# library(shinysky) #useful?   devtools::install_github("AnalytixWare/ShinySky")
 
 
 ui <- dashboardPage(
@@ -191,16 +189,15 @@ ui <- dashboardPage(
         collapsed = F,
         solidHeader = F,
         width = 12,
-        switchInput(
-          label = 'Time scale',
-          inputId = 'manu2',
+        prettyToggle(
+          inputId = "manu2",
+          label_on = "Manual",
+          label_off = "TIC",
           value = TRUE,
-          width = 12,
-          onLabel = 'Manual',
-          offLabel = 'TIC',
-          size = 'normal',
-          onStatus = 'danger',
-          offStatus = 'info'
+          shape = "round",
+          width = "100%",
+          bigger = TRUE,
+          animation = "pulse"
         )
       ),
       box(
@@ -272,16 +269,15 @@ ui <- dashboardPage(
         collapsed = F,
         solidHeader = F,
         width = 12,
-        switchInput(
-          label = 'Time scale',
-          inputId = 'manu1',
+        prettyToggle(
+          inputId = "manu1",
+          label_on = "Manual",
+          label_off = "TIC",
           value = TRUE,
-          width = 12,
-          onLabel = 'Manual',
-          offLabel = 'TIC',
-          size = 'normal',
-          onStatus = 'danger',
-          offStatus = 'info'
+          shape = "round",
+          width = "100%",
+          bigger = TRUE,
+          animation = "pulse"
         )
       ),
       box(
@@ -929,6 +925,36 @@ ui <- dashboardPage(
                                 width = "100%",
                                 bigger = TRUE,
                                 animation = "pulse"
+                              ),
+                              sliderInput(
+                                'size.line.snap', 'MS line size',
+                                min=0, max=5, value=1,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'size.dot.pp', 'Peak-picking dot size',
+                                min=0, max=10, value=4,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'size.dot.opt', 'Model dot size',
+                                min=0, max=10, value=4,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'size.line.opt', 'Model line size',
+                                min=0, max=5, value=1,
+                                step=0.25, round=0,
+                                tick = FALSE
+                              ),
+                              sliderInput(
+                                'size.line.cent', 'Centroid line size',
+                                min=0, max=5, value=1,
+                                step=0.25, round=0,
+                                tick = FALSE
                               ),
                               sliderInput(
                                 'plot.snaps.w', 'Plot width',
