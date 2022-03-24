@@ -599,7 +599,7 @@ server <- function(input, output, session) {
 
   #snaps scaling
   MSsnaps1 <- reactive({
-    if (isTRUE(input$manu1)) {
+    if (isTRUE(input$timescale)) {
       MSsnaps() %>%
         mutate(time.scale = MSsnaps()$CFtime) %>% #creates a variable to scale the color and position the spectrum in the stack based on manual or TIC time
         group_by(time.scale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
@@ -1312,6 +1312,10 @@ server <- function(input, output, session) {
       optiplot <- plot.pp()
     } else {
       optiplot <- ggplot() +
+        facet_grid(
+          signif(time.scale, 3) ~ Species,
+          scales = common.scale()
+        ) +
         custom.theme +
         theme(strip.text = element_blank(),
               axis.title.y = element_blank(),
@@ -1408,7 +1412,7 @@ server <- function(input, output, session) {
 
     MSsnaps.pp() %>%
       # group_by(mean.time, Species) %>%
-      group_by(mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
+      group_by(time.scale, mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
       summarise(centroid = weighted.mean(mz, intensum)) #calculation of centroids
   })
 
@@ -1440,44 +1444,26 @@ server <- function(input, output, session) {
   ### 4.2 NUS calculation----
 
   #### 4.2.1 Apparent NUS----
+
   NUS <- reactive({
     centroids() %>%
       left_join(NUS.change(), by = "Species") %>%
-      group_by(mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
+      group_by(time.scale, mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
       mutate(#NUS calculation
         NUS = (centroid - Reference)*Charge/((D.initial - D.final)/100*(2.013553-1.007825)),
         mean.time.s = mean.time * 60,
         CFtime.s = CFtime * 60) %>% #creation of a time column in seconds
-      dplyr::select(Species, Name, mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS,
+      dplyr::select(Species, Name, time.scale, mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS,
                     Reference, Charge, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz)
   })
 
-  ####time scaling----
-  centroidscaled.init <- reactive({
-    if (isTRUE(input$manu2)) {
-      NUS() %>%
-        add_column(timescale = NUS()$CFtime)
-    } else {
-      NUS() %>%
-        add_column(timescale = NUS()$mean.time)
-    }
-  })
 
-  centroidscaled <- reactive({
-    if (isTRUE(input$manu2)) {
-      centroidscaled.init() %>%
-        mutate(timescale = CFtime)
-    } else {
-      centroidscaled.init() %>%
-        mutate(timescale = mean.time)
-    }
-  })
 
-  output$centroids <- DT::renderDT(server = FALSE, {
-    datatable(data = centroidscaled() %>%
+  output$NUS <- DT::renderDT(server = FALSE, {
+    datatable(data = NUS() %>%
                 select(
                   filename, min.time, max.time, min.scan, max.scan,
-                  Species, Name, timescale, mean.time, mean.time.s, CFtime, CFtime.s,
+                  Species, Name, time.scale, mean.time, mean.time.s, CFtime, CFtime.s,
                   centroid, Reference, Charge, NUS
                 ),
               style = "bootstrap",
@@ -1498,7 +1484,7 @@ server <- function(input, output, session) {
                 'End m/z'= 'max.mz',
                 'Species number' = 'Species',
                 'Species name' = 'Name',
-                "Time (min)" = "timescale"
+                "Time (min)" = "time.scale"
               ),
               editable = F,
               rownames = F,
@@ -1525,38 +1511,39 @@ server <- function(input, output, session) {
   })
 
   #Select all lines
-  centroids_proxy <- DT::dataTableProxy("centroids")
+  NUS.proxy <- DT::dataTableProxy("NUS")
 
-  observeEvent(input$centroids_sel, {
-    if (isTRUE(input$centroids_sel)) {
-      DT::selectRows(centroids_proxy, input$centroids_rows_all)
+  observeEvent(input$NUS.sel, {
+    if (isTRUE(input$NUS.sel)) {
+      DT::selectRows(NUS.proxy, input$NUS_rows_all)
     } else {
-      DT::selectRows(centroids_proxy, NULL)
+      DT::selectRows(NUS.proxy, NULL)
     }
   })
 
 
-  output$selected_rows <- renderPrint(print(input$centroids_rows_selected))
+  #Diagnostics
+  # output$selected_rows <- renderPrint(print(input$NUS_rows_selected))
 
 
   output$p.app.cent <- renderPlot({
 
-    req(centroidscaled()) #computes only once centroidscaled() is populated
+    req(NUS()) #computes only once centroidscaled() is populated
 
     #data selection
-    s = input$centroids_rows_selected
-    selected.points <- centroidscaled()[ s,]
+    s = input$NUS_rows_selected
+    selected.points <- NUS()[ s,]
 
     ggplot(
-      data = centroidscaled(),
-      aes(x = centroidscaled()$timescale, y = centroidscaled()$centroid)
+      data = centroids(),
+      aes(x = centroids()$time.scale, y = centroids()$centroid)
     ) +
       geom_point(
         color = input$col.kin, size = input$size.kin
       ) +
       geom_point(
         data = selected.points,
-        aes(x = timescale, y = centroid, color = Name),
+        aes(x = time.scale, y = centroid, color = Name),
         inherit.aes = F,
         size = input$size.kin
       ) +
@@ -1564,13 +1551,73 @@ server <- function(input, output, session) {
         values = c(
           input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4,
           input$col.kin.high5, input$col.kin.high6, input$col.kin.high7,input$col.kin.high8
-          )
+        )
       ) +
-      xlab("tTime (min)") +
+      xlab("time (min)") +
       ylab("centroid (m/z)") +
       custom.theme
   })
 
+
+  #### 4.2.2 Deconvoluted NUS----
+
+  ##### 4.2.2.1. Optimized NUS plot----
+
+  optim.nus.plot <- reactive({
+    binom.filter() %>%
+      ungroup() %>%
+      select(Species, time.scale, USE.1, USE.2, USE.mean) %>%
+      pivot_longer(
+        cols = 3:ncol(.),
+        values_to = "NUS",
+        names_to = "Population"
+      ) %>%
+      mutate(
+        Population = case_when(
+          Population == "USE.mean" ~ "overall",
+          Population == "USE.1" ~ "high exchange",
+          Population == "USE.2" ~ "low exchange"
+        )
+      ) %>%
+      left_join(
+        NUS.change() %>%
+          select(Species, Name), by = "Species"
+      ) %>%
+      ggplot(
+        aes(
+          x = time.scale, y = NUS,
+          color = Population, shape = Name
+        )
+      ) +
+      geom_point(size = input$size.kin) +
+      custom.theme +
+      labs(x = "time (min)")
+  })
+
+  ##### 4.2.2.2. Optimized abundance plot----
+  output$optim.ab.plot <- renderPlot({
+    binom.filter() %>%
+      ungroup() %>%
+      select(Species, time.scale, fraction.1, fraction.2) %>%
+      pivot_longer(
+        cols = 3:ncol(.),
+        values_to = "fraction",
+        names_to = "Population"
+      ) %>%
+      mutate(
+        Population = case_when(
+          Population == "fraction.1" ~ "high exchange",
+          Population == "fraction.2" ~ "low exchange"
+        )
+      ) %>%
+      left_join(NUS.change() %>% select(Species, Name), by = "Species") %>%
+      ggplot(
+        aes(x = time.scale, y = fraction, color = Population, shape = Name)
+      ) +
+      geom_point(size = input$size.kin) +
+      custom.theme +
+      labs(x = "time (min)")
+  })
 
   ### 4.3 Non-linear fit----
 
@@ -1581,13 +1628,13 @@ server <- function(input, output, session) {
   hdx.fit.app.init <- reactive({
 
     #data selection
-    s = input$centroids_rows_selected
-    selected.points <- centroidscaled()[ s,]
+    s = input$NUS_rows_selected
+    selected.points <- NUS()[ s,]
 
 
     selected.points %>%
-      mutate(timescale.s = timescale*60) %>%
-      select(Species, timescale.s, NUS) %>%
+      mutate(time.scale.s = time.scale*60) %>%
+      select(Species, time.scale.s, NUS) %>%
       group_by(Species) %>%
       #initialization of offset and amplitude from raw data and linearization
       mutate(
@@ -1602,7 +1649,7 @@ server <- function(input, output, session) {
           data,
           ~summary(
             lm(
-              formula = log.NUS ~ timescale.s,
+              formula = log.NUS ~ time.scale.s,
               data = .
             )
           )$coefficient[2]*(-1)
@@ -1618,7 +1665,7 @@ server <- function(input, output, session) {
           data,
           ~summary(
             nls(
-              formula = NUS~y0+A*exp(-k*timescale.s),
+              formula = NUS~y0+A*exp(-k*time.scale.s),
               data = .,
               start = list(
                 y0 = init.y0,
@@ -1652,14 +1699,16 @@ server <- function(input, output, session) {
         init.A1 = 1.1*A/2,
         init.A2 = 0.9*A/2
       ) %>%
-      select(Species, y0, init.k1, init.k2, init.A1, init.A2)
+      select(Species, y0, init.k1, init.k2, init.A1, init.A2) %>%
+      set_colnames(c("Species", "y0", "k1", "k2", "A1", "A2"))
   },
   readOnly = F
   )
 
 
   hdx.fit.app.hot <- reactive({
-    as.data.frame(hot.to.df(input$hotable3))
+    as.data.frame(hot.to.df(input$hotable3)) %>%
+      set_colnames(c("Species", "y0", "init.k1", "init.k2", "init.A1", "init.A2"))
   })
 
 
@@ -1678,7 +1727,7 @@ server <- function(input, output, session) {
           data,
           ~ summary(
             nls(
-              formula = NUS ~ y0 + A1*exp(-k1*timescale.s) + A2*exp(-k2*timescale.s),
+              formula = NUS ~ y0 + A1*exp(-k1*time.scale.s) + A2*exp(-k2*time.scale.s),
               data = .,
               control = nls.control(maxiter = 99999),
               start = list(
@@ -1705,7 +1754,7 @@ server <- function(input, output, session) {
       data = hdx.fit.app() %>%
         left_join(NUS.change() %>%
                     select(Species, Name)
-                  ) %>%
+        ) %>%
         select(Species, Name, param, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`),
       style = "bootstrap",
       extensions = c('Buttons', 'Responsive', 'Scroller'),
@@ -1745,30 +1794,30 @@ server <- function(input, output, session) {
 
   output$p.hdx.fit.app <- renderPlot({
 
-    label <- hdx.fit.app() %>%
-      unnest(data) %>%
-      left_join(NUS.change() %>%
-                  select(Species, Name)
-      ) %>%
-      select(Species, Name, param, Estimate, timescale.s, NUS) %>%
-      pivot_wider(
-        names_from = param,
-        values_from = Estimate
-      ) %>%
-      mutate(
-        label = paste0(
-          "y0 = ", signif(y0, 2),
-          ", k1 = ", signif(k1, 2), ", k2 = ", signif(k2, 2),
-          ", N1 = ", signif(A1, 2), ", N2 = ", signif(A2, 2)
-        ),
-        x = (mean(timescale.s)),
-        y = max(NUS)
-      ) %>%
-      select(Species, Name, label, x, y) %>%
-      unique()
-
-
     if(isTRUE(input$fit.hdx)) {
+
+      label <- hdx.fit.app() %>%
+        unnest(data) %>%
+        left_join(NUS.change() %>%
+                    select(Species, Name)
+        ) %>%
+        select(Species, Name, param, Estimate, time.scale.s, NUS) %>%
+        pivot_wider(
+          names_from = param,
+          values_from = Estimate
+        ) %>%
+        mutate(
+          label = paste0(
+            "y0 = ", signif(y0, 2),
+            ", k1 = ", signif(k1, 2), ", k2 = ", signif(k2, 2),
+            ", N1 = ", signif(A1, 2), ", N2 = ", signif(A2, 2)
+          ),
+          x = (mean(time.scale.s)),
+          y = max(NUS)
+        ) %>%
+        select(Species, Name, label, x, y) %>%
+        unique()
+
       hdx.fit.app() %>%
         left_join(NUS.change() %>%
                     select(Species, Name)
@@ -1781,12 +1830,12 @@ server <- function(input, output, session) {
         unnest(data) %>%
         group_by(Species, Name) %>%
         mutate(
-          NUS.fit = y0 + A1*exp(-k1*timescale.s) + A2*exp(-k2*timescale.s)
+          NUS.fit = y0 + A1*exp(-k1*time.scale.s) + A2*exp(-k2*time.scale.s)
         ) %>%
         select(-c(y0, k1, k2, A1, A2)) %>%
         ggplot(
           data = .,
-          aes(timescale.s, color = Name)
+          aes(time.scale.s, color = Name)
         ) +
         geom_point(
           aes(y = NUS),
@@ -1811,14 +1860,14 @@ server <- function(input, output, session) {
           )
         ) +
         labs(
-          x = "Time (s)"
+          x = "time (s)"
         )
     } else {
       #data selection
-      s = input$centroids_rows_selected
+      s = input$NUS_rows_selected
 
-      centroidscaled()[ s,] %>%
-        ggplot(aes(timescale, NUS, color = Name)) +
+      NUS()[ s,] %>%
+        ggplot(aes(time.scale, NUS, color = Name)) +
         geom_point(size = input$size.kin) +
         custom.theme +
         scale_color_manual(
@@ -1827,69 +1876,248 @@ server <- function(input, output, session) {
             input$col.kin.high5, input$col.kin.high6, input$col.kin.high7,input$col.kin.high8
           )
         ) +
-        labs(x = "Time (min)")
+        labs(x = "time (min)")
 
     }
 
   })
 
 
+  #### 4.3.2. Deconvoluted NUS----
 
-  ### 4.4 HDX optim kinetics----
+  ##### 4.3.2.1 Initialisation----
 
-  #### Optimized NUS plot----
-  output$optim.nus.plot <- renderPlot({
+  hdx.fit.opt.init <- reactive({
+
     binom.filter() %>%
-      ungroup() %>%
-      select(Species, time.scale, USE.1, USE.2, USE.mean) %>%
-      pivot_longer(
-        cols = 3:ncol(.),
-        values_to = "NUS",
-        names_to = "Population"
-      ) %>%
+      filter(distrib == 'bi') %>%
+      mutate(time.scale.s = time.scale*60) %>%
+      select(Species, time.scale.s, USE.1, USE.2, USE.mean) %>%
+      group_by(Species) %>%
+      #initialization of offset and amplitude from raw data and linearization
       mutate(
-        Population = case_when(
-          Population == "USE.mean" ~ "overall",
-          Population == "USE.1" ~ "high exchange",
-          Population == "USE.2" ~ "low exchange"
+        init.y0.1 = min(USE.1),
+        init.y0.2 = min(USE.2),
+        init.y0.mean = min(USE.mean),
+        init.A.1 = max(USE.1)-min(USE.1),
+        init.A.2 = max(USE.2)-min(USE.2),
+        init.A.mean = max(USE.mean)-min(USE.mean),
+        # log.NUS.1 = log(USE.1),
+        # log.NUS.2 = log(USE.2),
+        log.NUS.mean = log(USE.mean)
+      ) %>%
+      nest() %>%
+      #initialisation of an apparent rate constant by linear fit
+      mutate(
+        init.k = map(
+          data,
+          ~summary(
+            lm(
+              formula = log.NUS.mean ~ time.scale.s,
+              data = .
+            )
+          )$coefficient[2]*(-1)
         )
       ) %>%
-      left_join(NUS.change() %>% select(Species, Name), by = "Species") %>%
-      ggplot(
-        aes(x = time.scale, y = NUS, color = Population, shape = Name)
-      ) +
-      geom_point(size = 4) +
-      custom.theme +
-      labs(x = "time (min)")
+      unnest(c(init.k, data)) %>%
+      select(-c(log.NUS.mean))
+
   })
 
-  #### Optimized abundance plto----
-  output$optim.ab.plot <- renderPlot({
-    binom.filter() %>%
-      ungroup() %>%
-      select(Species, time.scale, fraction.1, fraction.2) %>%
-      pivot_longer(
-        cols = 3:ncol(.),
-        values_to = "fraction",
-        names_to = "Population"
+  ##### 4.3.2.2 User input----
+  output$hotable4 <- renderHotable({
+
+    hdx.fit.opt.init() %>%
+      group_by(Species) %>%
+      select(Species,
+             init.y0.1, init.y0.2, init.y0.mean,
+             init.A.1, init.A.2, init.A.mean,
+             init.k) %>%
+      unique() %>%
+      set_colnames(
+        c("Species",
+          "y0 (high exchange)", "y0 (low exchange)", "y0 (overall)",
+          "A (high exchange)", "A (low exchange)", "A (overall)",
+          "k (s-1)")
+      )
+  },
+  readOnly = F
+  )
+
+  hdx.fit.opt.hot <- reactive({
+    as.data.frame(hot.to.df(input$hotable4)) %>%
+      set_colnames(
+        c(
+          'Species',
+          'init.y0.1', 'init.y0.2', 'init.y0.mean',
+          'init.A.1', 'init.A.2', 'init.A.mean',
+          'init.k'
+        )
+      )
+  })
+
+  ##### 4.3.2.3. Monoexponential fitting----
+
+  hdx.fit.opt <- reactive({
+    hdx.fit.opt.init() %>%
+      select(-c(
+        init.y0.1, init.y0.2, init.y0.mean,
+        init.A.1, init.A.2, init.A.mean,
+        init.k)
       ) %>%
+      #replace init. parameters by those of hotable
+      #remains unchanged if user did not alter values
+      left_join(
+        hdx.fit.opt.hot(),
+        by = "Species"
+      ) %>%
+      group_by(
+        Species,
+        init.y0.1, init.y0.2, init.y0.mean,
+        init.k,
+        init.A.1, init.A.2, init.A.mean
+      ) %>%
+      nest() %>%
       mutate(
-        Population = case_when(
-          Population == "fraction.1" ~ "high exchange",
-          Population == "fraction.2" ~ "low exchange"
+        nls.fit.mean = map(
+          data,
+          ~summary(
+            nls(
+              formula = USE.mean~y0+A*exp(-k*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.mean,
+                k = init.k,
+                A = init.A.mean
+              ),
+              control = nls.control(maxiter = 99999)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            mutate(param = rownames(.)) %>%
+            select(param, Estimate) %>%
+            set_colnames(c('param', 'estimate.mean'))
+        ),
+        nls.fit.1 = map(
+          data,
+          ~summary(
+            nls(
+              formula = USE.1~y0+A*exp(-k*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.1,
+                k = init.k,
+                A = init.A.1
+              ),
+              control = nls.control(maxiter = 99999)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            select(Estimate) %>%
+            set_colnames(c('estimate.1'))
+        ),
+        nls.fit.2 = map(
+          data,
+          ~summary(
+            nls(
+              formula = USE.2~y0+A*exp(-k*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.2,
+                k = init.k,
+                A = init.A.2
+              ),
+              control = nls.control(maxiter = 99999)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            select(Estimate) %>%
+            set_colnames(c('estimate.2'))
         )
       ) %>%
-      left_join(NUS.change() %>% select(Species, Name), by = "Species") %>%
-      ggplot(
-        aes(x = time.scale, y = fraction, color = Population, shape = Name)
-      ) +
-      geom_point(size = 4) +
-      custom.theme +
-      labs(x = "time (min)")
+      unnest(c(nls.fit.mean, nls.fit.1, nls.fit.2))
+
+  })
+
+  #####4.3.2.4. Plot----
+
+  output$p.hdx.fit.opt <- renderPlot({
+
+    if(isTRUE(input$fit.hdx)) {
+
+      fit.calc <- hdx.fit.opt() %>%
+        select(Species, data, param, estimate.1, estimate.2, estimate.mean) %>%
+        pivot_wider(
+          names_from = param,
+          values_from = c(estimate.1, estimate.2, estimate.mean)
+        ) %>%
+        unnest(data) %>%
+        group_by(Species) %>%
+        mutate(
+          NUS.fit.mean = estimate.mean_y0 + estimate.mean_A*exp(-estimate.mean_k*time.scale.s),
+          NUS.fit.1 = estimate.1_y0 + estimate.1_A*exp(-estimate.1_k*time.scale.s),
+          NUS.fit.2 = estimate.2_y0 + estimate.2_A*exp(-estimate.2_k*time.scale.s)
+        )
+
+      fit.calc %>%
+        pivot_longer(
+          cols = c("USE.1", "USE.2", "USE.mean"),
+          values_to = "NUS",
+          names_to = "Population"
+        ) %>%
+        mutate(
+          Population = case_when(
+            Population == "USE.mean" ~ "overall",
+            Population == "USE.1" ~ "high exchange",
+            Population == "USE.2" ~ "low exchange"
+          )
+        ) %>%
+        select(Species, time.scale, distrib, time.scale.s, Population, NUS) %>%
+        left_join(
+          fit.calc %>%
+            select(Species, time.scale.s, NUS.fit.mean, NUS.fit.1, NUS.fit.2) %>%
+            pivot_longer(
+              cols = c("NUS.fit.mean", "NUS.fit.1", "NUS.fit.2"),
+              values_to = "NUS.fit",
+              names_to = "Population"
+            ) %>%
+            mutate(
+              Population = case_when(
+                Population == "NUS.fit.mean" ~ "overall",
+                Population == "NUS.fit.1" ~ "high exchange",
+                Population == "NUS.fit.2" ~ "low exchange"
+              )
+            ),
+          by = c("Species", "time.scale.s", "Population")
+        ) %>%
+        left_join(
+          NUS.change() %>%
+            select(Species, Name), by = "Species"
+        ) %>%
+        ggplot(
+          data = .,
+          aes(x = time.scale.s, color = Population, shape = Name)
+        ) +
+        geom_point(
+          aes(y = NUS),
+          size = input$size.kin
+        ) +
+        geom_line(
+          aes(y = NUS.fit),
+          size = input$size.line.kin
+        ) +
+        custom.theme +
+        labs(x = "time (s)")
+
+    } else {
+      optim.nus.plot()
+    }
+
   })
 
 
-  #--------------KINETICS--------------
+
+  # #5. KINETICS--------------
 
   #Processed data reimport
   kin.old <- reactive({

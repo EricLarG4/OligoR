@@ -183,24 +183,6 @@ ui <- dashboardPage(
     conditionalPanel(
       condition = "input.tabs == 'HDXplotR'",
       box(
-        title = 'Time scale',
-        id = 'timescale2',
-        collapsible = T,
-        collapsed = F,
-        solidHeader = F,
-        width = 12,
-        prettyToggle(
-          inputId = "manu2",
-          label_on = "Manual",
-          label_off = "TIC",
-          value = TRUE,
-          shape = "round",
-          width = "100%",
-          bigger = TRUE,
-          animation = "pulse"
-        )
-      ),
-      box(
         width = 12,
         title = "Fitting",
         status = "maroon",
@@ -254,13 +236,12 @@ ui <- dashboardPage(
       ),
       box(
         title = 'Time scale',
-        id = 'timescale1',
         collapsible = T,
         collapsed = F,
         solidHeader = F,
         width = 12,
         prettyToggle(
-          inputId = "manu1",
+          inputId = "timescale",
           label_on = "Manual",
           label_off = "TIC",
           value = TRUE,
@@ -988,11 +969,11 @@ ui <- dashboardPage(
                               clicking on the rows, or select them all with
                               the checkbox below."),
                             checkboxInput(
-                              inputId = "centroids_sel",
+                              inputId = "NUS.sel",
                               label = "select all",
                               value = FALSE
                             ),
-                            DTOutput("centroids")
+                            DTOutput("NUS")
                           ),
                           box(
                             title = 'User input',
@@ -1003,7 +984,9 @@ ui <- dashboardPage(
                             hotable("hotable2"),
                             br(),
                             h4("Fit Initialization"),
-                            hotable('hotable3')
+                            hotable('hotable3'),
+                            h4("Deconvoluted data fit initialization"),
+                            hotable('hotable4')
                           ),
                           box(
                             title = 'Fit results',
@@ -1033,7 +1016,7 @@ ui <- dashboardPage(
                             width = 6,
                             status = "danger",
                             collapsible = TRUE,
-                            plotOutput("optim.nus.plot")
+                            plotOutput("p.hdx.fit.opt")
                           ),
                           box(
                             title = "Population abundances: from optimization",
