@@ -347,9 +347,9 @@ ui <- dashboardPage(
         )
       )
     ),
-    #sidebar KineticR-------------
+    #sidebar TimeR-------------
     conditionalPanel(
-      condition = "input.tabs =='KineticR'",
+      condition = "input.tabs =='TimeR'",
       box(
         width = 12,
         title = "Import results",
@@ -370,19 +370,15 @@ ui <- dashboardPage(
         solidHeader = F,
         collapsible = T,
         collapsed = F,
-        splitLayout(
-          textInput(
-            inputId = "text33",
-            label = "Start (min)",
-            value = 0,
-            width = 12
-          ),
-          textInput(
-            inputId = "text34",
-            label = "End (min)",
-            value = 999,
-            width = 12
-          )
+        textInput(
+          inputId = "text33",
+          label = "Start (min)",
+          value = 0
+        ),
+        textInput(
+          inputId = "text34",
+          label = "End (min)",
+          value = 999
         ),
         sliderInput(
           inputId = "text35",
@@ -390,7 +386,38 @@ ui <- dashboardPage(
           min = 1,
           max = 25,
           step = 1,
-          value = 1
+          value = 1,
+          ticks = FALSE
+        )
+      ),
+      box(
+        width = 12,
+        title = "Standardization",
+        prettyRadioButtons(
+          inputId = "kin.input",
+          label = "Intensity",
+          choices = c("Raw" = 'raw', "Corrected" = 'corrected', "Centroids" = 'centroid'),
+          icon = icon("check"),
+          inline = T,
+          bigger = TRUE,
+          status = "info",
+          animation = "jelly"
+        )
+      ),
+      box(
+        width = 12,
+        title = "Data filtering",
+        checkboxGroupButtons(
+          inputId = "Pick1",
+          label = "Select species",
+          choices = c("Species 1", "Species 2", "Species 3", "Species 4", "Species 5", "Species 6", "Species 7", "Species 8"),
+          selected = c("Species 1", "Species 2", "Species 3", "Species 4", "Species 5", "Species 6", "Species 7", "Species 8"),
+          size = 'sm',
+          status = "primary",
+          direction = 'horizontal',
+          checkIcon = list(
+            yes = icon("ok", lib = "glyphicon"),
+            no = icon("remove", lib = "glyphicon"))
         )
       ),
       box(
@@ -399,62 +426,46 @@ ui <- dashboardPage(
         status = 'danger',
         solidHeader = F,
         collapsible = T,
-        collapsed = F,
-        splitLayout(
-          textInput(
-            inputId = "text36",
-            label = "Species 1",
-            value = "Species 1",
-            width = 12
-          ),
-          textInput(
-            inputId = "text37",
-            label = "Species 2",
-            value = "Species 2",
-            width = 12
-          )
+        collapsed = T,
+        textInput(
+          inputId = "text36",
+          label = "Species 1",
+          value = "Species 1"
         ),
-        splitLayout(
-          textInput(
-            inputId = "text38",
-            label = "Species 3",
-            value = "Species 3",
-            width = 12
-          ),
-          textInput(
-            inputId = "text39",
-            label = "Species 4",
-            value = "Species 4",
-            width = 12
-          )
+        textInput(
+          inputId = "text37",
+          label = "Species 2",
+          value = "Species 2"
         ),
-        splitLayout(
-          textInput(
-            inputId = "text40",
-            label = "Species 5",
-            value = "Species 5",
-            width = 12
-          ),
-          textInput(
-            inputId = "text41",
-            label = "Species 6",
-            value = "Species 6",
-            width = 12
-          )
+        textInput(
+          inputId = "text38",
+          label = "Species 3",
+          value = "Species 3"
         ),
-        splitLayout(
-          textInput(
-            inputId = "text42",
-            label = "Species 7",
-            value = "Species 7",
-            width = 12
-          ),
-          textInput(
-            inputId = "text43",
-            label = "Species 8",
-            value = "Species 8",
-            width = 12
-          )
+        textInput(
+          inputId = "text39",
+          label = "Species 4",
+          value = "Species 4"
+        ),
+        textInput(
+          inputId = "text40",
+          label = "Species 5",
+          value = "Species 5"
+        ),
+        textInput(
+          inputId = "text41",
+          label = "Species 6",
+          value = "Species 6"
+        ),
+        textInput(
+          inputId = "text42",
+          label = "Species 7",
+          value = "Species 7"
+        ),
+        textInput(
+          inputId = "text43",
+          label = "Species 8",
+          value = "Species 8"
         )
       )
     ),
@@ -986,7 +997,8 @@ ui <- dashboardPage(
                             h4("Fit Initialization"),
                             hotable('hotable3'),
                             h4("Deconvoluted data fit initialization"),
-                            hotable('hotable4')
+                            hotable('hotable4'),
+                            DTOutput('diag')
                           ),
                           box(
                             title = 'Fit results',
@@ -1066,8 +1078,8 @@ ui <- dashboardPage(
                           style = "opacity: 0.9"
                         )
                ),
-               #panel timR--------
-               tabPanel("KineticR",
+               #panel TimeR--------
+               tabPanel("TimeR",
                         icon = icon('clock'),
                         fluidRow(
                           box(
@@ -1075,7 +1087,7 @@ ui <- dashboardPage(
                             footer = "To be able to reimport the data, save as Excel. The number of scans to average and time range can be reprocessed. Caution: scans excluded will not be exported.",
                             width = 12,
                             status = "success",
-                            solidHeader = T,
+                            solidHeader = F,
                             collapsible = T,
                             DTOutput("k.table")
                           ),
@@ -1083,86 +1095,14 @@ ui <- dashboardPage(
                             title = "Kinetics plot",
                             width = 12,
                             status = "danger",
-                            solidHeader = T,
+                            solidHeader = F,
                             collapsible = T,
-                            div(style="display: inline-block;vertical-align:top; width: 50px;",
-                                dropdownButton(
-                                  circle = TRUE,
-                                  status = "danger",
-                                  icon = icon("filter"),
-                                  size = 'sm',
-                                  width = '400px',
-                                  tooltip = tooltipOptions(title = "Click to see change input"),
-                                  tags$h4("Standardization"),
-                                  prettyRadioButtons(
-                                    inputId = "kin.input",
-                                    label = "Intensity",
-                                    choices = c("Raw" = 'raw', "Corrected" = 'corrected', "Centroids" = 'centroid'),
-                                    icon = icon("check"),
-                                    inline = T,
-                                    bigger = TRUE,
-                                    status = "info",
-                                    animation = "jelly"
-                                  ),
-                                  tags$h4("Data filtering"),
-                                  checkboxGroupButtons(
-                                    inputId = "Pick1",
-                                    label = "Select species",
-                                    choices = c("Species 1", "Species 2", "Species 3", "Species 4", "Species 5", "Species 6", "Species 7", "Species 8"),
-                                    selected = c("Species 1", "Species 2", "Species 3", "Species 4", "Species 5", "Species 6", "Species 7", "Species 8"),
-                                    size = 'sm',
-                                    status = "primary",
-                                    direction = 'horizontal',
-                                    checkIcon = list(
-                                      yes = icon("ok", lib = "glyphicon"),
-                                      no = icon("remove", lib = "glyphicon"))
-                                  )
-                                )),
-                            div(style="display: inline-block;vertical-align:top; width: 50px;",
-                                dropdownButton(
-                                  tags$h4("Dots"),
-                                  circle = TRUE,
-                                  status = "primary",
-                                  icon = icon("fill-drip"),
-                                  size = 'sm',
-                                  tooltip = tooltipOptions(title = "Click to change appearance"),
-                                  sliderInput('size.dot.kin', 'Size',
-                                              min=0, max=10, value=4,
-                                              step=0.25, round=0),
-                                  sliderInput('transp.kin', 'Opacity',
-                                              min=0, max=1, value=0.9,
-                                              step=0.05),
-                                  tags$h4("Colors"),
-                                  colourInput("col.dot.kin1", "Series 1", "#1f77b4"),
-                                  colourInput("col.dot.kin2", "Series 2", "#ff7f0e"),
-                                  colourInput("col.dot.kin3", "Series 3", "#2ca02c"),
-                                  colourInput("col.dot.kin4", "Series 4", "#d62728"),
-                                  colourInput("col.dot.kin5", "Series 5", "#9467bd"),
-                                  colourInput("col.dot.kin6", "Series 6", "#8c564b"),
-                                  colourInput("col.dot.kin7", "Series 7", "#e377c2"),
-                                  colourInput("col.dot.kin8", "Series 8", "#7f7f7f")
-                                )),
-                            div(style="display: inline-block;vertical-align:top; width: 50px;",
-                                dropdownButton(
-                                  tags$h4("Dimensions"),
-                                  circle = TRUE,
-                                  status = "success",
-                                  icon = icon("ruler-combined"),
-                                  size = 'sm',
-                                  tooltip = tooltipOptions(title = "Click to change dimensions"),
-                                  sliderInput('k.plot.w', 'Plot width',
-                                              min=100, max=2000, value=1000,
-                                              step=20, round=0),
-                                  sliderInput('k.plot.h', 'Plot height',
-                                              min=100, max=3000, value= 500,
-                                              step=20, round=0)
-                                )),
                             uiOutput("k.plot.ui")
                           ),
                           box(
                             title = 'Data for post-processing',
                             footer = 'Select data in plot filter dropdown menu. Create/update the table by clicking on "Generate table".',
-                            solidHeader = T,
+                            solidHeader = F,
                             status = 'primary',
                             collapsible = T,
                             collapsed = T,
@@ -1179,7 +1119,7 @@ ui <- dashboardPage(
                           ),
                           box(
                             title = 'Raw spectrum data',
-                            solidHeader = T,
+                            solidHeader = F,
                             status = 'primary',
                             collapsible = T,
                             collapsed = T,
@@ -1187,6 +1127,58 @@ ui <- dashboardPage(
                             numericInput("nrows", "Number of rows", 10),
                             DTOutput('k.spectra')
                           )
+                        ),
+                        absolutePanel(
+                          top = 300, right = 40, width = 300,
+                          draggable = TRUE,
+                          fixed = TRUE,
+                          bsCollapse(
+                            open = "Customisation",
+                            bsCollapsePanel(
+                              "Customisation",
+                              flowLayout(
+                                colourInput("col.dot.kin1", "Series 1", "#E69F00", allowTransparent = TRUE),
+                                colourInput("col.dot.kin2", "Series 2", "#56B4E9", allowTransparent = TRUE),
+                                colourInput("col.dot.kin3", "Series 3", "#009E73", allowTransparent = TRUE),
+                                colourInput("col.dot.kin4", "Series 4", "#F0E442", allowTransparent = TRUE),
+                                colourInput("col.dot.kin5", "Series 5", "#0072B2", allowTransparent = TRUE),
+                                colourInput("col.dot.kin6", "Series 6", "#D55E00", allowTransparent = TRUE),
+                                colourInput("col.dot.kin7", "Series 7", "#CC79A7", allowTransparent = TRUE),
+                                colourInput("col.dot.kin8", "Series 8", "#777F85", allowTransparent = TRUE)
+                              ),
+                              splitLayout(
+                                sliderInput(
+                                  'size.dot.kin', 'Size',
+                                  min=0, max=10, value=4,
+                                  step=0.25, round=0,
+                                  ticks = FALSE
+                                ),
+                                sliderInput(
+                                  'transp.kin', 'Opacity',
+                                  min=0, max=1, value=0.9,
+                                  step=0.05,
+                                  ticks = FALSE
+                                )
+                              ),
+                              splitLayout(
+                                sliderInput(
+                                  'k.plot.w',
+                                  'Plot width',
+                                  min=100, max=2000, value=1000,
+                                  step=20, round=0,
+                                  ticks = FALSE
+                                ),
+                                sliderInput(
+                                  'k.plot.h',
+                                  'Plot height',
+                                  min=100, max=3000, value= 500,
+                                  step=20, round=0,
+                                  ticks = FALSE
+                                )
+                              )
+                            )
+                          ),
+                          style = "opacity: 0.9"
                         )
                ),
                #panel titR------

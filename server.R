@@ -1902,8 +1902,6 @@ server <- function(input, output, session) {
         init.A.1 = max(USE.1)-min(USE.1),
         init.A.2 = max(USE.2)-min(USE.2),
         init.A.mean = max(USE.mean)-min(USE.mean),
-        # log.NUS.1 = log(USE.1),
-        # log.NUS.2 = log(USE.2),
         log.NUS.mean = log(USE.mean)
       ) %>%
       nest() %>%
@@ -1920,57 +1918,7 @@ server <- function(input, output, session) {
         )
       ) %>%
       unnest(c(init.k, data)) %>%
-      select(-c(log.NUS.mean))
-
-  })
-
-  ##### 4.3.2.2 User input----
-  output$hotable4 <- renderHotable({
-
-    hdx.fit.opt.init() %>%
-      group_by(Species) %>%
-      select(Species,
-             init.y0.1, init.y0.2, init.y0.mean,
-             init.A.1, init.A.2, init.A.mean,
-             init.k) %>%
-      unique() %>%
-      set_colnames(
-        c("Species",
-          "y0 (high exchange)", "y0 (low exchange)", "y0 (overall)",
-          "A (high exchange)", "A (low exchange)", "A (overall)",
-          "k (s-1)")
-      )
-  },
-  readOnly = F
-  )
-
-  hdx.fit.opt.hot <- reactive({
-    as.data.frame(hot.to.df(input$hotable4)) %>%
-      set_colnames(
-        c(
-          'Species',
-          'init.y0.1', 'init.y0.2', 'init.y0.mean',
-          'init.A.1', 'init.A.2', 'init.A.mean',
-          'init.k'
-        )
-      )
-  })
-
-  ##### 4.3.2.3. Monoexponential fitting----
-
-  hdx.fit.opt <- reactive({
-    hdx.fit.opt.init() %>%
-      select(-c(
-        init.y0.1, init.y0.2, init.y0.mean,
-        init.A.1, init.A.2, init.A.mean,
-        init.k)
-      ) %>%
-      #replace init. parameters by those of hotable
-      #remains unchanged if user did not alter values
-      left_join(
-        hdx.fit.opt.hot(),
-        by = "Species"
-      ) %>%
+      select(-c(log.NUS.mean)) %>%
       group_by(
         Species,
         init.y0.1, init.y0.2, init.y0.mean,
@@ -2039,6 +1987,153 @@ server <- function(input, output, session) {
 
   })
 
+  ##### 4.3.2.2 User input----
+  output$hotable4 <- renderHotable({
+
+    hdx.fit.opt.init() %>%
+      ungroup() %>%
+      select(Species, param, estimate.mean, estimate.1, estimate.2) %>%
+      unique() %>%
+      pivot_wider(
+        names_from = "param",
+        values_from = c("estimate.mean", "estimate.1", "estimate.2")
+      ) %>%
+      group_by(Species) %>%
+      mutate(
+        init.k1.mean = 1.1*estimate.mean_k,
+        init.k2.mean = 0.9*estimate.mean_k,
+        init.k1.1 = 1.1*estimate.1_k,
+        init.k2.1 = 0.9*estimate.1_k,
+        init.k1.2 = 1.1*estimate.2_k,
+        init.k2.2 = 0.9*estimate.2_k,
+        init.A1.mean = 1.1*estimate.mean_A/2,
+        init.A2.mean = 0.9*estimate.mean_A/2,
+        init.A1.1 = 1.1*estimate.1_A/2,
+        init.A2.1 = 0.9*estimate.1_A/2,
+        init.A1.2 = 1.1*estimate.2_A/2,
+        init.A2.2 = 0.9*estimate.2_A/2,
+        init.y0.mean = estimate.mean_y0,
+        init.y0.1 = estimate.1_y0,
+        init.y0.2 = estimate.2_y0
+      ) %>%
+      select(
+        Species,
+        init.k1.mean, init.k2.mean, init.k1.1, init.k2.1, init.k1.2, init.k2.2,
+        init.A1.mean, init.A2.mean, init.A1.1, init.A2.1, init.A1.2, init.A2.2,
+        init.y0.mean, init.y0.1, init.y0.2
+      )
+    # set_colnames(
+    #   c("Species",
+    #     "y0 (high exchange)", "y0 (low exchange)", "y0 (overall)",
+    #     "A (high exchange)", "A (low exchange)", "A (overall)",
+    #     "k (s-1)")
+    # )
+  },
+  readOnly = F
+  )
+
+  hdx.fit.opt.hot <- reactive({
+    as.data.frame(hot.to.df(input$hotable4))
+    # set_colnames(
+    #   c(
+    #     'Species',
+    #     'init.y0.1', 'init.y0.2', 'init.y0.mean',
+    #     'init.A.1', 'init.A.2', 'init.A.mean',
+    #     'init.k'
+    #   )
+    # )
+  })
+
+  ##### 4.3.2.3. Biexponential fitting----
+
+  hdx.fit.opt <- reactive({
+    hdx.fit.opt.init() %>%
+      ungroup() %>%
+      select(Species, data) %>%
+      left_join(
+        hdx.fit.opt.hot(),
+        by = "Species"
+      ) %>%
+      group_by(
+        Species,
+        init.k1.mean, init.k2.mean, init.k1.1, init.k2.1, init.k1.2, init.k2.2,
+        init.A1.mean, init.A2.mean, init.A1.1, init.A2.1, init.A1.2, init.A2.2,
+        init.y0.mean, init.y0.1, init.y0.2
+      ) %>%
+      nest() %>%
+      mutate(
+        nls.fit.mean = map(
+          data,
+          ~summary(
+            nls(
+              formula = USE.mean ~ y0 + A1*exp(-k1*time.scale.s) + A2*exp(-k2*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.mean,
+                k1 = init.k1.mean,
+                k2 = init.k2.mean,
+                A1 = init.A1.mean,
+                A2 = init.A2.mean
+              ),
+              control = nls.control(maxiter = 99999)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            mutate(param = rownames(.)) %>%
+            select(param, Estimate) %>%
+            set_colnames(c('param', 'estimate.mean'))
+        ),
+        nls.fit.1 = map(
+          data,
+          ~summary(
+            nls(
+              formula = USE.1 ~ y0 + A1*exp(-k1*time.scale.s) + A2*exp(-k2*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.1,
+                k1 = init.k1.1,
+                k2 = init.k2.1,
+                A1 = init.A1.1,
+                A2 = init.A2.1
+              ),
+              control = nls.control(maxiter = 99999)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            select(Estimate) %>%
+            set_colnames(c('estimate.1'))
+        ),
+        nls.fit.2 = map(
+          data,
+          ~summary(
+            nls(
+              formula = USE.2 ~ y0 + A1*exp(-k1*time.scale.s) + A2*exp(-k2*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.2,
+                k1 = init.k1.2,
+                k2 = init.k2.2,
+                A1 = init.A1.2,
+                A2 = init.A2.2
+              ),
+              control = nls.control(maxiter = 99999)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            select(Estimate) %>%
+            set_colnames(c('estimate.2'))
+        )
+      ) %>%
+      unnest(c(nls.fit.mean, nls.fit.1, nls.fit.2)) %>%
+      ungroup() %>%
+      select(Species, data, param, estimate.mean, estimate.1, estimate.2)
+
+  })
+
+  output$diag <- renderDT({
+    datatable(hdx.fit.opt())
+  })
+
   #####4.3.2.4. Plot----
 
   output$p.hdx.fit.opt <- renderPlot({
@@ -2046,18 +2141,18 @@ server <- function(input, output, session) {
     if(isTRUE(input$fit.hdx)) {
 
       fit.calc <- hdx.fit.opt() %>%
-        select(Species, data, param, estimate.1, estimate.2, estimate.mean) %>%
         pivot_wider(
-          names_from = param,
-          values_from = c(estimate.1, estimate.2, estimate.mean)
+          names_from = "param",
+          values_from = c("estimate.mean", "estimate.1", "estimate.2")
         ) %>%
         unnest(data) %>%
         group_by(Species) %>%
         mutate(
-          NUS.fit.mean = estimate.mean_y0 + estimate.mean_A*exp(-estimate.mean_k*time.scale.s),
-          NUS.fit.1 = estimate.1_y0 + estimate.1_A*exp(-estimate.1_k*time.scale.s),
-          NUS.fit.2 = estimate.2_y0 + estimate.2_A*exp(-estimate.2_k*time.scale.s)
+          NUS.fit.mean = estimate.mean_y0 + estimate.mean_A1*exp(-estimate.mean_k1*time.scale.s) + estimate.mean_A2*exp(-estimate.mean_k2*time.scale.s),
+          NUS.fit.1 = estimate.1_y0 + estimate.1_A1*exp(-estimate.1_k1*time.scale.s) + estimate.1_A2*exp(-estimate.1_k2*time.scale.s),
+          NUS.fit.2 = estimate.2_y0 + estimate.2_A1*exp(-estimate.2_k1*time.scale.s) + estimate.2_A2*exp(-estimate.2_k2*time.scale.s)
         )
+
 
       fit.calc %>%
         pivot_longer(
@@ -2072,7 +2167,7 @@ server <- function(input, output, session) {
             Population == "USE.2" ~ "low exchange"
           )
         ) %>%
-        select(Species, time.scale, distrib, time.scale.s, Population, NUS) %>%
+        select(Species, time.scale.s, Population, NUS) %>%
         left_join(
           fit.calc %>%
             select(Species, time.scale.s, NUS.fit.mean, NUS.fit.1, NUS.fit.2) %>%
@@ -2166,7 +2261,7 @@ server <- function(input, output, session) {
   })
 
 
-  snaps42 <- data.frame()
+  snaps.kin <- data.frame()
 
   kin.brsh <- reactive({
     selecscansbrsh()
@@ -2185,7 +2280,7 @@ server <- function(input, output, session) {
 
     newrow42 <-  data.frame(k.init)
 
-    snaps42 <<- rbind(snaps42, newrow42)
+    snaps.kin <<- rbind(snaps.kin, newrow42)
   })
 
 
@@ -2415,23 +2510,11 @@ server <- function(input, output, session) {
                                             color = name)) +
       geom_point(size = input$size.dot.kin, alpha = input$transp.kin) +
       scale_color_manual(name = "Species",
-                         values = c(input$col.dot.kin1, input$col.dot.kin2, input$col.dot.kin3, input$col.dot.kin4, input$col.dot.kin5, input$col.dot.kin6, input$col.dot.kin7, input$col.dot.kin8)) +
+                         values = c(input$col.dot.kin1, input$col.dot.kin2, input$col.dot.kin3, input$col.dot.kin4,
+                                    input$col.dot.kin5, input$col.dot.kin6, input$col.dot.kin7, input$col.dot.kin8)
+      ) +
       xlab("time (min)") +
-      theme(panel.border = element_blank(),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.background = element_blank(),
-            axis.line = element_line(colour = "black", size = 0.75),
-            axis.ticks.length=unit(0.1, "in"),
-            axis.ticks = element_line(size = 0.75),
-            axis.text = element_text(colour="black", size = 16, color = "black", angle = 0),
-            axis.title = element_text(size=18,face="bold"),
-            plot.margin = margin(25, 0.5, 0.5, 0.5),
-            legend.box = "vertical",
-            legend.title = element_text(size=18, face="bold"),
-            legend.key = element_rect(fill = "white"),
-            legend.text = element_text(size=16, face="bold"))  +
-      coord_cartesian(expand = T)
+      custom.theme
 
     if(input$kin.input == 'centroid'){
       k.plot <- k.plot + ylab("centroid (m/z)")
