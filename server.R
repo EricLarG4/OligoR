@@ -78,13 +78,24 @@ server <- function(input, output, session) {
   output$chem.formula <- renderText({
     if (!is.na(sequencer()$nH)) {
       paste(
-        tags$b(style="color:tomato", 'Chemical formula: '),
-        tags$span(style="color:tomato", "C"), tags$sub(style="color:tomato", sequencer()$nC),
-        tags$span(style="color:tomato", "H"), tags$sub(style="color:tomato", sequencer()$nH),
-        tags$span(style="color:tomato", "O"), tags$sub(style="color:tomato", sequencer()$nO),
-        tags$span(style="color:tomato", "N"), tags$sub(style="color:tomato", sequencer()$nN),
-        tags$span(style="color:tomato", "P"), tags$sub(style="color:tomato", sequencer()$nP),
-        tags$span(style="color:tomato", "K"), tags$sub(style="color:tomato", sequencer()$nK),
+        tags$b(style="color:#EEE8D5", 'Chemical formula: '),
+        tags$span(style="color:#EEE8D5", "C"), tags$sub(style="color:#EEE8D5", sequencer()$nC),
+        tags$span(style="font-weight: bold; color:#EEE8D5", "H"), tags$sub(style="font-weight: bold; color:#EEE8D5", sequencer()$nH),
+        tags$span(style="color:#EEE8D5", "O"), tags$sub(style="color:#EEE8D5", sequencer()$nO),
+        tags$span(style="color:#EEE8D5", "N"), tags$sub(style="color:#EEE8D5", sequencer()$nN),
+        tags$span(style="color:#EEE8D5", "P"), tags$sub(style="color:#EEE8D5", sequencer()$nP),
+        tags$span(style="color:#EEE8D5", "K"), tags$sub(style="color:#EEE8D5", sequencer()$nK),
+        sep = ''
+      )
+    }
+  })
+
+  output$ex.sites <- renderText({
+    if (!is.na(sequencer()$nH)) {
+      paste(
+        tags$span(style="font-style: italic; color:#d5dbee", "with "),
+        tags$span(style="font-style: italic; font-weight: bold; color:#d5dbee", sequencer()$nX),
+        tags$span(style="font-style: italic; color:#d5dbee", " exchangeable H"),
         sep = ''
       )
     }
@@ -1595,7 +1606,7 @@ server <- function(input, output, session) {
   })
 
   ##### 4.2.2.2. Optimized abundance plot----
-  output$optim.ab.plot <- renderPlot({
+  optim.ab.plot <- reactive({
     binom.filter() %>%
       ungroup() %>%
       select(Species, time.scale, fraction.1, fraction.2) %>%
@@ -1748,6 +1759,7 @@ server <- function(input, output, session) {
       unnest(nls.fit)
   })
 
+  #####4.3.1.4. Table----
 
   output$hdx.fit.app <- renderDT({
     datatable(
@@ -1786,11 +1798,12 @@ server <- function(input, output, session) {
       ) %>%
       formatSignif(
         .,
-        columns = 4:5,
-        digits = 2
+        columns = 3:6,
+        digits = 3
       )
   })
 
+  #####4.3.1.5. Plot----
 
   output$p.hdx.fit.app <- renderPlot({
 
@@ -2000,12 +2013,12 @@ server <- function(input, output, session) {
       ) %>%
       group_by(Species) %>%
       mutate(
-        init.k1.mean = 1.1*estimate.mean_k,
-        init.k2.mean = 0.9*estimate.mean_k,
-        init.k1.1 = 1.1*estimate.1_k,
-        init.k2.1 = 0.9*estimate.1_k,
-        init.k1.2 = 1.1*estimate.2_k,
-        init.k2.2 = 0.9*estimate.2_k,
+        init.k1.mean = estimate.mean_k,
+        init.k2.mean = 0.1*estimate.mean_k,
+        init.k1.1 = estimate.1_k,
+        init.k2.1 = 0.1*estimate.1_k,
+        init.k1.2 = estimate.2_k,
+        init.k2.2 = 0.1*estimate.2_k,
         init.A1.mean = 1.1*estimate.mean_A/2,
         init.A2.mean = 0.9*estimate.mean_A/2,
         init.A1.1 = 1.1*estimate.1_A/2,
@@ -2021,27 +2034,28 @@ server <- function(input, output, session) {
         init.k1.mean, init.k2.mean, init.k1.1, init.k2.1, init.k1.2, init.k2.2,
         init.A1.mean, init.A2.mean, init.A1.1, init.A2.1, init.A1.2, init.A2.2,
         init.y0.mean, init.y0.1, init.y0.2
+      ) %>%
+      set_colnames(
+        c("Species",
+          "k1 (overall)", "k2 (overall)", "k1 (high exchange)", "k2 (high exchange)", "k1 (low exchange)", "k2 (low exchange)",
+          "A1 (overall)", "A2 (overall)", "A1 (high exchange)","A2 (high exchange)", "A1 (low exchange)", "A2 (low exchange)",
+          "y0 (overall)", "y0 (high exchange)", "y0 (low exchange)"
+        )
       )
-    # set_colnames(
-    #   c("Species",
-    #     "y0 (high exchange)", "y0 (low exchange)", "y0 (overall)",
-    #     "A (high exchange)", "A (low exchange)", "A (overall)",
-    #     "k (s-1)")
-    # )
   },
   readOnly = F
   )
 
   hdx.fit.opt.hot <- reactive({
-    as.data.frame(hot.to.df(input$hotable4))
-    # set_colnames(
-    #   c(
-    #     'Species',
-    #     'init.y0.1', 'init.y0.2', 'init.y0.mean',
-    #     'init.A.1', 'init.A.2', 'init.A.mean',
-    #     'init.k'
-    #   )
-    # )
+    as.data.frame(hot.to.df(input$hotable4)) %>%
+      set_colnames(
+        c(
+          'Species',
+          'init.k1.mean', 'init.k2.mean', 'init.k1.1', 'init.k2.1', 'init.k1.2', 'init.k2.2',
+          'init.A1.mean', 'init.A2.mean', 'init.A1.1', 'init.A2.1', 'init.A1.2', 'init.A2.2',
+          'init.y0.mean', 'init.y0.1', 'init.y0.2'
+        )
+      )
   })
 
   ##### 4.3.2.3. Biexponential fitting----
@@ -2054,6 +2068,7 @@ server <- function(input, output, session) {
         hdx.fit.opt.hot(),
         by = "Species"
       ) %>%
+      unnest(data) %>%
       group_by(
         Species,
         init.k1.mean, init.k2.mean, init.k1.1, init.k2.1, init.k1.2, init.k2.2,
@@ -2075,7 +2090,7 @@ server <- function(input, output, session) {
                 A1 = init.A1.mean,
                 A2 = init.A2.mean
               ),
-              control = nls.control(maxiter = 99999)
+              control = nls.control(maxiter = 99999, warnOnly = TRUE)
             )
           )$coefficient %>%
             as.data.frame() %>%
@@ -2096,7 +2111,7 @@ server <- function(input, output, session) {
                 A1 = init.A1.1,
                 A2 = init.A2.1
               ),
-              control = nls.control(maxiter = 99999)
+              control = nls.control(maxiter = 99999, warnOnly = TRUE)
             )
           )$coefficient %>%
             as.data.frame() %>%
@@ -2116,7 +2131,7 @@ server <- function(input, output, session) {
                 A1 = init.A1.2,
                 A2 = init.A2.2
               ),
-              control = nls.control(maxiter = 99999)
+              control = nls.control(maxiter = 99999, warnOnly = TRUE)
             )
           )$coefficient %>%
             as.data.frame() %>%
@@ -2130,11 +2145,154 @@ server <- function(input, output, session) {
 
   })
 
-  output$diag <- renderDT({
-    datatable(hdx.fit.opt())
+
+  ##### 4.3.3.4. Table----
+
+  output$hdx.fit.opt <- renderDT({
+
+    pre.fit <- hdx.fit.opt.init() %>%
+      ungroup() %>%
+      select(Species, data) %>%
+      left_join(
+        hdx.fit.opt.hot(),
+        by = "Species"
+      ) %>%
+      unnest(data) %>%
+      group_by(
+        Species,
+        init.k1.mean, init.k2.mean, init.k1.1, init.k2.1, init.k1.2, init.k2.2,
+        init.A1.mean, init.A2.mean, init.A1.1, init.A2.1, init.A1.2, init.A2.2,
+        init.y0.mean, init.y0.1, init.y0.2
+      ) %>%
+      nest()
+
+    pre.fit %>%
+      mutate(
+        nls.fit.mean = map(
+          data,
+          ~summary(
+            nls(
+              formula = USE.mean ~ y0 + A1*exp(-k1*time.scale.s) + A2*exp(-k2*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.mean,
+                k1 = init.k1.mean,
+                k2 = init.k2.mean,
+                A1 = init.A1.mean,
+                A2 = init.A2.mean
+              ),
+              control = nls.control(maxiter = 99999, warnOnly = TRUE)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            mutate(Parameter = paste0(rownames(.), " (overall)")) %>%
+            select(Parameter, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`)
+        )
+      ) %>%
+      ungroup() %>%
+      select(Species, data, nls.fit.mean) %>%
+      unnest(c(nls.fit.mean)) %>%
+      rbind(
+        pre.fit %>%
+          mutate(
+            nls.fit.1 = map(
+              data,
+              ~summary(
+                nls(
+                  formula = USE.1 ~ y0 + A1*exp(-k1*time.scale.s) + A2*exp(-k2*time.scale.s),
+                  data = .,
+                  start = list(
+                    y0 = init.y0.1,
+                    k1 = init.k1.1,
+                    k2 = init.k2.1,
+                    A1 = init.A1.1,
+                    A2 = init.A2.1
+                  ),
+                  control = nls.control(maxiter = 99999, warnOnly = TRUE)
+                )
+              )$coefficient %>%
+                as.data.frame() %>%
+                mutate(Parameter = paste0(rownames(.), " (high exchange)")) %>%
+                select(Parameter, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`)
+            )
+          ) %>%
+          ungroup() %>%
+          select(Species, data, nls.fit.1) %>%
+          unnest(c(nls.fit.1))
+      ) %>%
+      rbind(
+        pre.fit %>% mutate(
+          nls.fit.2 = map(
+            data,
+            ~summary(
+              nls(
+                formula = USE.2 ~ y0 + A1*exp(-k1*time.scale.s) + A2*exp(-k2*time.scale.s),
+                data = .,
+                start = list(
+                  y0 = init.y0.2,
+                  k1 = init.k1.2,
+                  k2 = init.k2.2,
+                  A1 = init.A1.2,
+                  A2 = init.A2.2
+                ),
+                control = nls.control(maxiter = 99999, warnOnly = TRUE)
+              )
+            )$coefficient %>%
+              as.data.frame() %>%
+              mutate(Parameter = paste0(rownames(.), " (low exchange)")) %>%
+              select(Parameter, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`)
+          )
+        ) %>%
+          ungroup() %>%
+          select(Species, data, nls.fit.2) %>%
+          unnest(nls.fit.2)
+      ) %>%
+      ungroup() %>%
+      left_join(
+        NUS.change() %>%
+          select(Species, Name)
+      ) %>%
+      select(
+        Species, Name,
+        Parameter, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`
+      ) %>%
+      datatable(
+        data = .,
+        style = "bootstrap",
+        extensions = c('Buttons', 'Responsive', 'Scroller'),
+        selection = 'multiple',
+        colnames = c(
+          "Standard Error" =  "Std. Error"
+        ),
+        editable = F,
+        rownames = F,
+        escape = T,
+        filter = 'top',
+        autoHideNavigation = T,
+        plugins = 'natural',
+        options = list(
+          deferRender = TRUE,
+          scrollY = 200,
+          scroller = TRUE,
+          autoWidth = F,
+          dom = 'Bfrtip', #button position
+          buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+          columnDefs = list(list(visible=FALSE, targets=c(0,5,6)))
+        )
+      ) %>%
+      formatStyle(
+        columns = 0:5,
+        target = 'row',
+        background = '#272c30'
+      ) %>%
+      formatSignif(
+        .,
+        columns = 3:6,
+        digits = 3
+      )
   })
 
-  #####4.3.2.4. Plot----
+  #####4.3.2.5. Plot----
 
   output$p.hdx.fit.opt <- renderPlot({
 
@@ -2210,6 +2368,317 @@ server <- function(input, output, session) {
 
   })
 
+
+  #### 4.3.3. Deconvoluted populations----
+
+  ##### 4.3.3.1 Initialisation----
+
+  pop.fit.opt.init <- reactive({
+    binom.filter() %>%
+      filter(distrib == 'bi') %>%
+      mutate(time.scale.s = time.scale*60) %>%
+      select(Species, time.scale.s, fraction.1, fraction.2, USE.mean) %>%
+      group_by(Species) %>%
+      #initialization of offset and amplitude from raw data and linearization
+      mutate(
+        init.y0.1 = max(fraction.1),
+        init.y0.2 = 1 - init.y0.1,
+        init.A = max(fraction.1)-min(fraction.1),
+        log.fraction.1 = log(fraction.1)
+      ) %>%
+      group_by(Species, init.y0.1, init.y0.2, init.A) %>%
+      nest() %>%
+      #initialisation of an apparent rate constant by linear fit
+      mutate(
+        init.k = map(
+          data,
+          ~summary(
+            lm(
+              formula = log.fraction.1 ~ time.scale.s,
+              data = .
+            )
+          )$coefficient[2]
+        )
+      ) %>%
+      unnest(c(init.k))
+  })
+
+  ##### 4.3.3.2 User input----
+  output$hotable5 <- renderHotable({
+
+    pop.fit.opt.init() %>%
+      select(-data) %>%
+      set_colnames(c(
+        "Species",
+        "y0 (high exchange)", "y0 (low exchange)",
+        "A",
+        "k2"
+      ))
+  },
+  readOnly = F
+  )
+
+
+  pop.fit.opt.hot <- reactive({
+    as.data.frame(hot.to.df(input$hotable5)) %>%
+      set_colnames(c("Species", "init.y0.1", "init.y0.2", "init.A", "init.k"))
+  })
+
+
+  ##### 4.3.2.3 Monoexponential fitting----
+  pop.fit.opt <- reactive({
+
+    pop.fit.opt.init() %>%
+      ungroup() %>%
+      #replace init. parameters by those of hotable
+      #remains unchanged if user did not alter values
+      select(Species, data) %>%
+      left_join(
+        pop.fit.opt.hot(),
+        by = "Species"
+      ) %>%
+      unnest() %>%
+      group_by(
+        Species,
+        init.y0.1, init.y0.2,
+        init.k,
+        init.A
+      ) %>%
+      nest() %>%
+      mutate(
+        nls.fit.1 = map(
+          data,
+          ~summary(
+            nls(
+              formula = fraction.1~y0-A*exp(-k*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.1,
+                k = init.k,
+                A = init.A
+              ),
+              control = nls.control(maxiter = 99999, warnOnly = TRUE)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            mutate(param = rownames(.)) %>%
+            select(param, Estimate) %>%
+            set_colnames(c('param', 'estimate.1'))
+        ),
+        nls.fit.2 = map(
+          data,
+          ~summary(
+            nls(
+              formula = fraction.2~y0+A*exp(-k*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.2,
+                k = init.k,
+                A = init.A
+              ),
+              control = nls.control(maxiter = 99999, warnOnly = TRUE)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            select(Estimate) %>%
+            set_colnames(c('estimate.2'))
+        )
+      ) %>%
+      select(Species, data, nls.fit.1, nls.fit.2) %>%
+      unnest(c(nls.fit.1, nls.fit.2))
+
+  })
+
+  ##### 4.3.3.4. Table----
+
+  output$pop.fit.opt <- renderDT({
+
+    pre.fit <- pop.fit.opt.init() %>%
+      ungroup() %>%
+      #replace init. parameters by those of hotable
+      #remains unchanged if user did not alter values
+      select(Species, data) %>%
+      left_join(
+        pop.fit.opt.hot(),
+        by = "Species"
+      ) %>%
+      unnest() %>%
+      group_by(
+        Species,
+        init.y0.1, init.y0.2,
+        init.k,
+        init.A
+      ) %>%
+      nest()
+
+    pre.fit %>%
+      mutate(
+        nls.fit.1 = map(
+          data,
+          ~summary(
+            nls(
+              formula = fraction.1~y0-A*exp(-k*time.scale.s),
+              data = .,
+              start = list(
+                y0 = init.y0.1,
+                k = init.k,
+                A = init.A
+              ),
+              control = nls.control(maxiter = 99999, warnOnly = TRUE)
+            )
+          )$coefficient %>%
+            as.data.frame() %>%
+            mutate(Parameter = paste0(rownames(.), " (high exchange)")) %>%
+            select(Parameter, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`)
+        )
+      ) %>%
+      ungroup() %>%
+      select(Species, data, nls.fit.1) %>%
+      unnest(c(nls.fit.1)) %>%
+      rbind(
+        pre.fit %>%
+          mutate(
+            nls.fit.2 = map(
+              data,
+              ~summary(
+                nls(
+                  formula = fraction.2~y0+A*exp(-k*time.scale.s),
+                  data = .,
+                  start = list(
+                    y0 = init.y0.2,
+                    k = init.k,
+                    A = init.A
+                  ),
+                  control = nls.control(maxiter = 99999, warnOnly = TRUE)
+                )
+              )$coefficient %>%
+                as.data.frame() %>%
+                mutate(Parameter = paste0(rownames(.), " (low exchange)")) %>%
+                select(Parameter, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`)
+            )
+          ) %>%
+          ungroup() %>%
+          select(Species, data, nls.fit.2) %>%
+          unnest(c(nls.fit.2))
+      ) %>%
+      ungroup() %>%
+      left_join(
+        NUS.change() %>%
+          select(Species, Name)
+      ) %>%
+      select(
+        Species, Name,
+        Parameter, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`
+      ) %>%
+      datatable(
+        data = .,
+        style = "bootstrap",
+        extensions = c('Buttons', 'Responsive', 'Scroller'),
+        selection = 'multiple',
+        colnames = c(
+          "Standard Error" =  "Std. Error"
+        ),
+        editable = F,
+        rownames = F,
+        escape = T,
+        filter = 'top',
+        autoHideNavigation = T,
+        plugins = 'natural',
+        options = list(
+          deferRender = TRUE,
+          scrollY = 200,
+          scroller = TRUE,
+          autoWidth = F,
+          dom = 'Bfrtip', #button position
+          buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+          columnDefs = list(list(visible=FALSE, targets=c(0,5,6)))
+        )
+      ) %>%
+      formatStyle(
+        columns = 0:5,
+        target = 'row',
+        background = '#272c30'
+      ) %>%
+      formatSignif(
+        .,
+        columns = 3:6,
+        digits = 3
+      )
+
+  })
+
+  #####4.3.3.5. Plot----
+
+  output$p.pop.fit.opt <- renderPlot({
+
+    if(isTRUE(input$fit.hdx)) {
+
+      fit.calc <- pop.fit.opt() %>%
+        pivot_wider(
+          names_from = "param",
+          values_from = c("estimate.1", "estimate.2")
+        ) %>%
+        unnest(data) %>%
+        group_by(Species) %>%
+        mutate(
+          frac.fit.1 = estimate.1_y0 - estimate.1_A*exp(-estimate.1_k*time.scale.s),
+          frac.fit.2 = estimate.2_y0 + estimate.2_A*exp(-estimate.2_k*time.scale.s)
+        )
+
+
+      fit.calc %>%
+        pivot_longer(
+          cols = c("fraction.1", "fraction.2"),
+          values_to = "fraction",
+          names_to = "Population"
+        ) %>%
+        mutate(
+          Population = case_when(
+            Population == "fraction.1" ~ "high exchange",
+            Population == "fraction.2" ~ "low exchange"
+          )
+        ) %>%
+        select(Species, time.scale.s, Population, fraction) %>%
+        left_join(
+          fit.calc %>%
+            select(Species, time.scale.s, frac.fit.1, frac.fit.2) %>%
+            pivot_longer(
+              cols = c("frac.fit.1", "frac.fit.2"),
+              values_to = "frac.fit",
+              names_to = "Population"
+            ) %>%
+            mutate(
+              Population = case_when(
+                Population == "frac.fit.1" ~ "high exchange",
+                Population == "frac.fit.2" ~ "low exchange"
+              )
+            ),
+          by = c("Species", "time.scale.s", "Population")
+        ) %>%
+        left_join(
+          NUS.change() %>%
+            select(Species, Name), by = "Species"
+        ) %>%
+        ggplot(
+          data = .,
+          aes(x = time.scale.s, color = Population, shape = Name)
+        ) +
+        geom_point(
+          aes(y = fraction),
+          size = input$size.kin
+        ) +
+        geom_line(
+          aes(y = frac.fit),
+          size = input$size.line.kin
+        ) +
+        custom.theme +
+        labs(x = "time (s)")
+
+    } else {
+      optim.ab.plot()
+    }
+
+  })
 
 
   # #5. KINETICS--------------
