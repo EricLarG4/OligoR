@@ -566,10 +566,11 @@ server <- function(input, output, session) {
 
   ###MS ref snapshots------------
 
-  MSsnaps.ref <- eventReactive(input$bttn99, {
+  MSsnaps.ref <- reactive({
     newrow.ref <- data.frame(specsumbrsh.ms())
     # snaps.ref <<- rbind(snaps.ref, newrow.ref)
-  })
+  }) %>%
+    bindEvent(input$bttn99)
 
 
   ###MS time point snapshots------------
@@ -590,11 +591,11 @@ server <- function(input, output, session) {
 
   })
 
-  snaps.counter <- 0
+  # snaps.counter <- 0
 
-  MSsnaps <- eventReactive(input$bttn1, {
+  MSsnaps <- reactive({
 
-    snaps.counter <<- snaps.counter + 1
+    # snaps.counter <<- snaps.counter + 1
 
     newrow <- data.frame(inputsnap())
     snaps <<- rbind(snaps, newrow)
@@ -602,7 +603,8 @@ server <- function(input, output, session) {
     #     newrow <- data.table(inputsnap())
     #     snaps <<- rbindlist(list(snaps, newrow))
 
-  })
+  }) %>%
+    bindEvent(input$bttn1)
 
   #3. MSstackR----
 
@@ -849,7 +851,7 @@ server <- function(input, output, session) {
   ## Optimization----
 
   ### Least-square minimization----
-  opt.0 <- eventReactive(input$optibtn, {
+  opt.0 <- reactive({
 
     withProgress(
       message = 'Optimizing data',
@@ -887,7 +889,8 @@ server <- function(input, output, session) {
 
       })
 
-  })
+  }) %>%
+    bindEvent(input$optibtn)
 
   ### Generation of optimized distributions----
 
@@ -1792,13 +1795,13 @@ server <- function(input, output, session) {
       )
     ) %>%
       formatStyle(
-        columns = 0:5,
+        columns = 0:7,
         target = 'row',
         background = '#272c30'
       ) %>%
       formatSignif(
         .,
-        columns = 3:6,
+        columns = 4:7,
         digits = 3
       )
   })
@@ -2281,13 +2284,13 @@ server <- function(input, output, session) {
         )
       ) %>%
       formatStyle(
-        columns = 0:5,
+        columns = 0:7,
         target = 'row',
         background = '#272c30'
       ) %>%
       formatSignif(
         .,
-        columns = 3:6,
+        columns = 4:7,
         digits = 3
       )
   })
@@ -2595,13 +2598,13 @@ server <- function(input, output, session) {
         )
       ) %>%
       formatStyle(
-        columns = 0:5,
+        columns = 0:7,
         target = 'row',
         background = '#272c30'
       ) %>%
       formatSignif(
         .,
-        columns = 3:6,
+        columns = 4:7,
         digits = 3
       )
 
@@ -2681,9 +2684,116 @@ server <- function(input, output, session) {
   })
 
 
-  # #5. KINETICS--------------
+  ##5. TimeR--------------
 
-  #Processed data reimport
+  ### 5.1. Process new data----
+
+  #### 5.1.1 Snap data----
+  snaps.kin <- data.frame()
+
+  kin.brsh <- reactive({
+    selecscansbrsh()
+  })
+
+  k.spectra <- reactive({
+
+    k.init <- data.frame(kin.brsh()) %>%
+      filter(
+        mz > min(ranges$x),
+        mz < max(ranges$x)
+      ) %>%
+      mutate(
+        Species = input$sample.id,
+        mz.range = paste0(round(min(ranges$x),2),"-",round(max(ranges$x), 2))
+      )
+
+    snaps.kin <<- rbind(snaps.kin, data.frame(k.init))
+
+  }) %>%
+    bindEvent(input$bttn42)
+
+
+  #### 5.1.2. Data processing----
+
+  k.norm <- reactive({
+
+    k.data <- k.spectra() %>%
+      group_by(filename, Species, scan, time, mz.range, mz) %>%
+      mutate(prod.int = intensity*mz) %>%
+      group_by(filename, Species, scan, time, mz.range) %>%
+      summarise(
+        intensity = sum(intensity),
+        centroid = sum(prod.int)/sum(intensity)
+      )
+
+    writexl::write_xlsx(
+      x = k.data,
+      path = "kdata.xlsx"
+    )
+
+    k.standard <- k.data %>%
+      filter(Species == 'Standard') %>%
+      mutate(std.intensity = intensity) %>%
+      ungroup() %>%
+      select(filename, scan, time, std.intensity)
+
+    writexl::write_xlsx(
+      x = k.standard,
+      path = "k.standard.xlsx"
+    )
+
+    if(nrow(k.standard)>0){
+      k.joined <- k.data %>%
+        filter(Species != 'Standard') %>%
+        left_join(
+          k.standard,
+          by = c("filename", "scan", "time")
+        )
+    } else {
+      k.joined <- k.data %>%
+        mutate(std.intensity = 1)
+    }
+
+    k.joined <- k.joined %>%
+      group_by(scan, Species, time) %>%
+      mutate(
+        corr.int = intensity/std.intensity,
+        corrected.time = time + as.numeric(input$deadtxt),
+        group = round(scan/as.numeric(input$ave.scan), 0)
+      ) %>%
+      group_by(Species, group) %>%
+      mutate(
+        mean.raw = mean(intensity),
+        mean.corr = mean(corr.int),
+        mean.time = mean(corrected.time),
+        mean.centroid = mean(centroid)
+      ) %>%
+      filter(
+        mean.time >= as.numeric(input$text33),
+        mean.time <= as.numeric(input$text34)
+      ) %>%
+      ungroup() %>%
+      mutate(
+        name = case_when(
+          Species == 'Species 1' ~ input$text36,
+          Species == 'Species 2' ~ input$text37,
+          Species == 'Species 3' ~ input$text38,
+          Species == 'Species 4' ~ input$text39,
+          Species == 'Species 5' ~ input$text40,
+          Species == 'Species 6' ~ input$text41,
+          Species == 'Species 7' ~ input$text42,
+          Species == 'Species 8' ~ input$text43
+        )
+      ) %>%
+      setcolorder(c(1,2,14,5,3,10,4,9,6,7,8,13,11,12))
+
+    return(k.joined)
+
+  })
+
+  ### 5.2. Processed data re-import-----
+
+  #### 5.2.1. File path----
   kin.old <- reactive({
     if(is.null(input$kin.old))
       return(NULL)
@@ -2691,33 +2801,33 @@ server <- function(input, output, session) {
     input$kin.old
   })
 
+  #### 5.2.2 Conversion to live format----
   processed.kin <- reactive({
 
     if(is.null(input$kin.old))
       return(NULL)
 
-    processed.kin <- data.frame(read_excel(kin.old()$datapath,
-                                           skip = 1))
+    processed.kin <- data.frame(
+      read_excel(kin.old()$datapath,
+                 skip = 1)
+    )
 
-    colnames(processed.kin) <- c('filename.x',
-                                 'Species.x',
-                                 'name',
-                                 'mz.range.x',
-                                 'scan',
-                                 'group',
-                                 'time.x',
-                                 'corrected.time',
-                                 'intensity.x',
-                                 'intensity.y',
-                                 'corr.int',
-                                 'mean.time',
-                                 'mean.raw',
-                                 'mean.corr')
+    colnames(processed.kin) <- c(
+      'name', 'filename', 'Species',
+      'mean.time', 'mz.range', 'scan',
+      'corrected.time', 'time',
+      'corr.int', 'intensity',
+      'centroid',
+      'std.intensity', 'mean.corr',
+      'group',
+      'mean.raw',
+      'mean.centroid'
+    )
 
     processed.kin <- processed.kin %>%
-      mutate(group = round(scan/as.numeric(input$text35), 0)) %>%
+      mutate(group = round(scan/as.numeric(input$ave.scan), 0)) %>%
       group_by(name, group) %>%
-      mutate(mean.raw = mean(intensity.x),
+      mutate(mean.raw = mean(intensity),
              mean.corr = mean(corr.int),
              mean.time = mean(corrected.time)) %>%
       filter(
@@ -2729,137 +2839,62 @@ server <- function(input, output, session) {
 
   })
 
-
-  snaps.kin <- data.frame()
-
-  kin.brsh <- reactive({
-    selecscansbrsh()
-    # group_by(mz, filename) %>%
-    # add_column("Species" = input$sample.id)
-  })
-
-
-  k.spectra <- eventReactive(input$bttn42, {
-
-    k.init <- data.frame(kin.brsh()) %>%
-      filter(mz > min(ranges$x)) %>%
-      filter(mz < max(ranges$x)) %>%
-      add_column("Species" = input$sample.id) %>%
-      add_column(mz.range = paste0(round(min(ranges$x),2),"-",round(max(ranges$x), 2)))
-
-    newrow42 <-  data.frame(k.init)
-
-    snaps.kin <<- rbind(snaps.kin, newrow42)
-  })
-
-
-  k.data <- reactive({
-
-    k.spectra() %>%
-      group_by(filename, Species, scan, time, mz.range, mz) %>%
-      mutate(prod.int = intensity*mz) %>%
-      group_by(filename, Species, scan, time, mz.range) %>%
-      summarise(
-        intensity = sum(intensity),
-        centroid = sum(prod.int)/sum(intensity)
-      )
-  })
-
-
-  k.norm <- reactive({
-
-    k.standard <- k.data() %>%
-      filter(Species == 'Standard')
-
-    k.spl <- k.data() %>%
-      filter(Species != 'Standard')
-
-    k.joined <- left_join(k.spl, k.standard, by = "scan")
-
-    if (is.na(k.joined$intensity.y[1])) {
-      k.joined$intensity.y <- 1
-    }
-
-    k.joined <- k.joined %>%
-      filter(Species.x %in% input$Pick1) %>%
-      group_by(scan, filename.x, time.x) %>% #filename.x grouping necessary to use proper standard?
-      mutate(corr.int = intensity.x/intensity.y) %>%
-      mutate(corrected.time = time.x + as.numeric(input$deadtxt)) %>%
-      dplyr::select(-Species.y, -filename.y, -time.y, -mz.range.y, -centroid.y) %>%
-      mutate(group = round(scan/as.numeric(input$text35), 0)) %>%
-      group_by(Species.x, group) %>%
-      mutate(mean.raw = mean(intensity.x),
-             mean.corr = mean(corr.int),
-             mean.time = mean(corrected.time)) %>%
-      filter(mean.time >= as.numeric(input$text33)) %>%
-      filter(mean.time <= as.numeric(input$text34))
-
-    return(k.joined)
-
-  })
-
-  k.norm.1 <- reactive({
-    return(NULL)
-  })
-
-  k.norm.1 <- reactive({
-    k.norm() %>%
-      ungroup() %>%
-      mutate(name = case_when(
-        Species.x == 'Species 1' ~ input$text36,
-        Species.x == 'Species 2' ~ input$text37,
-        Species.x == 'Species 3' ~ input$text38,
-        Species.x == 'Species 4' ~ input$text39,
-        Species.x == 'Species 5' ~ input$text40,
-        Species.x == 'Species 6' ~ input$text41,
-        Species.x == 'Species 7' ~ input$text42,
-        Species.x == 'Species 8' ~ input$text43
-      )
-      ) %>%
-      setcolorder(c(1,2,14,5,3,10,4,9,6,7,8,13,11,12))
-  })
-
-  # k.norm.0 <- reactive({
-  #   if (is.null(kin.brsh())) {
-  #     if (is.null(kin.old)) {
-  #       return(NULL)
-  #     } else {
-  #       return(processed.kin())
-  #     }
-  #   } else {
-  #     if (is.null(kin.old)) {
-  #       return(k.norm.1())
-  #     } else {
-  #       rbind.data.frame(k.norm.1(),processed.kin())
-  #     }
-  #   }
-  # })
-
+  #### 5.2.3. Merging----
   k.norm.0 <- reactive({
     if (is.null(kin.old)) {
-      return(k.norm.1())
+      return(
+        k.norm() %>%
+          filter(Species %in% input$Pick1)
+      )
     } else {
-      rbind.data.frame(k.norm.1(),processed.kin())
-    }
-  })
-
-
-  # Selection of the y axis
-  kin.input <- reactive({
-    if (input$kin.input == 'raw') {
-      k.norm.0()$mean.raw
-    } else {
-      if(input$kin.input == 'corrected'){
-        k.norm.0()$mean.corr
+      if(is.null(input$mzml.file)){
+        processed.kin() %>%
+          filter(Species %in% input$Pick1)
       } else {
-        k.norm.0()$centroid.x
+        rbind.data.frame(k.norm(),processed.kin()) %>%
+          filter(Species %in% input$Pick1)
       }
     }
   })
 
+  ### 5.3. Tables----
+
+  #### 5.3.1 Selection of y data----
+  kin.input <- reactive({
+    if (input$kin.input == 'raw') {
+      if(isFALSE(input$kin.norm)){
+        k.norm.0()$mean.raw
+      } else {
+        norm <- k.norm.0() %>%
+          group_by(scan, time) %>%
+          mutate(norm.int = mean.raw/sum(mean.raw)) %>%
+          ungroup()
+
+        return(norm$norm.int)
+      }
+    } else {
+      if(input$kin.input == 'corrected'){
+        if(isFALSE(input$kin.norm)){
+          k.norm.0()$mean.corr
+        } else {
+          norm <- k.norm.0() %>%
+            group_by(scan, time) %>%
+            mutate(norm.int = mean.corr/sum(mean.corr)) %>%
+            ungroup()
+
+          return(norm$norm.int)
+        }
+      } else {
+        k.norm.0()$mean.centroid
+      }
+    }
+  })
+
+  #### 5.3.2. Wide table----
+
   # generation of a wide table, easier to work with with other softwares.
   # only a few columns kept.
-  k.wide <- eventReactive(input$k.wide.bttn,{
+  k.wide <- reactive({
     if (input$kin.input == 'raw') {
       k.norm.0()[,c(3,12,13)] %>%
         unique() %>% #removes duplicated lines that appear when averaging scans
@@ -2873,28 +2908,31 @@ server <- function(input, output, session) {
                     values_from = mean.corr) %>%
         round(2)
     }
-  })
+  }) %>%
+    bindEvent(input$k.wide.bttn)
 
   output$k.table <-  DT::renderDT(server = FALSE, {
-    datatable(data = k.norm.0(),
+    datatable(data = k.norm.0() %>%
+                relocate(name),
               style = "bootstrap",
               extensions = c('Buttons', 'Responsive', 'Scroller'),
               selection = 'multiple',
-              colnames = c('Species #' = 'Species.x',
+              colnames = c('Species #' = 'Species',
                            'Name' = 'name',
                            'Scan' = 'scan',
-                           'TIC Time (min)' = 'time.x',
+                           'TIC Time (min)' = 'time',
                            'Time (min)' = 'corrected.time',
                            'Mean Time (min)' = 'mean.time',
-                           'Raw intensity' = 'intensity.x',
+                           'Raw intensity' = 'intensity',
                            'Mean raw intensity' = 'mean.raw',
-                           'Standard intensity' = 'intensity.y',
+                           'Standard intensity' = 'std.intensity',
                            'Corrected intensity' = 'corr.int',
                            'Mean corrected intensity' = 'mean.corr',
-                           'Filename' = 'filename.x',
+                           'Filename' = 'filename',
                            'Scan group' = 'group',
-                           'm/z range' = 'mz.range.x',
-                           'Centroid' = 'centroid.x'),
+                           'm/z range' = 'mz.range',
+                           'Centroid' = 'centroid',
+                           'Mean centroid' = 'mean.centroid'),
               editable = T,
               rownames = F,
               escape = T,
@@ -2908,9 +2946,14 @@ server <- function(input, output, session) {
                 autoWidth = F,
                 dom = 'Bfrtip', #button position
                 buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
-                columnDefs = list(list(visible=FALSE, targets=c(0,4,5,6,7,8,9,10)))
+                columnDefs = list(list(visible=FALSE, targets=c(1,5:11,13)))
               )
     ) %>%
+      formatStyle(
+        columns = 0:15,
+        target = 'row',
+        background = '#272c30'
+      ) %>%
       formatRound(c('TIC Time (min)', 'Time (min)', 'Raw intensity',
                     "Standard intensity", "Corrected intensity",
                     "Mean raw intensity", "Mean Time (min)", 'Mean corrected intensity'),
@@ -2974,21 +3017,51 @@ server <- function(input, output, session) {
     }
   )
 
+
+  ### 5.x Plot----
+
   output$k.plot <- renderPlot({
-    k.plot <- ggplot(data = k.norm.0(), aes(x = mean.time, y = kin.input(),
-                                            color = name)) +
-      geom_point(size = input$size.dot.kin, alpha = input$transp.kin) +
-      scale_color_manual(name = "Species",
-                         values = c(input$col.dot.kin1, input$col.dot.kin2, input$col.dot.kin3, input$col.dot.kin4,
-                                    input$col.dot.kin5, input$col.dot.kin6, input$col.dot.kin7, input$col.dot.kin8)
+
+    k.plot <- ggplot(
+      data = k.norm.0(),
+      aes(
+        x = mean.time, y = kin.input(),
+        color = name
+      )
+    ) +
+      geom_point(
+        size = input$size.dot.kin,
+        alpha = input$transp.kin
+      ) +
+      scale_color_manual(
+        name = "Species",
+        values = c(
+          input$col.dot.kin1, input$col.dot.kin2,
+          input$col.dot.kin3, input$col.dot.kin4,
+          input$col.dot.kin5, input$col.dot.kin6,
+          input$col.dot.kin7, input$col.dot.kin8
+        )
       ) +
       xlab("time (min)") +
       custom.theme
 
-    if(input$kin.input == 'centroid'){
-      k.plot <- k.plot + ylab("centroid (m/z)")
+
+    if (input$kin.input == 'raw') {
+      if(isFALSE(input$kin.norm)){
+        k.plot <- k.plot + ylab("intensity")
+      } else {
+        k.plot <- k.plot + ylab("normalized intensity")
+      }
     } else {
-      k.plot <- k.plot + ylab("intensity")
+      if(input$kin.input == 'corrected'){
+        if(isFALSE(input$kin.norm)){
+          k.plot <- k.plot + ylab("corrected intensity")
+        } else {
+          k.plot <- k.plot + ylab("normalized corrected intensity")
+        }
+      } else {
+        k.plot <- k.plot + ylab("centroid (m/z)")
+      }
     }
 
     return(k.plot)
@@ -2996,9 +3069,10 @@ server <- function(input, output, session) {
   })
 
   output$k.plot.ui <- renderUI({
-    plotOutput("k.plot",
-               width = as.numeric(input$k.plot.w),
-               height = as.numeric(input$k.plot.h)
+    plotOutput(
+      "k.plot",
+      width = as.numeric(input$k.plot.w),
+      height = as.numeric(input$k.plot.h)
     )
   })
 
@@ -3044,10 +3118,11 @@ server <- function(input, output, session) {
     as.numeric(input$lgd.conc)
   })
 
-  MSsnaps24 <- eventReactive(input$bttn24, {
+  MSsnaps24 <- reactive({
     newrow <- data.frame(inputsnap())
     snaps <<- rbind(snaps, newrow)
-  })
+  }) %>%
+    bindEvent(input$bttn24)
 
   eq.raw <- reactive({
 
@@ -3133,7 +3208,7 @@ server <- function(input, output, session) {
     as.numeric(input$Std)
   })
 
-  R <- eventReactive(input$bttn55,{
+  R <- reactive({
 
     # Calculation of the intensity ratio vs IS (by experiment = by lgd.conc)
     I <- eq.raw() %>%
@@ -3185,9 +3260,10 @@ server <- function(input, output, session) {
 
     return(R)
 
-  })
+  }) %>%
+    bindEvent(input$bttn55)
 
-  corr.C <- eventReactive(input$bttn55,{
+  corr.C <- reactive({
 
     # Calculation of the intensity ratio vs IS (by experiment = by lgd.conc)
     I <- eq.raw() %>%
@@ -3275,7 +3351,8 @@ server <- function(input, output, session) {
 
     return(corr.C)
 
-  })
+  }) %>%
+    bindEvent(input$bttn55)
 
 
   output$Rf <- renderDT({
@@ -3370,8 +3447,9 @@ server <- function(input, output, session) {
 
   # #output options-----------
   outputOptions(output, "plot.snaps", suspendWhenHidden = FALSE)
+  outputOptions(output, "plot.snaps.ui", suspendWhenHidden = FALSE)
   outputOptions(output, "plot.pp", suspendWhenHidden = FALSE)
-  # outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
+  outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
   # outputOptions(output, "eq.raw", suspendWhenHidden = FALSE)
 
 
