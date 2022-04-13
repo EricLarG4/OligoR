@@ -2857,9 +2857,8 @@ server <- function(input, output, session) {
     }
   })
 
-  ### 5.3. Tables----
 
-  #### 5.3.1 Selection of y data----
+  #### 5.4. Selection of y data----
   kin.input <- reactive({
     if (input$kin.input == 'raw') {
       if(isFALSE(input$kin.norm)){
@@ -2890,26 +2889,9 @@ server <- function(input, output, session) {
     }
   })
 
-  #### 5.3.2. Wide table----
+  #### 5.5. Tables----
 
-  # generation of a wide table, easier to work with with other softwares.
-  # only a few columns kept.
-  k.wide <- reactive({
-    if (input$kin.input == 'raw') {
-      k.norm.0()[,c(3,12,13)] %>%
-        unique() %>% #removes duplicated lines that appear when averaging scans
-        pivot_wider(names_from = name,
-                    values_from = mean.raw) %>%
-        round(2)
-    } else {
-      k.norm.0()[,c(3,12,14)] %>%
-        unique() %>%
-        pivot_wider(names_from = name,
-                    values_from = mean.corr) %>%
-        round(2)
-    }
-  }) %>%
-    bindEvent(input$k.wide.bttn)
+  #### 5.5.1 Kinetics data----
 
   output$k.table <-  DT::renderDT(server = FALSE, {
     datatable(data = k.norm.0() %>%
@@ -2945,7 +2927,16 @@ server <- function(input, output, session) {
                 scroller = TRUE,
                 autoWidth = F,
                 dom = 'Bfrtip', #button position
-                buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+                buttons = list(
+                  list(extend='copy'),
+                  list(extend='csv',
+                       title=NULL,
+                       filename="Kinetics data"),
+                  list(extend='excel',
+                       title=NULL,
+                       filename="Kinetics data"),
+                  list(extend='colvis')
+                ),
                 columnDefs = list(list(visible=FALSE, targets=c(1,5:11,13)))
               )
     ) %>%
@@ -2960,36 +2951,20 @@ server <- function(input, output, session) {
                   digits = 2)
   })
 
-  output$k.wide <-  DT::renderDT(server = FALSE, {
-    datatable(data = k.wide(),
-              style = "bootstrap",
-              extensions = c('Buttons', 'Responsive', 'Scroller'),
-              selection = 'multiple',
-              colnames = c('Mean Time (min)' = 'mean.time'),
-              editable = T,
-              rownames = F,
-              escape = T,
-              filter = 'top',
-              autoHideNavigation = T,
-              plugins = 'natural',
-              options = list(
-                deferRender = TRUE,
-                scrollY = 200,
-                scroller = TRUE,
-                autoWidth = F,
-                dom = 'Bfrtip', #button position
-                buttons = c('copy', 'csv', 'excel')
-              )
-    )
-  })
+
+  #### 5.5.1 Spectral data----
 
   output$k.spectra <-  DT::renderDT(server = FALSE, {
-    datatable(data = k.spectra(),
+    datatable(data = k.spectra() %>%
+                select(-mz.range),
               style = "bootstrap",
-              callback = callback,
               extensions = c('Buttons', 'Responsive', 'Scroller'),
               selection = 'multiple',
-              # colnames = c('Mean Time (min)' = 'mean.time'),
+              colnames = c(
+                "m/z" = "mz",
+                "species" = "Species",
+                "time (min)" = "time"
+              ),
               editable = T,
               rownames = F,
               escape = T,
@@ -2997,28 +2972,33 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
-                dom = 'B<"dwnld">frtip',
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
                 autoWidth = F,
                 dom = 'Bfrtip', #button position
-                buttons = list('copy')
+                buttons = list(
+                  list(extend='copy'),
+                  list(extend='csv',
+                       title=NULL,
+                       filename="Spectra from kinetics"),
+                  list(extend='excel',
+                       title=NULL,
+                       filename="Spectra from kinetics"),
+                  list(extend='colvis')
+                )
               )
-    )
+    ) %>%
+      formatStyle(
+        columns = 0:15,
+        target = 'row',
+        background = '#272c30'
+      )
   })
 
-  output$download1 <- downloadHandler(
-    filename = function() {
-      paste("data-", Sys.Date(), ".csv", sep="")
-    },
-    content = function(file) {
-      write.csv(k.spectra(), file)
-    }
-  )
 
 
-  ### 5.x Plot----
+  #### 5.6 Plot----
 
   output$k.plot <- renderPlot({
 
@@ -3076,9 +3056,10 @@ server <- function(input, output, session) {
     )
   })
 
-  #########TITRATION###############
 
-  #import processed data
+  # 6. TitratR-----------
+
+  #6.x import processed data----
 
   titr.old <- reactive({
     if(is.null(input$titr.old))
@@ -3118,85 +3099,142 @@ server <- function(input, output, session) {
     as.numeric(input$lgd.conc)
   })
 
-  MSsnaps24 <- reactive({
+  MSsnaps.target <- reactive({
     newrow <- data.frame(inputsnap())
     snaps <<- rbind(snaps, newrow)
   }) %>%
-    bindEvent(input$bttn24)
+    bindEvent(input$bttn.target)
+
+  MSsnaps.std <- reactive({
+    newrow <- data.frame(inputsnap())
+    snaps <<- rbind(snaps, newrow)
+  }) %>%
+    bindEvent(input$bttn.std)
+
+  eq.raw.target <- reactive({
+
+    MSsnaps.target() %>%
+      group_by(
+        Species, lgd.conc, filename, min.time, max.time,
+        min.scan, max.scan, min.mz, max.mz, Stoich
+      ) %>%
+      summarise(intensity = sum(intensum)) %>%
+      group_by(Species, lgd.conc, Stoich) %>%
+      mutate(
+        #the relative intensity does not take into account the SI intensity
+        rel.intensity = intensity/sum(intensity)
+      ) %>%
+      group_by(Species, lgd.conc, Stoich) %>%
+      mutate(
+        uncorr.C = rel.intensity*Mtot()
+      )
+  })
+
+  eq.raw.std <- reactive({
+
+    MSsnaps.std() %>%
+      group_by(
+        lgd.conc, filename
+      ) %>%
+      summarise(std.intensity = sum(intensum)) %>%
+      ungroup() %>%
+      select(filename, lgd.conc, std.intensity)
+  })
 
   eq.raw <- reactive({
 
-    if(is.null(input$mzml.file)) {
-      return(processed.titr())
-    } else {
-      eq.raw <- MSsnaps24() %>%
-        group_by(Species, lgd.conc, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz, Stoich) %>% #replace CFtime by concentration
-        summarise(intensity = sum(intensum)) %>%
-        group_by(lgd.conc) %>%
-        mutate(rel.intensity = ifelse(Species == 'Standard',
-                                      '',
-                                      intensity/sum(intensity[Species != "Standard"]))
-        ) %>%
-        #the relative intensity does not take into account the SI intensity
-        mutate(rel.intensity = as.numeric(rel.intensity)) %>%
-        group_by(Species, Stoich) %>%
-        mutate(uncorr.C = rel.intensity*Mtot())
-
-
-
-      if (is.null(titr.old)) {
-        return(eq.raw)
-      } else {
-        rbind.data.frame(eq.raw, processed.titr())
-      }
-    }
-
+    eq.raw.target() %>%
+      left_join(
+        eq.raw.std()
+      ) %>%
+      ungroup() %>%
+      unique()
 
   })
 
+  output$eq.raw.target <- DT::renderDT(server = FALSE, {
 
-  output$eq.raw <- DT::renderDT(server = FALSE, {
-
-    if (is.null(eq.raw())) {
-      return(NULL)
-    } else {
-
-      datatable(data = eq.raw(),
-                style = "bootstrap",
-                extensions = c('Buttons', 'Responsive', 'Scroller'),
-                selection = 'multiple',
-                colnames = c(
-                  '[Ligand] (µM)' = 'lgd.conc',
-                  'File name' = 'filename',
-                  'Ligand stoichiometry' = 'Stoich',
-                  'Raw intensity' = 'intensity',
-                  'Relative intensity' = 'rel.intensity',
-                  'Start TIC time' = 'min.time',
-                  'End TIC time' = 'max.time',
-                  'Start scan' = 'min.scan',
-                  'End scan' = 'max.scan',
-                  'Start m/z' = 'min.mz',
-                  'End m/z'= 'max.mz',
-                  'C (µM, uncorrected)' = 'uncorr.C'
-                ),
-                editable = T,
-                rownames = F,
-                escape = T,
-                filter = 'top',
-                autoHideNavigation = T,
-                plugins = 'natural',
-                options = list(
-                  deferRender = TRUE,
-                  scrollY = 200,
-                  scroller = TRUE,
-                  autoWidth = F,
-                  dom = 'Bfrtip', #button position
-                  buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
-                  columnDefs = list(list(visible=FALSE, targets=c(3, 4, 5, 6, 7, 8, 2)))
-                )
+    datatable(
+      data = eq.raw.target(),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        '[Ligand] (µM)' = 'lgd.conc',
+        'File name' = 'filename',
+        'Ligand stoichiometry' = 'Stoich',
+        'Raw intensity' = 'intensity',
+        'Relative intensity' = 'rel.intensity',
+        'Start TIC time' = 'min.time',
+        'End TIC time' = 'max.time',
+        'Start scan' = 'min.scan',
+        'End scan' = 'max.scan',
+        'Start m/z' = 'min.mz',
+        'End m/z'= 'max.mz',
+        'C (µM, uncorrected)' = 'uncorr.C'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(3, 4, 5, 6, 7, 8, 2)))
+      )
+    ) %>%
+      formatRound(
+        c('Raw intensity', 'Relative intensity', 'C (µM, uncorrected)'),
+        digits = 2
       ) %>%
-        formatRound(c('Raw intensity', 'Relative intensity', 'C (µM, uncorrected)'), digits = 2)
-    }
+      formatStyle(
+        columns = 0:12,
+        target = 'row',
+        background = '#272c30'
+      )
+
+  })
+
+  output$eq.raw.std <- DT::renderDT(server = FALSE, {
+
+    datatable(
+      data = eq.raw.std(),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        '[Ligand] (µM)' = 'lgd.conc',
+        'File name' = 'filename',
+        "Standard intensity" = 'std.intensity'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:2,
+        target = 'row',
+        background = '#272c30'
+      )
+
   })
 
   #User inputs
@@ -3391,43 +3429,6 @@ server <- function(input, output, session) {
   })
 
 
-  # output$eq.raw <- DT::renderDT({
-  #
-  #   datatable(data = eq.raw(),
-  #             extensions = c('Buttons', 'Responsive', 'Scroller'),
-  #             selection = 'multiple',
-  #             colnames = c(
-  #               '[Ligand] (µM)' = 'lgd.conc',
-  #               'File name' = 'filename',
-  #               'Ligand stoichiometry' = 'Stoich',
-  #               'Raw intensity' = 'intensity',
-  #               'Relative intensity' = 'rel.intensity',
-  #               'Start TIC time' = 'min.time',
-  #               'End TIC time' = 'max.time',
-  #               'Start scan' = 'min.scan',
-  #               'End scan' = 'max.scan',
-  #               'Start m/z' = 'min.mz',
-  #               'End m/z'= 'max.mz'
-  #             ),
-  #             editable = T,
-  #             rownames = F,
-  #             escape = T,
-  #             filter = 'top',
-  #             autoHideNavigation = T,
-  #             plugins = 'natural',
-  #             options = list(
-  #               deferRender = TRUE,
-  #               scrollY = 200,
-  #               scroller = TRUE,
-  #               autoWidth = F,
-  #               dom = 'Bfrtip', #button position
-  #               buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
-  #               columnDefs = list(list(visible=FALSE, targets=c(3, 4, 5, 6, 7, 8, 2)))
-  #             )
-  #   ) %>%
-  #     formatRound(c('Raw intensity', 'Relative intensity'), digits = 2)
-  # })
-
 
   #Download kinetics plots-----------
   Plot6 <- reactive({
@@ -3450,7 +3451,8 @@ server <- function(input, output, session) {
   outputOptions(output, "plot.snaps.ui", suspendWhenHidden = FALSE)
   outputOptions(output, "plot.pp", suspendWhenHidden = FALSE)
   outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
-  # outputOptions(output, "eq.raw", suspendWhenHidden = FALSE)
+  outputOptions(output, "eq.raw.target", suspendWhenHidden = FALSE)
+  outputOptions(output, "eq.raw.std", suspendWhenHidden = FALSE)
 
 
 }

@@ -122,7 +122,7 @@ ui <- dashboardPage(
                      label = "Select reference",
                      icon = icon('check-circle', class = 'regular'),
                      style = "simple",
-                     color = "danger",
+                     color = "default",
                      size = "sm",
                      block = F,
                      no_outline = TRUE),
@@ -141,43 +141,51 @@ ui <- dashboardPage(
       ),
       box(width = 12,
           title = "Kinetics",
-          status = 'teal',
-          solidHeader = F,
-          collapsible = T,
-          collapsed = T,
+          status = 'success',
+          solidHeader = FALSE,
+          collapsible = TRUE,
+          collapsed = FALSE,
           actionBttn(inputId = "bttn42",
                      label = "Select species",
                      icon = icon('check-circle', class = 'solid'),
                      style = "simple",
-                     color = "royal",
+                     color = "success",
                      size = "sm",
                      block = F,
                      no_outline = TRUE)
       ),
       box(width = 12,
           title = "Titration",
-          status = 'maroon',
-          solidHeader = F,
-          collapsible = T,
-          collapsed = T,
-          # textInput(inputId = 'tgt.conc',
-          #           label = "Target concentration (µM)",
-          #           value = 0,
-          #           width = 12),
+          status = 'danger',
+          solidHeader = FALSE,
+          collapsible = TRUE,
+          collapsed = FALSE,
           textInput(inputId = 'Stoich',
                     label = "Ligand stoichiometry",
                     value = 0),
           textInput(inputId = 'lgd.conc',
                     label = "Ligand concentration (µM)",
                     value = 0),
-          actionBttn(inputId = "bttn24",
-                     label = "Select datapoint",
-                     icon = icon('check-circle', class = 'solid'),
-                     style = "simple",
-                     color = "primary",
-                     size = "sm",
-                     block = F,
-                     no_outline = TRUE)
+          actionBttn(
+            inputId = "bttn.target",
+            label = "Select target",
+            icon = icon('check-circle', class = 'solid'),
+            style = "simple",
+            color = "danger",
+            size = "sm",
+            block = F,
+            no_outline = TRUE
+          ),
+          actionBttn(
+            inputId = "bttn.std",
+            label = "Select standard",
+            icon = icon('check-circle', class = 'solid'),
+            style = "simple",
+            color = "default",
+            size = "sm",
+            block = F,
+            no_outline = TRUE
+          )
       )
     ),
     #sidebar HDXplotR-------------
@@ -357,7 +365,7 @@ ui <- dashboardPage(
       br(),
       box(
         width = 12,
-        title = "Import results",
+        title = "Import kinetics data",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
@@ -479,13 +487,13 @@ ui <- dashboardPage(
         )
       )
     ),
-    #sidebar TitR-------------
+    #sidebar TitratR-------------
     conditionalPanel(
-      condition = "input.tabs =='TitR'",
+      condition = "input.tabs =='TitratR'",
       br(),
       box(
         width = 12,
-        title = "Import processed data",
+        title = "Import data",
         status = 'primary',
         solidHeader = F,
         collapsible = T,
@@ -498,14 +506,12 @@ ui <- dashboardPage(
       ),
       textInput(
         inputId = "Mtot",
-        label = "Total target concentration (µM)",
-        value = 10,
-        width = 12
+        label = "Target concentration (µM)",
+        value = 10
       ),textInput(
         inputId = "Std",
-        label = "IS concentration (µM)",
-        value = 10,
-        width = 12
+        label = "Internal std concentration (µM)",
+        value = 10
       ),
       actionBttn(inputId = "bttn55",
                  label = "Process response factors",
@@ -1155,15 +1161,6 @@ ui <- dashboardPage(
         icon = icon('clock'),
         fluidRow(
           box(
-            title = "Kinetics data",
-            footer = "To be able to reimport the data, save as Excel. The number of scans to average and time range can be reprocessed. Caution: scans excluded will not be exported.",
-            width = 12,
-            status = "success",
-            solidHeader = F,
-            collapsible = T,
-            DTOutput("k.table")
-          ),
-          box(
             title = "Kinetics plot",
             width = 12,
             status = "danger",
@@ -1172,31 +1169,22 @@ ui <- dashboardPage(
             uiOutput("k.plot.ui")
           ),
           box(
-            title = 'Data for post-processing',
-            footer = 'Select data in plot filter dropdown menu. Create/update the table by clicking on "Generate table".',
-            solidHeader = F,
-            status = 'primary',
-            collapsible = T,
-            collapsed = T,
-            actionBttn(inputId = "k.wide.bttn",
-                       label = "Generate table",
-                       icon = icon('table', class = 'solid'),
-                       style = "simple",
-                       color = "primary",
-                       size = "sm",
-                       block = T,
-                       no_outline = TRUE),
-            tags$h4(''),
-            DTOutput('k.wide')
+            title = "Kinetics data",
+            footer = "To be able to reimport the data, save as Excel. The number of scans to average and time range can be reprocessed. Caution: scans excluded will not be exported.",
+            width = 12,
+            status = "success",
+            solidHeader = FALSE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            DTOutput("k.table")
           ),
           box(
             title = 'Raw spectrum data',
-            solidHeader = F,
+            solidHeader = FALSE,
             status = 'primary',
-            collapsible = T,
-            collapsed = T,
-            downloadButton("download1", ""), # no label: this button will be hidden
-            numericInput("nrows", "Number of rows", 10),
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = 12,
             DTOutput('k.spectra')
           )
         ),
@@ -1253,33 +1241,41 @@ ui <- dashboardPage(
           style = "opacity: 0.9"
         )
       ),
-      #panel titR------
+      #panel TitratR------
       tabPanel(
-        "TitR",
+        "TitratR",
         icon = icon('chart-line'),
         fluidRow(
           box(
             title = "Equilibrium data",
-            width = 12,
+            width = 8,
             status = "primary",
-            solidHeader = T,
-            collapsible = T,
-            DTOutput('eq.raw')
+            solidHeader = FALSE,
+            collapsible = TRUE,
+            DTOutput('eq.raw.target')
+          ),
+          box(
+            title = "Standard data",
+            width = 4,
+            status = "primary",
+            solidHeader = FALSE,
+            collapsible = TRUE,
+            DTOutput('eq.raw.std')
           ),
           box(
             title = "Relative response factors",
             width = 12,
-            status = "primary",
-            solidHeader = T,
-            collapsible = T,
+            status = "warning",
+            solidHeader = FALSE,
+            collapsible = TRUE,
             DTOutput('Rf')
           ),
           box(
             title = "Corrected concentrations",
             width = 12,
-            status = "primary",
-            solidHeader = T,
-            collapsible = T,
+            status = "danger",
+            solidHeader = FALSE,
+            collapsible = TRUE,
             DTOutput('corr.C')
           )
         )
