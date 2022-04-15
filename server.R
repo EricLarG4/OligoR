@@ -2997,7 +2997,6 @@ server <- function(input, output, session) {
   })
 
 
-
   #### 5.6 Plot----
 
   output$k.plot <- renderPlot({
@@ -3059,75 +3058,135 @@ server <- function(input, output, session) {
 
   # 6. TitratR-----------
 
-  #6.x import processed data----
-
-  titr.old <- reactive({
-    if(is.null(input$titr.old))
-      return(NULL)
-
-    input$titr.old
-  })
-
-  processed.titr <- reactive({
-
-    if(is.null(input$titr.old))
-      return(NULL)
-
-    processed.titr <- data.frame(read_excel(titr.old()$datapath,
-                                            col_names = F, skip = 2))
-
-    colnames(processed.titr) <- c('Species',
-                                  'lgd.conc',
-                                  'filename',
-                                  'min.time',
-                                  'max.time',
-                                  'min.scan',
-                                  'max.scan',
-                                  'min.mz',
-                                  'max.mz',
-                                  'Stoich',
-                                  'intensity',
-                                  'rel.intensity',
-                                  'uncorr.C')
-
-    return(processed.titr)
-
-  })
-
+  ##6.1 Experimental conditions----
 
   lgd.conc <- reactive({
     as.numeric(input$lgd.conc)
   })
 
+  Mtot <- reactive({ #total target concentration
+    as.numeric(input$Mtot)
+  })
+
+  Std <- reactive({ #SI concentration
+    as.numeric(input$Std)
+  })
+
+  ## 6.2 Snap data----
+
+  ### 6.2.1 snapping----
+
+  snaps.target <- data.frame()
+
+  snaps.std <- data.frame()
+
   MSsnaps.target <- reactive({
     newrow <- data.frame(inputsnap())
-    snaps <<- rbind(snaps, newrow)
+    snaps.target <<- rbind(snaps.target, newrow)
   }) %>%
     bindEvent(input$bttn.target)
 
   MSsnaps.std <- reactive({
     newrow <- data.frame(inputsnap())
-    snaps <<- rbind(snaps, newrow)
+    snaps.std <<- rbind(snaps.std, newrow)
   }) %>%
     bindEvent(input$bttn.std)
+
+  ### 6.2.3 snap output----
+  output$target <- renderDT(server = TRUE,{
+    datatable(
+      MSsnaps.target(),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        '[Ligand] (µM)' = 'lgd.conc',
+        'File name' = 'filename',
+        'Ligand stoichiometry' = 'Stoich',
+        'Intensity' = 'intensum',
+        'Start TIC time' = 'min.time',
+        'End TIC time' = 'max.time',
+        'Start scan' = 'min.scan',
+        'End scan' = 'max.scan',
+        'Start m/z' = 'min.mz',
+        'End m/z'= 'max.mz'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0,2:3,5,8:13)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:13,
+        target = 'row',
+        background = '#272c30'
+      )
+  })
+
+  output$standard <- renderDT(server = TRUE,{
+    datatable(
+      MSsnaps.std(),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        '[Ligand] (µM)' = 'lgd.conc',
+        'File name' = 'filename',
+        'Ligand stoichiometry' = 'Stoich',
+        'Intensity' = 'intensum',
+        'Start TIC time' = 'min.time',
+        'End TIC time' = 'max.time',
+        'Start scan' = 'min.scan',
+        'End scan' = 'max.scan',
+        'Start m/z' = 'min.mz',
+        'End m/z'= 'max.mz'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0,2:3,5,8:13)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:13,
+        target = 'row',
+        background = '#272c30'
+      )
+  })
+
+  ## 6.3 Data processing----
+
+  ### 6.3.1 Calculations----
 
   eq.raw.target <- reactive({
 
     MSsnaps.target() %>%
       group_by(
-        Species, lgd.conc, filename, min.time, max.time,
-        min.scan, max.scan, min.mz, max.mz, Stoich
+        Species, lgd.conc, Stoich, filename,
+        min.time, max.time, min.scan, max.scan, min.mz, max.mz
       ) %>%
-      summarise(intensity = sum(intensum)) %>%
-      group_by(Species, lgd.conc, Stoich) %>%
-      mutate(
-        #the relative intensity does not take into account the SI intensity
-        rel.intensity = intensity/sum(intensity)
-      ) %>%
-      group_by(Species, lgd.conc, Stoich) %>%
-      mutate(
-        uncorr.C = rel.intensity*Mtot()
-      )
+      summarise(intensity = sum(intensum))
   })
 
   eq.raw.std <- reactive({
@@ -3143,14 +3202,27 @@ server <- function(input, output, session) {
 
   eq.raw <- reactive({
 
-    eq.raw.target() %>%
-      left_join(
-        eq.raw.std()
-      ) %>%
-      ungroup() %>%
-      unique()
+    if(is.null(input$titr.old)){
+      eq.raw.target() %>%
+        left_join(
+          eq.raw.std()
+        ) %>%
+        group_by(Species, lgd.conc) %>%
+        mutate(
+          #the relative intensity does not take into account the SI intensity
+          rel.intensity = intensity/sum(intensity),
+          uncorr.C = rel.intensity*Mtot()
+          # uncorr.C.lgd = uncorr.C*Stoich,
+          # free.lgd = lgd.conc-sum(uncorr.C.lgd)
+        )
+    } else {
+      processed.titr()
+    }
 
-  })
+  }) %>%
+    bindEvent(input$IS)
+
+  ### 6.3.2 Tables----
 
   output$eq.raw.target <- DT::renderDT(server = FALSE, {
 
@@ -3164,14 +3236,12 @@ server <- function(input, output, session) {
         'File name' = 'filename',
         'Ligand stoichiometry' = 'Stoich',
         'Raw intensity' = 'intensity',
-        'Relative intensity' = 'rel.intensity',
         'Start TIC time' = 'min.time',
         'End TIC time' = 'max.time',
         'Start scan' = 'min.scan',
         'End scan' = 'max.scan',
         'Start m/z' = 'min.mz',
-        'End m/z'= 'max.mz',
-        'C (µM, uncorrected)' = 'uncorr.C'
+        'End m/z'= 'max.mz'
       ),
       editable = T,
       rownames = F,
@@ -3186,15 +3256,15 @@ server <- function(input, output, session) {
         autoWidth = F,
         dom = 'Bfrtip', #button position
         buttons = c('copy', 'csv', 'excel', 'colvis'),
-        columnDefs = list(list(visible=FALSE, targets=c(3, 4, 5, 6, 7, 8, 2)))
+        columnDefs = list(list(visible=FALSE, targets=c(3:9)))
       )
     ) %>%
-      formatRound(
-        c('Raw intensity', 'Relative intensity', 'C (µM, uncorrected)'),
-        digits = 2
-      ) %>%
+      # formatRound(
+      #   c('Raw intensity', 'Relative intensity', 'C (µM, uncorrected)'),
+      #   digits = 2
+      # ) %>%
       formatStyle(
-        columns = 0:12,
+        columns = 0:10,
         target = 'row',
         background = '#272c30'
       )
@@ -3237,23 +3307,98 @@ server <- function(input, output, session) {
 
   })
 
-  #User inputs
-  Mtot <- reactive({ #total target concentration
-    as.numeric(input$Mtot)
+  output$eq.raw <- DT::renderDT(server = FALSE, {
+
+    datatable(
+      data = eq.raw(),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        '[Ligand] (µM)' = 'lgd.conc',
+        'File name' = 'filename',
+        'Ligand stoichiometry' = 'Stoich',
+        'Raw intensity' = 'intensity',
+        'Start TIC time' = 'min.time',
+        'End TIC time' = 'max.time',
+        'Start scan' = 'min.scan',
+        'End scan' = 'max.scan',
+        'Start m/z' = 'min.mz',
+        'End m/z'= 'max.mz',
+        "Standard intensity" = 'std.intensity',
+        "Relative intensity" = "rel.intensity",
+        'Concentration (µM, uncorrected)' = "uncorr.C"
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0, 3:9)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:13,
+        target = 'row',
+        background = '#272c30'
+      )
+
   })
 
-  Std <- reactive({ #SI concentration
-    as.numeric(input$Std)
+
+  ##6.4 import processed data----
+
+  titr.old <- reactive({
+    if(is.null(input$titr.old)){
+      return(NULL)
+    } else {
+      return(input$titr.old)
+    }
+
   })
 
-  R <- reactive({
+  processed.titr <- reactive({
+
+    if(is.null(input$titr.old)){
+      return(NULL)
+    } else {
+      return(
+        read_excel(
+          titr.old()$datapath,
+          skip = 1
+        ) %>%
+          set_colnames(
+            c('Species', 'lgd.conc', 'Stoich', 'filename',
+              'min.time', 'max.time', 'min.scan', 'max.scan',
+              'min.mz', 'max.mz', 'intensity', 'std.intensity',
+              'rel.intensity', 'uncorr.C')
+          )
+      )
+    }
+
+  })
+
+  ## 6.5 Internal standardization----
+
+  ### 6.5.1 Response factors----
+
+  Rf <- reactive({
+
+    eq.raw <- eq.raw() %>%
+      arrange(lgd.conc, Stoich)
 
     # Calculation of the intensity ratio vs IS (by experiment = by lgd.conc)
-    I <- eq.raw() %>%
-      group_by(lgd.conc) %>%
-      mutate(I.ratio = intensity/intensity[Species == "Standard"]) %>%
-      filter(Species != "Standard") %>% # ratio should be = 1; useless for remainder of script
-      dplyr::select(I.ratio, Stoich, lgd.conc) # selection of relevant columns
+    I <- eq.raw %>%
+      mutate(I.ratio = intensity/std.intensity) %>% #VERIFY----
+    dplyr::select(I.ratio, Stoich, lgd.conc) # selection of relevant columns
 
     #Ligand concentrations matrix
     Lgd <- I %>%
@@ -3279,8 +3424,6 @@ server <- function(input, output, session) {
     #switching to matrix and transposing to follow the formatting of Anal. Chem.2009,81,6708–6715
     I <- t(as.matrix(I))
 
-
-
     C <- matrix(ncol = 1, nrow = nrow(I))
 
     for (nrowI in 1:nrow(I)) {
@@ -3290,67 +3433,70 @@ server <- function(input, output, session) {
     #I.R = C with R the response factors
 
     #Computes the Moore-Penrose generalized inverse of matrix I
-    I.inv = MPinv(I)
+    I.inv = MPinv(I, method = 'chol')
     # I.inv
 
     #Response factors relative to the IS.
     R <- I.inv%*%C
+
+    #Normalisation to 1 for unbound DNA
+    # R <- R/R[1,1]
 
     return(R)
 
   }) %>%
     bindEvent(input$bttn55)
 
+  output$Rf <- renderDT(server = FALSE,{
+    datatable(
+      Rf()%>%
+        as.data.frame() %>%
+        mutate(Stoich = unique(eq.raw()$Stoich)) %>%
+        mutate(species = case_when(
+          Stoich == 0 ~ 'M',
+          Stoich == 1 ~ 'ML',
+          Stoich == 2 ~ 'ML2'
+        )) %>%
+        select(species, V1) %>%
+        set_colnames(c("Species", "Response factor")),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = c('copy', 'csv', 'excel', 'colvis')
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:2,
+        target = 'row',
+        background = '#272c30'
+      ) %>%
+      formatSignif(
+        .,
+        columns = 2,
+        digits = 3
+      )
+  })
+
+  ### 6.5.2 Corrected concentrations----
+
   corr.C <- reactive({
 
-    # Calculation of the intensity ratio vs IS (by experiment = by lgd.conc)
-    I <- eq.raw() %>%
-      group_by(lgd.conc) %>%
-      mutate(I.ratio = intensity/intensity[Species == "Standard"]) %>%
-      filter(Species != "Standard") %>% # ratio should be = 1; useless for remainder of script
-      dplyr::select(I.ratio, Stoich, lgd.conc) # selection of relevant columns
+    eq.raw <- eq.raw() %>%
+      arrange(lgd.conc, Stoich)
 
-    #Ligand concentrations matrix
-    Lgd <- I %>%
-      dplyr::select(lgd.conc) %>%
-      distinct(lgd.conc, .keep_all = TRUE) %>%
-      as.matrix()
-
-
-    ### At this point, are the rows order by concentration and stoichio? #####
-
-    # pivoting from long to wide format to work with matrices after
-    # allocate a 0 intensity to absent species
-    # remove the stoich column
-    I <- I %>%
-      pivot_wider(values_from = "I.ratio", names_from = c("lgd.conc")) %>%
-      mutate_all(~replace(., is.na(.), 0))
-
-    Stoich <- as.matrix(I$Stoich)
-
-    I <- I %>%
-      dplyr::select(-Stoich)
-
-    #switching to matrix and transposing to follow the formatting of Anal. Chem.2009,81,6708–6715
-    I <- t(as.matrix(I))
-
-    C <- matrix(ncol = 1, nrow = nrow(I))
-
-    for (nrowI in 1:nrow(I)) {
-      C[nrowI] <- Mtot()/Std()
-    }
-
-    #I.R = C with R the response factors
-
-    #Computes the Moore-Penrose generalized inverse of matrix I
-    I.inv = MPinv(I)
-    I.inv
-
-    #Response factors relative to the IS.
-    R <- I.inv%*%C
-
-    # Generalization
-
+    R <- Rf()
 
     #RI has the same dimensions as I
     RI <- matrix(ncol = ncol(I), nrow = nrow(I))
@@ -3360,7 +3506,6 @@ server <- function(input, output, session) {
         RI[nrowI,nrowR] <- R[nrowR] * I[nrowI,nrowR]
       }
     }
-
 
     #Final matrix of corrected concentrations
     #Same dimensions as I
@@ -3372,7 +3517,7 @@ server <- function(input, output, session) {
       }
     }
 
-    corr.C.colnames <- eq.raw() %>%
+    corr.C.colnames <- eq.raw %>%
       select(Stoich) %>%
       unique() %>%
       mutate(Stoich = case_when(
@@ -3389,19 +3534,8 @@ server <- function(input, output, session) {
 
     return(corr.C)
 
-  }) %>%
-    bindEvent(input$bttn55)
-
-
-  output$Rf <- renderDT({
-
-    eq.raw() %>%
-      filter(Species != 'Standard') %>%
-      group_by(Stoich) %>%
-      filter(row_number() == 1) %>%
-      add_column(Rf = R())
-
   })
+
 
   output$corr.C <- renderDT({
 
@@ -3423,26 +3557,18 @@ server <- function(input, output, session) {
                 dom = 'Bfrtip', #button position
                 buttons = c('copy', 'csv', 'excel', 'colvis')
               )
-    )
-
+    ) %>%
+      formatStyle(
+        columns = 0:2,
+        target = 'row',
+        background = '#272c30'
+      )
 
   })
 
 
 
-  #Download kinetics plots-----------
-  Plot6 <- reactive({
-    ggplot(data = centroids(), aes(x = centroids()$mean.time, y = centroids()$centroid)) +
-      geom_point(color = "steelblue", size = 3) +
-      custom.theme
-  })
 
-  output$dwnplot <- downloadHandler(
-    filename = function() { paste("kinetics-raw", '.png', sep='') },
-    content = function(file) {
-      ggsave(file, plot = Plot6(), device = "png")
-    }
-  )
 
 
 
@@ -3451,8 +3577,8 @@ server <- function(input, output, session) {
   outputOptions(output, "plot.snaps.ui", suspendWhenHidden = FALSE)
   outputOptions(output, "plot.pp", suspendWhenHidden = FALSE)
   outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
-  outputOptions(output, "eq.raw.target", suspendWhenHidden = FALSE)
-  outputOptions(output, "eq.raw.std", suspendWhenHidden = FALSE)
+  # outputOptions(output, "eq.raw.target", suspendWhenHidden = FALSE)
+  # outputOptions(output, "eq.raw.std", suspendWhenHidden = FALSE)
 
 
 }

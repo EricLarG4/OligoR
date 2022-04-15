@@ -513,14 +513,24 @@ ui <- dashboardPage(
         label = "Internal std concentration (µM)",
         value = 10
       ),
-      actionBttn(inputId = "bttn55",
-                 label = "Process response factors",
-                 icon = icon('check-circle', class = 'solid'),
-                 style = "simple",
-                 color = "primary",
-                 size = "sm",
-                 block = F,
-                 no_outline = TRUE)
+      actionBttn(
+        inputId = "IS",
+        label = "Associate internal std",
+        icon = icon('puzzle-piece', class = 'solid'),
+        color = "warning",
+        size = "sm",
+        style = "simple"
+      ),
+      actionBttn(
+        inputId = "bttn55",
+        label = "Process response factors",
+        icon = icon('microchip', class = 'solid'),
+        style = "simple",
+        color = "danger",
+        size = "sm",
+        block = F,
+        no_outline = TRUE
+      )
     ),
     #sidebar OligoRef-------------
     conditionalPanel(
@@ -759,17 +769,19 @@ ui <- dashboardPage(
         "MSxploR",
         icon = icon('drafting-compass'),
         fluidRow(
-          box(id = "box1",
-              width = 10,
-              title = "TIC",
-              p("Brush to select scans, resize edges and drag as desired"),
-              status = 'primary',
-              collapsible = TRUE,
-              plotOutput("plot1",
-                         brush = brushOpts(id = "plot_brush",
-                                           fill = "#fff5e7", stroke = "#fff5e7",
-                                           direction = "x"),
-                         height = 200)),
+          box(
+            id = "box1",
+            width = 10,
+            title = "TIC",
+            p("Brush to select scans, resize edges and drag as desired"),
+            status = 'primary',
+            collapsible = TRUE,
+            plotOutput("plot1",
+                       brush = brushOpts(id = "plot_brush",
+                                         fill = "#fff5e7", stroke = "#fff5e7",
+                                         direction = "x"),
+                       height = 200)
+          ),
           box(
             title = "Selected time range",
             width = 2,
@@ -786,29 +798,45 @@ ui <- dashboardPage(
           )
         ),
         fluidRow(
-          box(id = "box3",
-              width = 10,
-              title = "MS spectrum", p("Brush to zoom, double click to reset zoom"),
-              status = "danger",
-              collapsible = TRUE,
-              plotOutput(
-                "plot3",
-                height = 750,
-                dblclick = "plot3_dblclick",
-                brush = brushOpts(
-                  id = "plot3_brush",
-                  fill = "#fff5e7", stroke = "#fff5e7", direction = "xy",
-                  resetOnNew = TRUE
-                )
+          box(
+            id = "box3",
+            width = 10,
+            title = "MS spectrum", p("Brush to zoom, double click to reset zoom"),
+            status = "danger",
+            collapsible = TRUE,
+            plotOutput(
+              "plot3",
+              height = 750,
+              dblclick = "plot3_dblclick",
+              brush = brushOpts(
+                id = "plot3_brush",
+                fill = "#fff5e7", stroke = "#fff5e7", direction = "xy",
+                resetOnNew = TRUE
               )
+            )
           ),
           box(
             title = "Selected m/z",
             width = 2,
             status = "danger",
-            closable = F,
             collapsible = T,
             textOutput("info2", inline = F)
+          )
+        ),
+        fluidRow(
+          box(
+            title = "Target snap",
+            width = 4,
+            status = "success",
+            collapsible = TRUE,
+            DTOutput("target")
+          ),
+          box(
+            title = "Standard snap",
+            width = 4,
+            status = "success",
+            collapsible = TRUE,
+            DTOutput("standard")
           )
         ),
         absolutePanel(
@@ -1263,16 +1291,24 @@ ui <- dashboardPage(
             DTOutput('eq.raw.std')
           ),
           box(
-            title = "Relative response factors",
-            width = 12,
+            title = "Standardized data",
+            width = 6,
             status = "warning",
+            solidHeader = FALSE,
+            collapsible = TRUE,
+            DTOutput('eq.raw')
+          ),
+          box(
+            title = "Relative response factors",
+            width = 3,
+            status = "danger",
             solidHeader = FALSE,
             collapsible = TRUE,
             DTOutput('Rf')
           ),
           box(
             title = "Corrected concentrations",
-            width = 12,
+            width = 3,
             status = "danger",
             solidHeader = FALSE,
             collapsible = TRUE,
