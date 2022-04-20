@@ -1066,7 +1066,7 @@ server <- function(input, output, session) {
       )
     ) %>%
       formatStyle(
-        0:7,
+        0:22,
         target = 'row',
         backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
       )
@@ -1130,11 +1130,11 @@ server <- function(input, output, session) {
                filename="Optimization results"),
           list(extend='colvis')
         ),
-        columnDefs = list(list(visible=FALSE, targets=c(4:7)))
+        columnDefs = list(list(visible=FALSE, targets=c(4:9)))
       )
     ) %>%
       formatStyle(
-        0:15,
+        0:14,
         target = 'row',
         backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
       )
@@ -1311,7 +1311,7 @@ server <- function(input, output, session) {
       )
     ) %>%
       formatStyle(
-        0:17,
+        0:16,
         target = 'row',
         backgroundColor = styleEqual(c(0,1), c('#272c30', '#272c30'))
       )
@@ -1321,42 +1321,53 @@ server <- function(input, output, session) {
 
   output$optiplot <- renderPlot({
 
-    if(!is.null(input$mzml.file)){
 
+    if(!is.null(input$mzml.file)){
       optiplot <- plot.pp()
     } else {
-      optiplot <- ggplot() +
-        facet_grid(
-          signif(time.scale, 3) ~ Species,
-          scales = common.scale()
-        ) +
-        custom.theme +
-        theme(strip.text = element_blank(),
-              axis.title.y = element_blank(),
-              axis.text.y = element_blank(),
-              axis.line.y = element_blank(),
-              axis.ticks.y = element_blank(),
-              legend.position = "right") +
-        coord_cartesian(expand = TRUE)
+      if(!is.null(input$exported.snaps)){
+        optiplot <- plot.pp()
+      } else {
+
+        optiplot <- ggplot() +
+          facet_grid(
+            signif(time.scale, 3) ~ Species,
+            scales = common.scale()
+          ) +
+          custom.theme +
+          theme(strip.text = element_blank(),
+                axis.title.y = element_blank(),
+                axis.text.y = element_blank(),
+                axis.line.y = element_blank(),
+                axis.ticks.y = element_blank(),
+                legend.position = "right") +
+          coord_cartesian(expand = TRUE)
+      }
     }
 
+    opt.filter <- opt.filter() %>%
+      group_by(time.scale, Species) %>%
+      arrange(mz.th) %>%
+      slice_head(n = input$nrPeaks.user.pp)
+
+
     optiplot <- optiplot +
-      geom_point(data = opt.filter(),
+      geom_point(data = opt.filter,
                  aes(x = mz.th, y = iso.1),
                  size = input$size.dot.opt, color = '#E69F00', alpha = 0.75) +
-      geom_line(data = opt.filter(),
+      geom_line(data = opt.filter,
                 aes(x = mz.th, y = iso.1),
                 size = input$size.line.opt, color = '#E69F00', alpha = 0.75) +
-      geom_point(data = opt.filter(),
+      geom_point(data = opt.filter,
                  aes(x = mz.th, y = iso.2),
                  size = input$size.dot.opt, color = '#009E73', alpha = 0.75) +
-      geom_line(data = opt.filter(),
+      geom_line(data = opt.filter,
                 aes(x = mz.th, y = iso.2),
                 size = input$size.line.opt, color = '#009E73', alpha = 0.75)  +
-      geom_point(data = opt.filter(),
+      geom_point(data = opt.filter,
                  aes(x = mz.th, y = iso),
                  size = input$size.dot.opt, color = '#0072B2', alpha = 0.75) +
-      geom_line(data = opt.filter(),
+      geom_line(data = opt.filter,
                 aes(x = mz.th, y = iso),
                 size = input$size.line.opt, color = '#0072B2', alpha = 0.75) +
       geom_segment(data = opt.filter() %>% distinct(., time.scale, Species, distrib, centroid),
@@ -1375,7 +1386,12 @@ server <- function(input, output, session) {
                    size = input$size.line.cent, alpha = 0.75,
                    linetype = 'dashed')
 
-    return(optiplot)
+    if (is.null(input$mzml.file)&is.null(input$exported.snaps)&is.null(input$exported.opt)) {
+      return(NULL)
+    } else {
+      return(optiplot)
+    }
+
 
   })
 
@@ -1418,6 +1434,49 @@ server <- function(input, output, session) {
   )
 
   ## 4. HDXplotR--------
+
+  ### 4.0. snap output----
+  output$MSsnap <- renderDT(server = TRUE,{
+    datatable(
+      MSsnaps() %>%
+        select(filename, Species, mean.time, CFtime, mz, intensum,
+               min.time, max.time, min.scan, max.scan),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        'File name' = 'filename',
+        'Intensity' = 'intensum',
+        'Start TIC time' = 'min.time',
+        'End TIC time' = 'max.time',
+        'Start scan' = 'min.scan',
+        'End scan' = 'max.scan',
+        'm/z' = "mz",
+        'Manual time (min)' = 'CFtime',
+        'TIC time (min)' = 'mean.time'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip', #button position
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0,6:9)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:9,
+        target = 'row',
+        background = '#272c30'
+      )
+  })
 
   ###4.1. Centroid calculation----
   centroids <- reactive({
@@ -3095,7 +3154,9 @@ server <- function(input, output, session) {
   ### 6.2.3 snap output----
   output$target <- renderDT(server = TRUE,{
     datatable(
-      MSsnaps.target(),
+      MSsnaps.target() %>%
+        select(filename, Species, lgd.conc, Stoich, mz, intensum,
+               min.time, max.time, min.scan, max.scan, min.mz, max.mz),
       style = "bootstrap",
       extensions = c('Buttons', 'Responsive', 'Scroller'),
       selection = 'multiple',
@@ -3109,7 +3170,8 @@ server <- function(input, output, session) {
         'Start scan' = 'min.scan',
         'End scan' = 'max.scan',
         'Start m/z' = 'min.mz',
-        'End m/z'= 'max.mz'
+        'End m/z'= 'max.mz',
+        'm/z' = 'mz'
       ),
       editable = T,
       rownames = F,
@@ -3124,11 +3186,11 @@ server <- function(input, output, session) {
         autoWidth = F,
         dom = 'Bfrtip', #button position
         buttons = c('copy', 'csv', 'excel', 'colvis'),
-        columnDefs = list(list(visible=FALSE, targets=c(0,2:3,5,8:13)))
+        columnDefs = list(list(visible=FALSE, targets=c(0,6:11)))
       )
     ) %>%
       formatStyle(
-        columns = 0:13,
+        columns = 0:11,
         target = 'row',
         background = '#272c30'
       )
@@ -3136,7 +3198,9 @@ server <- function(input, output, session) {
 
   output$standard <- renderDT(server = TRUE,{
     datatable(
-      MSsnaps.std(),
+      MSsnaps.std() %>%
+        select(filename, Species, lgd.conc, Stoich, mz, intensum,
+               min.time, max.time, min.scan, max.scan, min.mz, max.mz),
       style = "bootstrap",
       extensions = c('Buttons', 'Responsive', 'Scroller'),
       selection = 'multiple',
@@ -3150,7 +3214,8 @@ server <- function(input, output, session) {
         'Start scan' = 'min.scan',
         'End scan' = 'max.scan',
         'Start m/z' = 'min.mz',
-        'End m/z'= 'max.mz'
+        'End m/z'= 'max.mz',
+        'm/z' = 'mz'
       ),
       editable = T,
       rownames = F,
@@ -3165,11 +3230,11 @@ server <- function(input, output, session) {
         autoWidth = F,
         dom = 'Bfrtip', #button position
         buttons = c('copy', 'csv', 'excel', 'colvis'),
-        columnDefs = list(list(visible=FALSE, targets=c(0,2:3,5,8:13)))
+        columnDefs = list(list(visible=FALSE, targets=c(0,6:11)))
       )
     ) %>%
       formatStyle(
-        columns = 0:13,
+        columns = 0:11,
         target = 'row',
         background = '#272c30'
       )
@@ -3184,7 +3249,7 @@ server <- function(input, output, session) {
     MSsnaps.target() %>%
       group_by(
         Species, lgd.conc, Stoich, filename,
-        min.time, max.time, min.scan, max.scan, min.mz, max.mz
+        min.time, max.time, min.scan, max.scan
       ) %>%
       summarise(intensity = sum(intensum))
   })
@@ -3239,9 +3304,7 @@ server <- function(input, output, session) {
         'Start TIC time' = 'min.time',
         'End TIC time' = 'max.time',
         'Start scan' = 'min.scan',
-        'End scan' = 'max.scan',
-        'Start m/z' = 'min.mz',
-        'End m/z'= 'max.mz'
+        'End scan' = 'max.scan'
       ),
       editable = T,
       rownames = F,
@@ -3256,7 +3319,7 @@ server <- function(input, output, session) {
         autoWidth = F,
         dom = 'Bfrtip', #button position
         buttons = c('copy', 'csv', 'excel', 'colvis'),
-        columnDefs = list(list(visible=FALSE, targets=c(3:9)))
+        columnDefs = list(list(visible=FALSE, targets=c(3:7)))
       )
     ) %>%
       # formatRound(
@@ -3264,7 +3327,7 @@ server <- function(input, output, session) {
       #   digits = 2
       # ) %>%
       formatStyle(
-        columns = 0:10,
+        columns = 0:8,
         target = 'row',
         background = '#272c30'
       )
@@ -3323,8 +3386,6 @@ server <- function(input, output, session) {
         'End TIC time' = 'max.time',
         'Start scan' = 'min.scan',
         'End scan' = 'max.scan',
-        'Start m/z' = 'min.mz',
-        'End m/z'= 'max.mz',
         "Standard intensity" = 'std.intensity',
         "Relative intensity" = "rel.intensity",
         'Concentration (µM, uncorrected)' = "uncorr.C"
@@ -3342,11 +3403,11 @@ server <- function(input, output, session) {
         autoWidth = F,
         dom = 'Bfrtip', #button position
         buttons = c('copy', 'csv', 'excel', 'colvis'),
-        columnDefs = list(list(visible=FALSE, targets=c(0, 3:9)))
+        columnDefs = list(list(visible=FALSE, targets=c(0, 3:7)))
       )
     ) %>%
       formatStyle(
-        columns = 0:13,
+        columns = 0:11,
         target = 'row',
         background = '#272c30'
       )
@@ -3378,7 +3439,7 @@ server <- function(input, output, session) {
           set_colnames(
             c('Species', 'lgd.conc', 'Stoich', 'filename',
               'min.time', 'max.time', 'min.scan', 'max.scan',
-              'min.mz', 'max.mz', 'intensity', 'std.intensity',
+              'intensity', 'std.intensity',
               'rel.intensity', 'uncorr.C')
           )
       )
@@ -3433,14 +3494,14 @@ server <- function(input, output, session) {
     #I.R = C with R the response factors
 
     #Computes the Moore-Penrose generalized inverse of matrix I
-    I.inv = MPinv(I, method = 'chol')
+    I.inv = MPinv(I)
     # I.inv
 
     #Response factors relative to the IS.
     R <- I.inv%*%C
 
     #Normalisation to 1 for unbound DNA
-    # R <- R/R[1,1]
+    R <- R/R[1,1]
 
     return(R)
 
@@ -3534,7 +3595,8 @@ server <- function(input, output, session) {
 
     return(corr.C)
 
-  })
+  }) %>%
+    bindEvent(input$bttn.Ccor)
 
 
   output$corr.C <- renderDT({

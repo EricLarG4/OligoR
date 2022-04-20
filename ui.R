@@ -511,7 +511,7 @@ ui <- dashboardPage(
       ),textInput(
         inputId = "Std",
         label = "Internal std concentration (µM)",
-        value = 10
+        value = 2
       ),
       actionBttn(
         inputId = "IS",
@@ -524,6 +524,16 @@ ui <- dashboardPage(
       actionBttn(
         inputId = "bttn55",
         label = "Process response factors",
+        icon = icon('microchip', class = 'solid'),
+        style = "simple",
+        color = "danger",
+        size = "sm",
+        block = F,
+        no_outline = TRUE
+      ),
+      actionBttn(
+        inputId = "bttn.Ccor",
+        label = "Calculate concentrations",
         icon = icon('microchip', class = 'solid'),
         style = "simple",
         color = "danger",
@@ -824,6 +834,13 @@ ui <- dashboardPage(
           )
         ),
         fluidRow(
+          box(
+            title = "HDX timepoint snap",
+            width = 4,
+            status = "warning",
+            collapsible = TRUE,
+            DTOutput("MSsnap")
+          ),
           box(
             title = "Target snap",
             width = 4,
