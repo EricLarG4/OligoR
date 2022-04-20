@@ -1,0 +1,82 @@
+
+/*buttons*/
+
+.dataTables_wrapper .dt-buttons {
+  margin: 20px 0 0 0;
+}
+
+.btn-default {
+    background-color: #272c30;
+    color: #bec5cb;
+    border-color: #bec5cb;
+}
+
+.btn-default:hover {
+    background-color: #bec5cb;
+    color: #272c30;
+    border-color: #bec5cb;
+    font-weight: bold;
+}
+
+
+
+/*nav bar*/
+
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+    color: #272c30;
+    font-weight: bold;
+    cursor: default;
+    background-color: #bec5cb;
+    border: 1px solid #bec5cb;
+    border-bottom-color: transparent;
+}
+
+.nav-tabs>li>a {
+    margin-right: 2px;
+    line-height: 1.42857143;
+    border: 1px solid transparent;
+    border-radius: 4px 4px 0 0;
+}
+
+.nav>li>a {
+    color:#bec5cb;
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+}
+
+
+
+/*dropdown menu*/
+
+.dropdown-menu {
+    color: #272c30;
+    background-color: #272c30;
+    border-color: #272c30;
+}
+
+.dropdown-menu>li>a {
+    background-color: #272c30;
+    color: #bec5cb;
+    border-color: #272c30;
+}
+
+.dropdown-menu>.active>a, .dropdown-menu>.active>a:focus, .dropdown-menu>.active>a:hover {
+    background-color: tomato;
+    border-color: #bec5cb;
+}
+
+
+/*sliders*/
+
+
+.irs--shiny .irs-grid-text {
+    bottom: 5px;
+    color: white;
+}
+
+.irs--shiny .irs-grid-pol {
+  background-color: #999999;
+}
+
+

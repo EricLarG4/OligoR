@@ -13,7 +13,7 @@ devtools::install_github("AnalytixWare/ShinySky", force = FALSE)
 library(shinysky)
 
 librarian::shelf(
-  shiny, shinydashboard, shinydashboardPlus, shinyBS, shinyWidgets,
+  shiny, shinydashboard, shinydashboardPlus, shinyBS, shinyWidgets, bslib,
   DT, colourpicker, DavidBarke/QWUtils
 )
 
@@ -28,27 +28,27 @@ ui <- dashboardPage(
   ),
   #sidebar-------------
   dashboardSidebar(
-    tags$head(
-      tags$style(
-        HTML('
-          .panel-title {
-          color: white !important;
-          font-weight: bold;
-          }
-          .panel-body {background-color: #272c30 !important;}
-          .panel-heading {background-color: steelblue !important;}
-          .irs-min {
-          background-color: forestgreen !important;
-          color: white !important;
-          }
-          .irs-max {
-          background-color: tomato !important;
-          color: white !important;
-          }
-        ')
-      )
-    ),
-    chooseSliderSkin("Flat", color = "steelblue"),
+    # tags$head(
+    #   tags$style(
+    #     HTML('
+    #       .panel-title {
+    #       color: white !important;
+    #       font-weight: bold;
+    #       }
+    #       .panel-body {background-color: #272c30 !important;}
+    #       .panel-heading {background-color: steelblue !important;}
+    #       .irs-min {
+    #       background-color: forestgreen !important;
+    #       color: white !important;
+    #       }
+    #       .irs-max {
+    #       background-color: tomato !important;
+    #       color: white !important;
+    #       }
+    #     ')
+    #   )
+    # ),
+    # chooseSliderSkin("Flat", color = "steelblue"),
     #sidebar MSxplorR-------------
     conditionalPanel(
       condition = "input.tabs == 'MSxploR'",
@@ -187,6 +187,10 @@ ui <- dashboardPage(
             no_outline = TRUE
           )
       )
+      # box(
+      #   title = "Figure theme",
+      #   uiOutput('theme.dark')
+      # )
     ),
     #sidebar HDXplotR-------------
     conditionalPanel(
@@ -626,6 +630,11 @@ ui <- dashboardPage(
           label = 'K41%',
           value = 6.730244
         )
+      ),
+      box(
+        title = "Figure theme",
+        width = 12,
+        uiOutput('theme.dark')
       )
     ),
     verbatimTextOutput("value")
@@ -653,11 +662,15 @@ ui <- dashboardPage(
       )
     ),
     navbarPage(
+      theme = bs_theme(
+        version = 4,
+        bootswatch = "solar"
+      ),
       title = 'OligoR',
       id = 'tabs',
       collapsible = TRUE,
       position = "fixed-top",
-      inverse = TRUE,
+      # inverse = TRUE,
       #panel oligoRef------------
       tabPanel(
         "OligoRef",
@@ -719,7 +732,7 @@ ui <- dashboardPage(
           draggable = TRUE,
           fixed = TRUE,
           bsCollapse(
-            open = "Customisation",
+            open = "plop.1",
             bsCollapsePanel(
               "Customisation",
               colourInput("col.dot.th", "Theory  dot colour", "tomato"),
@@ -786,11 +799,15 @@ ui <- dashboardPage(
             p("Brush to select scans, resize edges and drag as desired"),
             status = 'primary',
             collapsible = TRUE,
-            plotOutput("plot1",
-                       brush = brushOpts(id = "plot_brush",
-                                         fill = "#fff5e7", stroke = "#fff5e7",
-                                         direction = "x"),
-                       height = 200)
+            plotOutput(
+              "plot1",
+              brush = brushOpts(
+                id = "plot_brush",
+                fill = "#fff5e7", stroke = "#fff5e7",
+                direction = "x"
+              ),
+              height = 200
+            )
           ),
           box(
             title = "Selected time range",
@@ -861,7 +878,7 @@ ui <- dashboardPage(
           draggable = TRUE,
           fixed = TRUE,
           bsCollapse(
-            open = "Customisation",
+            open = "plop.2",
             bsCollapsePanel(
               "Customisation",
               colourInput(
@@ -997,7 +1014,7 @@ ui <- dashboardPage(
           draggable = TRUE,
           fixed = TRUE,
           bsCollapse(
-            open = "Customisation",
+            open = "plop.3",
             bsCollapsePanel(
               "Customisation",
               colourInput("col.snap1", "Gradient start", "#d0d0d0"),
@@ -1163,7 +1180,7 @@ ui <- dashboardPage(
           draggable = TRUE,
           fixed = TRUE,
           bsCollapse(
-            open = "Customisation",
+            open = "plop.4",
             bsCollapsePanel(
               "Customisation",
               colourInput("col.kin", "Unselected points", "#777F85", allowTransparent = TRUE),
@@ -1238,7 +1255,7 @@ ui <- dashboardPage(
           draggable = TRUE,
           fixed = TRUE,
           bsCollapse(
-            open = "Customisation",
+            open = "plop.5",
             bsCollapsePanel(
               "Customisation",
               flowLayout(
