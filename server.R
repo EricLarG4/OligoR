@@ -12,7 +12,8 @@ librarian::shelf(
   tidyverse, readr, readxl, data.table, DT, tidytable, magrittr, stringr,
   formattable, gnm, DescTools,
   ggpubr, ggrepel, ggthemes, ggpmisc, thematic, zoo,
-  BiocManager, V8, mzR
+  BiocManager, V8, mzR,
+  bslib
 )
 
 ##custom functions----
@@ -49,14 +50,42 @@ custom.theme <- theme(
 )
 
 
-thematic_shiny(
-  bg = '#272c30', fg = '#EEE8D5', accent = 'auto',
-  sequential = hcl.colors(n = 42, palette = 'viridis')
-)
-
 
 #server---------
 server <- function(input, output, session) {
+
+  #0. Theme-----
+
+  theme.dark <- observeEvent(input$theme, {
+      if(input$theme=="Dark"){
+        thematic_shiny(
+          bg = '#272c30', fg = '#EEE8D5', accent = 'auto',
+          sequential = hcl.colors(n = 42, palette = 'viridis')
+        )
+      } else {
+        thematic_shiny(
+          bg = 'white', fg = 'black', accent = 'auto',
+          sequential = hcl.colors(n = 42, palette = 'viridis')
+        )
+      }
+  })
+
+  output$theme.dark <- renderUI({
+    prettyRadioButtons(
+      inputId = "theme",
+      label = "Switch to light for figure export",
+      choices = c("Dark", "Light"),
+      icon = icon("check"),
+      inline = T,
+      bigger = TRUE,
+      status = "info",
+      animation = "jelly"
+    )
+  })
+
+
+  bslib::bs_themer()
+
 
   #1. OligoRef----------
 
@@ -155,7 +184,8 @@ server <- function(input, output, session) {
                    K41C = as.numeric(input$K41C),
                    seq = sequencer(),
                    MonoMW = massr()$MonoMW)
-  })
+  }) %>%
+    bindEvent(input$theme)
 
   ##Peak plotting-----
 
