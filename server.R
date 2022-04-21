@@ -57,34 +57,30 @@ server <- function(input, output, session) {
   #0. Theme-----
 
   theme.dark <- observeEvent(input$theme, {
-      if(input$theme=="Dark"){
-        thematic_shiny(
-          bg = '#272c30', fg = '#EEE8D5', accent = 'auto',
-          sequential = hcl.colors(n = 42, palette = 'viridis')
-        )
-      } else {
-        thematic_shiny(
-          bg = 'white', fg = 'black', accent = 'auto',
-          sequential = hcl.colors(n = 42, palette = 'viridis')
-        )
-      }
+    if(isTRUE(input$theme)){
+      thematic_shiny(
+        bg = '#272c30', fg = '#EEE8D5', accent = 'auto',
+        sequential = hcl.colors(n = 42, palette = 'viridis')
+      )
+    } else {
+      thematic_shiny(
+        bg = 'white', fg = 'black', accent = 'auto',
+        sequential = hcl.colors(n = 42, palette = 'viridis')
+      )
+    }
   })
 
   output$theme.dark <- renderUI({
-    prettyRadioButtons(
-      inputId = "theme",
-      label = "Switch to light for figure export",
-      choices = c("Dark", "Light"),
-      icon = icon("check"),
-      inline = T,
-      bigger = TRUE,
-      status = "info",
-      animation = "jelly"
+    prettySwitch(
+      inputId = 'theme',
+      label = "Figure dark mode",
+      value = TRUE,
+      fill = TRUE,
+      status = 'success'
     )
   })
 
-
-  bslib::bs_themer()
+  # bslib::bs_themer()
 
 
   #1. OligoRef----------
@@ -109,6 +105,7 @@ server <- function(input, output, session) {
       paste(
         tags$b(style="color:#EEE8D5", 'Chemical formula: '),
         tags$span(style="color:#EEE8D5", "C"), tags$sub(style="color:#EEE8D5", sequencer()$nC),
+
         tags$span(style="font-weight: bold; color:#EEE8D5", "H"), tags$sub(style="font-weight: bold; color:#EEE8D5", sequencer()$nH),
         tags$span(style="color:#EEE8D5", "O"), tags$sub(style="color:#EEE8D5", sequencer()$nO),
         tags$span(style="color:#EEE8D5", "N"), tags$sub(style="color:#EEE8D5", sequencer()$nN),
@@ -184,8 +181,7 @@ server <- function(input, output, session) {
                    K41C = as.numeric(input$K41C),
                    seq = sequencer(),
                    MonoMW = massr()$MonoMW)
-  }) %>%
-    bindEvent(input$theme)
+  })
 
   ##Peak plotting-----
 
@@ -242,7 +238,7 @@ server <- function(input, output, session) {
 
   ####Plotting----
 
-  output$p.hdx.ref <- renderPlot({
+  p.hdx.ref <- reactive({
     ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
       geom_line(color = input$col.line.th, size = input$size.line.th) +
       geom_point(color = input$col.dot.th, size = input$size.dot.th) +
@@ -250,6 +246,10 @@ server <- function(input, output, session) {
       xlab("m/z") +
       ylab('normalized abundance') +
       custom.theme
+  })
+
+  output$p.hdx.ref <- renderPlot({
+    p.hdx.ref()
   })
 
   output$plot.ref.ui <- renderUI({
@@ -2807,9 +2807,9 @@ server <- function(input, output, session) {
   k.norm <- reactive({
 
     k.data <- k.spectra() %>%
-      group_by(filename, Species, scan, time, mz.range, mz) %>%
+      group_by(filename, Species, scan, time, mz) %>%
       mutate(prod.int = intensity*mz) %>%
-      group_by(filename, Species, scan, time, mz.range) %>%
+      group_by(filename, Species, scan, time) %>%
       summarise(
         intensity = sum(intensity),
         centroid = sum(prod.int)/sum(intensity)
@@ -2898,19 +2898,16 @@ server <- function(input, output, session) {
 
     processed.kin <- data.frame(
       read_excel(kin.old()$datapath,
-                 skip = 1)
+                 skip = 0)
     )
 
     colnames(processed.kin) <- c(
       'name', 'filename', 'Species',
-      'mean.time', 'mz.range', 'scan',
-      'corrected.time', 'time',
-      'corr.int', 'intensity',
-      'centroid',
-      'std.intensity', 'mean.corr',
-      'group',
-      'mean.raw',
-      'mean.centroid'
+      'mean.centroid', 'intensity',
+      'scan', 'group',
+      'time', 'corrected.time',
+      'centroid','std.intensity',  'corr.int',
+      'mean.time', 'mean.raw', 'mean.corr'
     )
 
     processed.kin <- processed.kin %>%
@@ -3001,7 +2998,6 @@ server <- function(input, output, session) {
                            'Mean corrected intensity' = 'mean.corr',
                            'Filename' = 'filename',
                            'Scan group' = 'group',
-                           'm/z range' = 'mz.range',
                            'Centroid' = 'centroid',
                            'Mean centroid' = 'mean.centroid'),
               editable = T,
@@ -3026,11 +3022,11 @@ server <- function(input, output, session) {
                        filename="Kinetics data"),
                   list(extend='colvis')
                 ),
-                columnDefs = list(list(visible=FALSE, targets=c(1,5:11,13)))
+                columnDefs = list(list(visible=FALSE, targets=c(1,5:10,12)))
               )
     ) %>%
       formatStyle(
-        columns = 0:15,
+        columns = 0:14,
         target = 'row',
         background = '#272c30'
       ) %>%

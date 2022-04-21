@@ -28,28 +28,117 @@ ui <- dashboardPage(
   ),
   #sidebar-------------
   dashboardSidebar(
-    # tags$head(
-    #   tags$style(
-    #     HTML('
-    #       .panel-title {
-    #       color: white !important;
-    #       font-weight: bold;
-    #       }
-    #       .panel-body {background-color: #272c30 !important;}
-    #       .panel-heading {background-color: steelblue !important;}
-    #       .irs-min {
-    #       background-color: forestgreen !important;
-    #       color: white !important;
-    #       }
-    #       .irs-max {
-    #       background-color: tomato !important;
-    #       color: white !important;
-    #       }
-    #     ')
-    #   )
-    # ),
+    tags$head(
+      tags$style(
+        HTML('
+          .panel-title {
+          color: white !important;
+          font-weight: bold;
+          }
+          .panel-body {background-color: #272c30 !important;}
+          .panel-heading {background-color: steelblue !important;}
+          .irs-min {
+          background-color: forestgreen !important;
+          color: white !important;
+          }
+          .irs-max {
+          background-color: tomato !important;
+          color: white !important;
+          }
+          .bootstrap-switch-handle-on.bootstrap-switch-primary {
+          background: "black"; !important
+          }
+        ')
+      )
+    ),
     # chooseSliderSkin("Flat", color = "steelblue"),
-    #sidebar MSxplorR-------------
+    ##sidebar OligoRef-------------
+    conditionalPanel(
+      condition = "input.tabs == 'OligoRef'",
+      br(),
+      box(id = "boxseq",
+          title = "Analyte information",
+          status = "primary",
+          solidHeader = F,
+          collapsible = T,
+          width = 12,
+          textInput(
+            inputId = "sequence",
+            label = "Sequence",
+            value = "TAGGGTTAGGGTTAGGGTTAGGG"
+          ),
+          textInput(
+            inputId = 'mol',
+            label = 'Molecularity',
+            value = "1"
+          ),
+          splitLayout(
+            textInput(
+              inputId = "z",
+              label = "Charge",
+              value = "4"
+            ),
+            textInput(
+              inputId = "K",
+              label = "Potassium",
+              value = "2"
+            )
+          )
+      ),
+      box(
+        title = "Exchangeable sites",
+        status = "warning",
+        solidHeader = FALSE,
+        collapsible = TRUE,
+        width = 12,
+        textInput(
+          inputId = "nX.user",
+          label = 'Custom',
+          placeholder = 'defaults to preset'
+        ),
+        selectInput(
+          "nX.select",
+          label = 'Presets',
+          choices = list(
+            "nucleobases only" = 'C',
+            "nucleobases + termini" = 'B',
+            "all sites" = 'A'
+          ),
+          selected = "C"
+        ),
+        htmlOutput('chem.formula'),
+        htmlOutput('ex.sites')
+      ),
+      box(
+        title = "Isotopic abundance",
+        status = "danger",
+        solidHeader = FALSE,
+        collapsible = TRUE,
+        width = 12,
+        sliderInput(
+          inputId = "DC",
+          label = 'D%',
+          value = 9,
+          min = 0, max = 100,
+          step = 0.5,
+          ticks = FALSE
+        ),
+        sliderInput(
+          inputId = "nrPeaks.user",
+          label = "Number of peaks",
+          value = 72,
+          min = 8, max = 128,
+          step = 8,
+          ticks = FALSE
+        ),
+        textInput(
+          inputId = "K41C",
+          label = 'K41%',
+          value = 6.730244
+        )
+      )
+    ),
+    ##sidebar MSxplorR-------------
     conditionalPanel(
       condition = "input.tabs == 'MSxploR'",
       br(),
@@ -187,12 +276,8 @@ ui <- dashboardPage(
             no_outline = TRUE
           )
       )
-      # box(
-      #   title = "Figure theme",
-      #   uiOutput('theme.dark')
-      # )
     ),
-    #sidebar HDXplotR-------------
+    ##sidebar HDXplotR-------------
     conditionalPanel(
       condition = "input.tabs == 'HDXplotR'",
       br(),
@@ -228,7 +313,7 @@ ui <- dashboardPage(
         )
       )
     ),
-    #sidebar MSstackR-------------
+    ##sidebar MSstackR-------------
     conditionalPanel(
       condition = "input.tabs == 'MSstackR'",
       br(),
@@ -363,7 +448,7 @@ ui <- dashboardPage(
         )
       )
     ),
-    #sidebar TimeR-------------
+    ##sidebar TimeR-------------
     conditionalPanel(
       condition = "input.tabs =='TimeR'",
       br(),
@@ -491,7 +576,7 @@ ui <- dashboardPage(
         )
       )
     ),
-    #sidebar TitratR-------------
+    ##sidebar TitratR-------------
     conditionalPanel(
       condition = "input.tabs =='TitratR'",
       br(),
@@ -546,97 +631,6 @@ ui <- dashboardPage(
         no_outline = TRUE
       )
     ),
-    #sidebar OligoRef-------------
-    conditionalPanel(
-      condition = "input.tabs == 'OligoRef'",
-      br(),
-      box(id = "boxseq",
-          title = "Analyte information",
-          status = "primary",
-          solidHeader = F,
-          collapsible = T,
-          width = 12,
-          textInput(
-            inputId = "sequence",
-            label = "Sequence",
-            value = "TAGGGTTAGGGTTAGGGTTAGGG"
-          ),
-          textInput(
-            inputId = 'mol',
-            label = 'Molecularity',
-            value = "1"
-          ),
-          splitLayout(
-            textInput(
-              inputId = "z",
-              label = "Charge",
-              value = "4"
-            ),
-            textInput(
-              inputId = "K",
-              label = "Potassium",
-              value = "2"
-            )
-          )
-      ),
-      box(
-        title = "Exchangeable sites",
-        status = "warning",
-        solidHeader = FALSE,
-        collapsible = TRUE,
-        width = 12,
-        textInput(
-          inputId = "nX.user",
-          label = 'Custom',
-          placeholder = 'defaults to preset'
-        ),
-        selectInput(
-          "nX.select",
-          label = 'Presets',
-          choices = list(
-            "nucleobases only" = 'C',
-            "nucleobases + termini" = 'B',
-            "all sites" = 'A'
-          ),
-          selected = "C"
-        ),
-        htmlOutput('chem.formula'),
-        htmlOutput('ex.sites')
-      ),
-      box(
-        title = "Isotopic abundance",
-        status = "danger",
-        solidHeader = FALSE,
-        collapsible = TRUE,
-        width = 12,
-        sliderInput(
-          inputId = "DC",
-          label = 'D%',
-          value = 9,
-          min = 0, max = 100,
-          step = 0.5,
-          ticks = FALSE
-        ),
-        sliderInput(
-          inputId = "nrPeaks.user",
-          label = "Number of peaks",
-          value = 72,
-          min = 8, max = 128,
-          step = 8,
-          ticks = FALSE
-        ),
-        textInput(
-          inputId = "K41C",
-          label = 'K41%',
-          value = 6.730244
-        )
-      ),
-      box(
-        title = "Figure theme",
-        width = 12,
-        uiOutput('theme.dark')
-      )
-    ),
     verbatimTextOutput("value")
   ),
   #body--------------
@@ -662,16 +656,16 @@ ui <- dashboardPage(
       )
     ),
     navbarPage(
-      theme = bs_theme(
-        version = 4,
-        bootswatch = "solar"
-      ),
+      # theme = bs_theme(
+      #   version = 4,
+      #   bootswatch = "darkly"
+      # ),
       title = 'OligoR',
       id = 'tabs',
       collapsible = TRUE,
       position = "fixed-top",
-      # inverse = TRUE,
-      #panel oligoRef------------
+      inverse = TRUE,
+      ##panel oligoRef------------
       tabPanel(
         "OligoRef",
         icon = icon("dna"),
@@ -787,7 +781,7 @@ ui <- dashboardPage(
           style = "opacity: 0.9"
         )
       ),
-      #panel MSxploR------------
+      ##panel MSxploR------------
       tabPanel(
         "MSxploR",
         icon = icon('drafting-compass'),
@@ -904,7 +898,7 @@ ui <- dashboardPage(
           style = "opacity: 0.9"
         )
       ),
-      #panel MSstackR--------------
+      ##panel MSstackR--------------
       tabPanel(
         "MSstackR",
         icon = icon('layer-group'),
@@ -1085,7 +1079,7 @@ ui <- dashboardPage(
           style = "opacity: 0.9"
         )
       ),
-      #panel HDXplotR----------
+      ##panel HDXplotR----------
       tabPanel(
         "HDXplotR",
         icon = icon('stopwatch'),
@@ -1217,7 +1211,7 @@ ui <- dashboardPage(
           style = "opacity: 0.9"
         )
       ),
-      #panel TimeR--------
+      ##panel TimeR--------
       tabPanel(
         "TimeR",
         icon = icon('clock'),
@@ -1303,7 +1297,7 @@ ui <- dashboardPage(
           style = "opacity: 0.9"
         )
       ),
-      #panel TitratR------
+      ##panel TitratR------
       tabPanel(
         "TitratR",
         icon = icon('chart-line'),
@@ -1349,6 +1343,15 @@ ui <- dashboardPage(
             DTOutput('corr.C')
           )
         )
+      ),
+      ##footer----
+      footer = list(
+        box(
+          title = "Figure theme",
+          width = 4,
+          uiOutput('theme.dark')
+        ),
+        p("Refresh plot after switching to trigger the change")
       )
     )
   )
