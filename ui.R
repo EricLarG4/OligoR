@@ -1348,7 +1348,7 @@ ui <- dashboardPage(
       footer = list(
         box(
           title = "Figure theme",
-          width = 4,
+          width = 2,
           uiOutput('theme.dark')
         ),
         p("Refresh plot after switching to trigger the change")
