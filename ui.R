@@ -283,6 +283,23 @@ ui <- dashboardPage(
       br(),
       box(
         width = 12,
+        title = "Import HDX kinetics",
+        status = "primary",
+        solidHeader = FALSE,
+        collapsible = TRUE,
+        actionBttn(
+          inputId = "bttn.kin.hdx.export",
+          label = "Import data",
+          icon = icon('file-import', class = 'solid'),
+          style = "simple",
+          color = "danger",
+          size = "sm",
+          block = FALSE,
+          no_outline = TRUE
+        )
+      ),
+      box(
+        width = 12,
         title = "Fitting",
         status = "maroon",
         solidHeader = F,
@@ -903,33 +920,33 @@ ui <- dashboardPage(
         "MSstackR",
         icon = icon('layer-group'),
         fluidRow(
-          box(
-            title = "Stacked spectra",
-            width =6,
-            status = "primary",
-            collapsible = T,
-            height = 1000,
-            uiOutput("plot.snaps.ui"),
-            sidebar = boxSidebar(
-              id = "dwn.sidebar.2",
-              width = 25,
-              startOpen = FALSE,
-              icon = icon("download"),
-              downloadBttn(
-                outputId = "dwnspec",
-                label = "Save as png",
-                style = "simple",
-                size = 'sm'
-              ),
-              br(), br(),
-              downloadBttn(
-                outputId = "dwnspec.pdf",
-                label = "Save as pdf",
-                style = "simple",
-                size = 'sm'
-              )
-            )
-          ),
+          # box(
+          #   title = "Stacked spectra",
+          #   width =6,
+          #   status = "primary",
+          #   collapsible = T,
+          #   height = 1000,
+          #   uiOutput("plot.snaps.ui"),
+          #   sidebar = boxSidebar(
+          #     id = "dwn.sidebar.2",
+          #     width = 25,
+          #     startOpen = FALSE,
+          #     icon = icon("download"),
+          #     downloadBttn(
+          #       outputId = "dwnspec",
+          #       label = "Save as png",
+          #       style = "simple",
+          #       size = 'sm'
+          #     ),
+          #     br(), br(),
+          #     downloadBttn(
+          #       outputId = "dwnspec.pdf",
+          #       label = "Save as pdf",
+          #       style = "simple",
+          #       size = 'sm'
+          #     )
+          #   )
+          # ),
           box(
             title = "Peak picking",
             width = 6,

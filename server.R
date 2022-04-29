@@ -1546,23 +1546,73 @@ server <- function(input, output, session) {
 
   ### 4.2 NUS calculation----
 
-  #### 4.2.1 Apparent NUS----
+  #### 4.2.1 Experiment switch----
+
+  #switch initialization
+  rt.cf.switch <- reactiveVal(0)
+
+  #positive value for CF experiments
+  observeEvent(input$bttn1, {
+    new.rt.cf.switch <- 1
+    rt.cf.switch(new.rt.cf.switch)
+  })
+
+  #negative value for RT experiments
+  observeEvent(input$bttn42, {
+    new.rt.cf.switch <- - 1
+    rt.cf.switch(new.rt.cf.switch)
+  })
+
+  #### 4.2.2 Apparent NUS----
+
 
   NUS <- reactive({
-    centroids() %>%
+
+    #uses RT or CF data depending on switch value
+    if(rt.cf.switch()>0){
+      NUS <- centroids()
+    } else {
+      NUS <- k.norm() %>%
+        select(filename, Species,
+               mean.time, mean.centroid) %>%
+        set_colnames(c('filename', 'Species', 'time.scale', 'centroid')) %>%
+        mutate(
+          min.time = NA_real_,
+          max.time = NA_real_,
+          min.scan = NA_real_,
+          max.scan = NA_real_,
+          min.mz = NA_real_,
+          max.mz = NA_real_,
+          mean.time = time.scale,
+          CFtime = NA_real_,
+          CFtime.s = NA_real_
+        )
+    }
+
+    NUS %>%
       left_join(NUS.change(), by = "Species") %>%
-      group_by(time.scale, mean.time, Species, CFtime, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
+      group_by(
+        time.scale, mean.time, Species, CFtime, filename,
+        min.time, max.time, min.scan, max.scan, min.mz, max.mz
+      ) %>%
       mutate(#NUS calculation
         NUS = (centroid - Reference)*Charge/((D.initial - D.final)/100*(2.013553-1.007825)),
         mean.time.s = mean.time * 60,
         CFtime.s = CFtime * 60) %>% #creation of a time column in seconds
-      dplyr::select(Species, Name, time.scale, mean.time, mean.time.s, CFtime, CFtime.s, centroid, NUS,
-                    Reference, Charge, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz)
-  })
+      dplyr::select(
+        Species, Name,
+        time.scale, mean.time, mean.time.s, CFtime, CFtime.s,
+        centroid, NUS, Reference, Charge,
+        filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz
+      )
 
+
+  }) %>%
+    bindEvent(input$bttn.kin.hdx.export)
 
 
   output$NUS <- DT::renderDT(server = FALSE, {
+
     datatable(data = NUS() %>%
                 select(
                   filename, min.time, max.time, min.scan, max.scan,
@@ -1662,9 +1712,9 @@ server <- function(input, output, session) {
   })
 
 
-  #### 4.2.2 Deconvoluted NUS----
+  #### 4.2.3 Deconvoluted NUS----
 
-  ##### 4.2.2.1. Optimized NUS plot----
+  ##### 4.2.3.1. Optimized NUS plot----
 
   optim.nus.plot <- reactive({
     binom.filter() %>%
@@ -1697,7 +1747,7 @@ server <- function(input, output, session) {
       labs(x = "time (min)")
   })
 
-  ##### 4.2.2.2. Optimized abundance plot----
+  ##### 4.2.3.2. Optimized abundance plot----
   optim.ab.plot <- reactive({
     binom.filter() %>%
       ungroup() %>%
