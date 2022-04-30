@@ -703,12 +703,33 @@ ui <- dashboardPage(
               status = "warning",
               dataTableOutput("peak.position")
           ),
-          box(id = 'Oligoutput7',
+          box(
+            id = 'Oligoutput7',
               title = 'Theoretical distribution',
               width = 6,
               collapsible = TRUE,
               status = "danger",
-              uiOutput('plot.ref.ui')
+              uiOutput('plot.ref.ui'),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.1",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "ref.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "ref.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
           ),
           box(
             id = 'Oligoutput7-2',
@@ -718,7 +739,7 @@ ui <- dashboardPage(
             status = "success",
             uiOutput('p.hdx.ref.vs.exp.ui'),
             sidebar = boxSidebar(
-              id = "dwn.sidebar.1",
+              id = "dwn.sidebar.2",
               width = 25,
               startOpen = FALSE,
               icon = icon("download"),
@@ -728,7 +749,8 @@ ui <- dashboardPage(
                 style = "simple",
                 size = 'sm'
               ),
-              br(), br(),
+              br(),
+              br(),
               downloadBttn(
                 outputId = "ref.accu.pdf",
                 label = "Save as pdf",
@@ -839,7 +861,8 @@ ui <- dashboardPage(
           box(
             id = "box3",
             width = 10,
-            title = "MS spectrum", p("Brush to zoom, double click to reset zoom"),
+            title = "MS spectrum",
+            p("Brush to zoom, double click to reset zoom"),
             status = "danger",
             collapsible = TRUE,
             plotOutput(
@@ -850,6 +873,26 @@ ui <- dashboardPage(
                 id = "plot3_brush",
                 fill = "#fff5e7", stroke = "#fff5e7", direction = "xy",
                 resetOnNew = TRUE
+              )
+            ),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.3",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "plot3.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "plot3.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
               )
             )
           ),
@@ -920,33 +963,6 @@ ui <- dashboardPage(
         "MSstackR",
         icon = icon('layer-group'),
         fluidRow(
-          # box(
-          #   title = "Stacked spectra",
-          #   width =6,
-          #   status = "primary",
-          #   collapsible = T,
-          #   height = 1000,
-          #   uiOutput("plot.snaps.ui"),
-          #   sidebar = boxSidebar(
-          #     id = "dwn.sidebar.2",
-          #     width = 25,
-          #     startOpen = FALSE,
-          #     icon = icon("download"),
-          #     downloadBttn(
-          #       outputId = "dwnspec",
-          #       label = "Save as png",
-          #       style = "simple",
-          #       size = 'sm'
-          #     ),
-          #     br(), br(),
-          #     downloadBttn(
-          #       outputId = "dwnspec.pdf",
-          #       label = "Save as pdf",
-          #       style = "simple",
-          #       size = 'sm'
-          #     )
-          #   )
-          # ),
           box(
             title = "Peak picking",
             width = 6,
@@ -954,7 +970,27 @@ ui <- dashboardPage(
             collapsible = T,
             collapsed = F,
             height = 1000,
-            uiOutput("plot.pp.ui")
+            uiOutput("plot.pp.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.4",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "plot.pp.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "plot.pp.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
           ),
           box(
             title = "Optimized data",
@@ -963,7 +999,27 @@ ui <- dashboardPage(
             collapsible = TRUE,
             collapsed = FALSE,
             height = 1000,
-            uiOutput("optiplot.ui")
+            uiOutput("optiplot.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.5",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "optiplot.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "optiplot.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
           ),
           box(
             title = "Peak-picked data",
