@@ -304,6 +304,21 @@ server <- function(input, output, session) {
   })
 
   ####Download----
+  output$ref.pdf <- downloadHandler(
+    filename = function() { paste("Theorerical isotopic distribution", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.hdx.ref(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
   output$ref.accu.pdf <- downloadHandler(
     filename = function() { paste("Reference HDX", '.pdf', sep='') },
     content = function(file) {
@@ -311,6 +326,21 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.ref.vs.exp(),
         device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$ref.png <- downloadHandler(
+    filename = function() { paste("Theorerical isotopic distribution", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.hdx.ref(),
+        device = "png",
         width = 29.7,
         height = 29.7*input$plot.ref.h/input$plot.ref.w,
         units = 'cm',
@@ -552,16 +582,58 @@ server <- function(input, output, session) {
   ####Definition of initial mz range-------
   ranges <- reactiveValues(x = mzlimits, y = NULL)   #place above to save on calculation time
 
-  output$plot3 <- renderPlot({
+  plot3 <- reactive({
 
     req(input$mzml.file)
 
-    ggplot(data = specsumbrsh(), aes(x = mz, y = intensum)) +
-      geom_line(color = input$col.MS, size = input$size.line.MS) +
+    ggplot(
+      data = specsumbrsh(),
+      aes(x = mz, y = intensum)
+    ) +
+      geom_line(
+        color = input$col.MS,
+        size = input$size.line.MS
+      ) +
       xlab("m/z") +
       custom.theme +
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
   })
+
+  output$plot3 <- renderPlot({
+    plot3()
+  })
+
+  ##### download-------
+
+  output$plot3.pdf <- downloadHandler(
+    filename = function() { paste("Mass spectrum", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = plot3(),
+        device = "pdf",
+        width = 29.7,
+        height = 21,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$plot3.png <- downloadHandler(
+    filename = function() { paste("Mass spectrum", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = plot3(),
+        device = "png",
+        width = 29.7,
+        height = 21,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
 
 
   ####Zoom event on MS plot---------
@@ -664,53 +736,41 @@ server <- function(input, output, session) {
     }
   })
 
-  output$plot.snaps <- renderPlot({
-    plot.snaps()
-  })
-
-  output$plot.snaps.ui <- renderUI({
-    plotOutput("plot.snaps",
-               width = as.numeric(input$plot.snaps.w),
-               height = as.numeric(input$plot.snaps.h)
-    )
-  })
-
-  output$plot.pp <- renderPlot({
-    plot.pp()
-  }
-  )
-
-  output$plot.pp.ui <- renderUI({
-    plotOutput("plot.pp",
-               width = as.numeric(input$plot.snaps.w),
-               height = as.numeric(input$plot.snaps.h)
-    )
-  })
+  # output$plot.snaps <- renderPlot({
+  #   plot.snaps()
+  # })
+  #
+  # output$plot.snaps.ui <- renderUI({
+  #   plotOutput("plot.snaps",
+  #              width = as.numeric(input$plot.snaps.w),
+  #              height = as.numeric(input$plot.snaps.h)
+  #   )
+  # })
 
   ###plot stacked spectra----
-  plot.snaps <- reactive({
-    ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
-                                  color = time.scale)) +
-      geom_line(size = input$size.line.snap) +
-      scale_color_gradient(
-        name = 't (min)', low=input$col.snap1, high=input$col.snap2,
-        guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
-        # breaks = breaks,
-        trans = input$trans.user
-      ) +
-      xlab("m/z") +
-      facet_grid(signif(time.scale, 3) ~ Species,
-                 scales = common.scale()
-      ) +
-      custom.theme  +
-      theme(strip.text = element_blank(),
-            axis.title.y = element_blank(),
-            axis.text.y = element_blank(),
-            axis.line.y = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.position = "none") +
-      coord_cartesian(expand = FALSE)
-  })
+  # plot.snaps <- reactive({
+  #   ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
+  #                                 color = time.scale)) +
+  #     geom_line(size = input$size.line.snap) +
+  #     scale_color_gradient(
+  #       name = 't (min)', low=input$col.snap1, high=input$col.snap2,
+  #       guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
+  #       # breaks = breaks,
+  #       trans = input$trans.user
+  #     ) +
+  #     xlab("m/z") +
+  #     facet_grid(signif(time.scale, 3) ~ Species,
+  #                scales = common.scale()
+  #     ) +
+  #     custom.theme  +
+  #     theme(strip.text = element_blank(),
+  #           axis.title.y = element_blank(),
+  #           axis.text.y = element_blank(),
+  #           axis.line.y = element_blank(),
+  #           axis.ticks.y = element_blank(),
+  #           legend.position = "none") +
+  #     coord_cartesian(expand = FALSE)
+  # })
 
 
   ##Peak picking----
@@ -876,6 +936,49 @@ server <- function(input, output, session) {
       ) +
       coord_cartesian(expand = TRUE)
   })
+
+
+  output$plot.pp <- renderPlot({
+    plot.pp()
+  }
+  )
+
+  output$plot.pp.ui <- renderUI({
+    plotOutput("plot.pp",
+               width = as.numeric(input$plot.snaps.w),
+               height = as.numeric(input$plot.snaps.h)
+    )
+  })
+
+  output$plot.pp.pdf <- downloadHandler(
+    filename = function() { paste("Peak picking", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = plot.pp(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$plot.pp.png <- downloadHandler(
+    filename = function() { paste("Peak picking", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = plot.pp(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
 
 
   ## Optimization----
@@ -1349,8 +1452,7 @@ server <- function(input, output, session) {
 
   ## Optimized  plot outputs-------
 
-  output$optiplot <- renderPlot({
-
+  optiplot <- reactive({
 
     if(!is.null(input$mzml.file)){
       optiplot <- plot.pp()
@@ -1421,8 +1523,10 @@ server <- function(input, output, session) {
     } else {
       return(optiplot)
     }
+  })
 
-
+  output$optiplot <- renderPlot({
+    optiplot()
   })
 
 
@@ -1435,30 +1539,32 @@ server <- function(input, output, session) {
 
 
   ##Download spectra----------
-  output$dwnspec <- downloadHandler(
-    filename = function() { paste("stacked spectra", '.png', sep='') },
+  output$optiplot.pdf <- downloadHandler(
+    filename = function() { paste("Deconvoluted spectra", '.pdf', sep='') },
     content = function(file) {
       ggsave(
         file,
-        plot = plot.snaps(),
-        device = "png",
-        width = 21,
-        height = 21*input$plot.snaps.h/input$plot.snaps.w,
-        units = 'cm'
+        plot = optiplot(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm',
+        bg = NULL
       )
     }
   )
 
-  output$dwnspec.pdf <- downloadHandler(
-    filename = function() { paste("stacked spectra", '.pdf', sep='') },
+  output$optiplot.png <- downloadHandler(
+    filename = function() { paste("Deconvoluted spectra", '.png', sep='') },
     content = function(file) {
       ggsave(
         file,
-        plot = plot.snaps(),
-        device = "pdf",
-        width = 21,
-        height = 21*input$plot.snaps.h/input$plot.snaps.w,
-        units = 'cm'
+        plot = optiplot(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm',
+        bg = NULL
       )
     }
   )
@@ -3712,8 +3818,8 @@ server <- function(input, output, session) {
 
 
   # #output options-----------
-  outputOptions(output, "plot.snaps", suspendWhenHidden = FALSE)
-  outputOptions(output, "plot.snaps.ui", suspendWhenHidden = FALSE)
+  # outputOptions(output, "plot.snaps", suspendWhenHidden = FALSE)
+  # outputOptions(output, "plot.snaps.ui", suspendWhenHidden = FALSE)
   outputOptions(output, "plot.pp", suspendWhenHidden = FALSE)
   outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
   # outputOptions(output, "eq.raw.target", suspendWhenHidden = FALSE)
