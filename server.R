@@ -1572,9 +1572,10 @@ server <- function(input, output, session) {
     if(rt.cf.switch()>0){
       NUS <- centroids()
     } else {
-      NUS <- k.norm() %>%
+      NUS <- k.norm.0() %>%
         select(filename, Species,
                mean.time, mean.centroid) %>%
+        unique() %>%
         set_colnames(c('filename', 'Species', 'time.scale', 'centroid')) %>%
         mutate(
           min.time = NA_real_,
@@ -2994,7 +2995,7 @@ server <- function(input, output, session) {
   })
 
 
-  #### 5.4. Selection of y data----
+  #### 5.4.Selection of y data----
   kin.input <- reactive({
     if (input$kin.input == 'raw') {
       if(isFALSE(input$kin.norm)){
