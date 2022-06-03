@@ -2135,7 +2135,7 @@ server <- function(input, output, session) {
 
   #####4.3.1.5. Plot----
 
-  output$p.hdx.fit.app <- renderPlot({
+  p.hdx.fit.app <- reactive({
 
     if(isTRUE(input$fit.hdx)) {
 
@@ -2225,6 +2225,14 @@ server <- function(input, output, session) {
 
   })
 
+  output$p.hdx.fit.app <- renderPlot({p.hdx.fit.app()})
+
+  output$p.hdx.fit.app.ui <- renderUI({
+    plotOutput("p.hdx.fit.app",
+               width = as.numeric(input$plot.hdx.w),
+               height = as.numeric(input$plot.hdx.h)
+    )
+  })
 
   #### 4.3.2. Deconvoluted NUS----
 
@@ -2624,7 +2632,7 @@ server <- function(input, output, session) {
 
   #####4.3.2.5. Plot----
 
-  output$p.hdx.fit.opt <- renderPlot({
+  p.hdx.fit.opt <- reactive({
 
     if(isTRUE(input$fit.hdx)) {
 
@@ -2696,6 +2704,15 @@ server <- function(input, output, session) {
       optim.nus.plot()
     }
 
+  })
+
+  output$p.hdx.fit.opt <- renderPlot({p.hdx.fit.opt()})
+
+  output$p.hdx.fit.opt.ui <- renderUI({
+    plotOutput("p.hdx.fit.opt",
+               width = as.numeric(input$plot.hdx.w),
+               height = as.numeric(input$plot.hdx.h)
+    )
   })
 
 
@@ -2939,7 +2956,7 @@ server <- function(input, output, session) {
 
   #####4.3.3.5. Plot----
 
-  output$p.pop.fit.opt <- renderPlot({
+  p.pop.fit.opt <- reactive({
 
     if(isTRUE(input$fit.hdx)) {
 
@@ -3010,7 +3027,17 @@ server <- function(input, output, session) {
 
   })
 
-  ## 4.4. Download spectra----------
+  output$p.pop.fit.opt <- renderPlot({p.pop.fit.opt()})
+
+  output$p.pop.fit.opt.ui <- renderUI({
+    plotOutput("p.pop.fit.opt",
+               width = as.numeric(input$plot.hdx.w),
+               height = as.numeric(input$plot.hdx.h)
+    )
+  })
+
+
+  ## 4.4. Download plots----------
 
   output$centroids.pdf <- downloadHandler(
     filename = function() { paste("Apparent centroids", '.pdf', sep='') },
@@ -3033,6 +3060,96 @@ server <- function(input, output, session) {
       ggsave(
         file,
         plot = p.app.cent(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$NUS.pdf <- downloadHandler(
+    filename = function() { paste("Apparent exchange plots", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.hdx.fit.app(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$NUS.png <- downloadHandler(
+    filename = function() { paste("Apparent exchange plots", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.hdx.fit.app(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$deconvoluted.NUS.pdf <- downloadHandler(
+    filename = function() { paste("Deconvoluted exchange plot", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.hdx.fit.opt(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$deconvoluted.NUS.png <- downloadHandler(
+    filename = function() { paste("Deconvoluted exchange plot", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.hdx.fit.opt(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$deconvoluted.pop.pdf <- downloadHandler(
+    filename = function() { paste("Deconvoluted population abundances", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.pop.fit.opt(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$deconvoluted.pop.png <- downloadHandler(
+    filename = function() { paste("Deconvoluted population abundances", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.pop.fit.opt(),
         device = "png",
         width = 29.7,
         height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
@@ -3354,7 +3471,7 @@ server <- function(input, output, session) {
 
   #### 5.6 Plot----
 
-  output$k.plot <- renderPlot({
+  k.plot <- reactive({
 
     k.plot <- ggplot(
       data = k.norm.0(),
@@ -3402,6 +3519,9 @@ server <- function(input, output, session) {
 
   })
 
+
+  output$k.plot <- renderPlot({k.plot()})
+
   output$k.plot.ui <- renderUI({
     plotOutput(
       "k.plot",
@@ -3409,6 +3529,39 @@ server <- function(input, output, session) {
       height = as.numeric(input$k.plot.h)
     )
   })
+
+  ## 5.7. Download plot----
+
+  output$timer.pdf <- downloadHandler(
+    filename = function() { paste("Kinetics plot", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = k.plot(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$k.plot.h/input$k.plot.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$timer.png <- downloadHandler(
+    filename = function() { paste("Kinetics plot", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = k.plot(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$k.plot.h/input$k.plot.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
 
 
   # 6. TitratR-----------

@@ -1196,14 +1196,54 @@ ui <- dashboardPage(
             width = 6,
             status = "primary",
             collapsible = T,
-            uiOutput("p.app.cent.ui")
+            uiOutput("p.app.cent.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.6",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "centroids.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "centroids.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
           ),
           box(
             title = "Apparent exchange plot",
             width = 6,
             status = "primary",
             collapsible = T,
-            plotOutput("p.hdx.fit.app")
+            uiOutput("p.hdx.fit.app.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.7",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "NUS.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "NUS.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
           ),
           box(
             title = 'Fit results',
@@ -1232,14 +1272,54 @@ ui <- dashboardPage(
             width = 6,
             status = "danger",
             collapsible = TRUE,
-            plotOutput("p.hdx.fit.opt")
+            uiOutput("p.hdx.fit.opt.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.8",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "deconvoluted.NUS.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "deconvoluted.NUS.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
           ),
           box(
             title = "Deconvoluted population abundances",
             width = 6,
             status = "danger",
             collapsible = TRUE,
-            plotOutput("p.pop.fit.opt")
+            uiOutput("p.pop.fit.opt.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.9",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "deconvoluted.pop.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "deconvoluted.pop.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
           )
         ),
         absolutePanel(
@@ -1309,7 +1389,27 @@ ui <- dashboardPage(
             status = "danger",
             solidHeader = F,
             collapsible = T,
-            uiOutput("k.plot.ui")
+            uiOutput("k.plot.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.10",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "timer.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "timer.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
           ),
           box(
             title = "Kinetics data",
