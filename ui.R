@@ -705,11 +705,11 @@ ui <- dashboardPage(
           ),
           box(
             id = 'Oligoutput7',
-              title = 'Theoretical distribution',
-              width = 6,
-              collapsible = TRUE,
-              status = "danger",
-              uiOutput('plot.ref.ui'),
+            title = 'Theoretical distribution',
+            width = 6,
+            collapsible = TRUE,
+            status = "danger",
+            uiOutput('plot.ref.ui'),
             sidebar = boxSidebar(
               id = "dwn.sidebar.1",
               width = 25,
@@ -1196,7 +1196,7 @@ ui <- dashboardPage(
             width = 6,
             status = "primary",
             collapsible = T,
-            plotOutput("p.app.cent")
+            uiOutput("p.app.cent.ui")
           ),
           box(
             title = "Apparent exchange plot",
@@ -1277,6 +1277,20 @@ ui <- dashboardPage(
                   min=1, max=10, value=5,
                   step=0.25, round=0,
                   tick = FALSE
+                )
+              ),
+              splitLayout(
+                sliderInput(
+                  'plot.hdx.w', 'Plot width',
+                  min=100, max=2000, value=1000,
+                  step=20, round=0,
+                  ticks = FALSE
+                ),
+                sliderInput(
+                  'plot.hdx.h', 'Plot height',
+                  min=100, max=3000, value= 600,
+                  step=20, round=0,
+                  ticks = FALSE
                 )
               )
             )

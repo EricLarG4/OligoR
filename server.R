@@ -33,29 +33,30 @@ source("R/optf.R")
 source("R/binomNUSf.R")
 # source("R/custom theme.R")
 
-## theme----
-custom.theme <- theme(
-  panel.background = element_blank(),
-  strip.background = element_blank(),
-  legend.position = 'bottom',
-  legend.background = element_blank(),
-  legend.box.background = element_blank(),
-  legend.key=element_blank(),
-  legend.text = element_text(size = 18),
-  legend.title = element_text(size = 22),
-  axis.text = element_text(size = 18),
-  axis.title = element_text(size = 22),
-  strip.text = element_text(size = 20),
-  axis.line = element_line(size = 0.5)
-)
-
-
 
 #server---------
 server <- function(input, output, session) {
 
   #0. Theme-----
 
+  ## 0.1. Custom theme for figures----
+
+  custom.theme <- theme(
+    panel.background = element_blank(),
+    strip.background = element_blank(),
+    legend.position = 'bottom',
+    legend.background = element_blank(),
+    legend.box.background = element_blank(),
+    legend.key=element_blank(),
+    legend.text = element_text(size = 18),
+    legend.title = element_text(size = 22),
+    axis.text = element_text(size = 18),
+    axis.title = element_text(size = 22),
+    strip.text = element_text(size = 20),
+    axis.line = element_line(size = 0.5)
+  )
+
+  ## 0.2. Dark/light switch----
   theme.dark <- observeEvent(input$theme, {
     if(isTRUE(input$theme)){
       thematic_shiny(
@@ -80,10 +81,10 @@ server <- function(input, output, session) {
     )
   })
 
-  # bslib::bs_themer()
-
 
   #1. OligoRef----------
+
+  ## 1.1. Sequencing----
 
   sequencer <- reactive({
     sequenceR(
@@ -129,7 +130,7 @@ server <- function(input, output, session) {
 
   output$nX <- renderText(sequencer()$nX)
 
-  ## Mass calculations---------
+  ## 1.2. Mass calculations---------
 
   massr <- reactive({
     massR(seq=sequencer(),
@@ -160,8 +161,8 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
-        buttons = c('copy', 'csv', 'excel') #buttons
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel')
       )
     ) %>%
       formatRound(c('Values'), digits = 5, interval = 3, mark = '') %>%
@@ -174,7 +175,7 @@ server <- function(input, output, session) {
   })
 
 
-  ##peak position by FFT-----------
+  ## 1.3. Peak position calculation-----------
   peak.position <- reactive({
     peak.positionR(nrPeaks.user = as.numeric(input$nrPeaks.user),
                    DC = as.numeric(input$DC),
@@ -183,9 +184,9 @@ server <- function(input, output, session) {
                    MonoMW = massr()$MonoMW)
   })
 
-  ##Peak plotting-----
+  ## 1.4. Plotting-----
 
-  ###Theoretical distibutions----
+  ### 1.4.1. Theoretical distibutions----
   output$peak.position <- renderDT(server = FALSE, {
     datatable(
       peak.position(),
@@ -203,8 +204,8 @@ server <- function(input, output, session) {
         scroller = TRUE,
         pageLength = 6,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
-        buttons = c('copy', 'csv', 'excel') #buttons
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel')
       )
     ) %>%
       formatRound(c('m/z'), digits = 5) %>%
@@ -215,14 +216,13 @@ server <- function(input, output, session) {
         background = '#272c30'
       )
 
-
   })
 
-  ###Experimental HDX reference----
+  ### 1.4.2. Experimental HDX reference----
 
-  ####Calculations----
+  #### 1.4.2.1 Calculations----
 
-  #####Experimental centroid----
+  ##### 1.4.2.2 Experimental centroid----
   exp.centroid.ref <- reactive({
 
     calculation <- MSsnaps.ref() %>%
@@ -231,12 +231,12 @@ server <- function(input, output, session) {
     exp.centroid.ref <- calculation$centroid[1]
   })
 
-  #####Accuracy of the reference centroid----
+  ##### 1.4.2.3. Accuracy of the reference centroid----
   centroid.ac <- reactive({
     1000000 * abs(exp.centroid.ref()-massr()$Avemz)/massr()$Avemz
   })
 
-  ####Plotting----
+  #### 1.4.2.4. Plot----
 
   p.hdx.ref <- reactive({
     ggplot(data = peak.position(), aes(x = mz.th, y = Iso.Pattern)) +
@@ -303,28 +303,15 @@ server <- function(input, output, session) {
     )
   })
 
-  ####Download----
+  ### 1.4.3. Downloads----
+
+  #### 1.4.3.1 Theoretical distribution----
   output$ref.pdf <- downloadHandler(
     filename = function() { paste("Theorerical isotopic distribution", '.pdf', sep='') },
     content = function(file) {
       ggsave(
         file,
         plot = p.hdx.ref(),
-        device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.ref.h/input$plot.ref.w,
-        units = 'cm',
-        bg = NULL
-      )
-    }
-  )
-
-  output$ref.accu.pdf <- downloadHandler(
-    filename = function() { paste("Reference HDX", '.pdf', sep='') },
-    content = function(file) {
-      ggsave(
-        file,
-        plot = p.hdx.ref.vs.exp(),
         device = "pdf",
         width = 29.7,
         height = 29.7*input$plot.ref.h/input$plot.ref.w,
@@ -341,6 +328,22 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.ref(),
         device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  #### 1.4.3.2 Theoretical + experimental distributions----
+  output$ref.accu.pdf <- downloadHandler(
+    filename = function() { paste("Reference HDX", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.hdx.ref.vs.exp(),
+        device = "pdf",
         width = 29.7,
         height = 29.7*input$plot.ref.h/input$plot.ref.w,
         units = 'cm',
@@ -366,9 +369,9 @@ server <- function(input, output, session) {
 
   #2. MSxploR----
 
-  mzlimits <- c(400,4000) #hard limit on data range
+  ##2.1. data import---------------
 
-  ##data import---------------
+  mzlimits <- c(400,4000) #hard-coded limit on data range
 
   inFile <- reactive({
     input$mzml.file
@@ -410,11 +413,6 @@ server <- function(input, output, session) {
                    #extraction of ms data, binding of scan number, retention time
                    df.temp <- lapply(id(),function(i) {
 
-                     #Dataframe version - archived
-                     # init <- data.frame(peaks(ms(), i))  %>%
-                     #   add_column(scan = i) %>%
-                     #   add_column(ret.time = ret.time()[i,]/60)
-
                      init <- data.table(peaks(ms(), i))
                      init[, scan := i]
                      init[, ret.time := ret.time()[i,]/60]
@@ -435,7 +433,6 @@ server <- function(input, output, session) {
                    incProgress(amount=4/5)
 
                    #naming
-                   # colnames(filling.df)[1:5] <- c("mz","intensity","scan", "time",'filename')
                    setnames(filling.df, old = c(1:ncol(filling.df)), new = c("mz","intensity","scan", "time",'filename'))
 
                    return(filling.df)
@@ -476,13 +473,7 @@ server <- function(input, output, session) {
                  })
   })
 
-  #diagnostics
-  # output$inputms69 <- renderDT({
-  #   inputms()
-  # })
-
-
-  ##TIC------------
+  ##2.2 TIC------------
 
   TIC <- reactive({
 
@@ -504,23 +495,23 @@ server <- function(input, output, session) {
       custom.theme
   }, bg = "transparent")
 
-  ###Selection of MS data from first plot (TIC)-------
+  ###2.2.1 Selection of MS data from TIC-------
   selectedData <- reactive({
     brushedPoints(TIC(), input$plot_brush)
   })
 
-  ###brushinput-----------
+  #### brushinput
   scansbrsh <- reactive({
     min(selectedData()$scan):max(selectedData()$scan)
   })
 
-  ###Selection of defined scans in MS data---------
+  ###Selection of brushed scans
   selecscansbrsh <- reactive({
     as.data.table(inputms())[scan %in% scansbrsh()]
 
   })
 
-  ###time management--------
+  ###2.2.2. Time management--------
 
   time.min <- reactive({
     as.numeric(input$time.sec) / 60
@@ -538,9 +529,9 @@ server <- function(input, output, session) {
     timemin()
   })
 
-  ##Spectra display----
+  ##2.3 MS Spectrum----
 
-  ###Scan summing-----------
+  ###2.3.1 Scan summing-----------
 
   specsumbrsh <- reactive({
 
@@ -556,9 +547,9 @@ server <- function(input, output, session) {
 
   })
 
-  ###Print selection info---------
+  ###2.3.2. Print selection info---------
 
-  ####Time----
+  ####2.3.2.1 Time----
   output$info <- renderText({
 
     req(input$mzml.file)
@@ -567,7 +558,7 @@ server <- function(input, output, session) {
           sep = "")
   })
 
-  ####Scans----
+  ####2.3.2.2 Scans----
   output$info1 <- renderText({
 
     req(input$mzml.file)
@@ -577,10 +568,38 @@ server <- function(input, output, session) {
   })
 
 
-  ### Zoom----
+  ### 2.3.3. Zoom----
 
-  ####Definition of initial mz range-------
-  ranges <- reactiveValues(x = mzlimits, y = NULL)   #place above to save on calculation time
+  #### 2.3.3.1. Definition of initial mz range-------
+  ranges <- reactiveValues(x = mzlimits, y = NULL)
+
+  #### 2.3.3.2. Zoom event---------
+  observeEvent(input$plot3_brush, {
+    brush <- input$plot3_brush
+    ranges$x <- c(brush$xmin, brush$xmax)
+    ranges$y <- c(brush$ymin, brush$ymax)
+  })
+
+  specsumbrsh.ms <- reactive({
+
+    specsumbrsh.ms <- specsumbrsh()[mz > min(ranges$x) & mz < max(ranges$x)]
+
+  })
+
+  # Zoom reset
+  observeEvent(input$plot3_dblclick, {
+    brush <- input$plot3_brush
+    ranges$x <- mzlimits
+    ranges$y <- NULL
+  })
+
+
+  # m/z range print info
+  output$info2 <- renderText({
+    paste(round(min(ranges$x), 2), " - ", round(max(ranges$x), 2), sep = "")
+  })
+
+  ### 2.3.4. Plot----
 
   plot3 <- reactive({
 
@@ -594,7 +613,10 @@ server <- function(input, output, session) {
         color = input$col.MS,
         size = input$size.line.MS
       ) +
-      xlab("m/z") +
+      labs(
+        x = "m/z",
+        y = "intensity"
+      ) +
       custom.theme +
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
   })
@@ -603,7 +625,8 @@ server <- function(input, output, session) {
     plot3()
   })
 
-  ##### download-------
+
+  ### 2.3.5. Download spectra-------
 
   output$plot3.pdf <- downloadHandler(
     filename = function() { paste("Mass spectrum", '.pdf', sep='') },
@@ -635,47 +658,18 @@ server <- function(input, output, session) {
     }
   )
 
+  ##2.3. MS snapshots------------
 
-  ####Zoom event on MS plot---------
-  observeEvent(input$plot3_brush, {
-    brush <- input$plot3_brush
-    ranges$x <- c(brush$xmin, brush$xmax)
-    ranges$y <- c(brush$ymin, brush$ymax)
-  })
-
-  specsumbrsh.ms <- reactive({
-
-    specsumbrsh.ms <- specsumbrsh()[mz > min(ranges$x) & mz < max(ranges$x)]
-
-  })
-
-  #### Zoom reset----
-  observeEvent(input$plot3_dblclick, {
-    brush <- input$plot3_brush
-    ranges$x <- mzlimits
-    ranges$y <- NULL
-  })
-
-  #### Print info----
-
-  #####mz ranges----
-  output$info2 <- renderText({
-    paste(round(min(ranges$x), 2), " - ", round(max(ranges$x), 2), sep = "")
-  })
-
-
-  ##MS snapshots------------
-
-  ###MS ref snapshots------------
+  ###2.3.1. MS ref snapshots------------
 
   MSsnaps.ref <- reactive({
     newrow.ref <- data.frame(specsumbrsh.ms())
-    # snaps.ref <<- rbind(snaps.ref, newrow.ref)
   }) %>%
     bindEvent(input$bttn99)
 
+  ###2.3.2. MS time point snapshots------------
 
-  ###MS time point snapshots------------
+  #### 2.3.2.1 snapping----
   snaps <- data.frame()
 
   inputsnap <- reactive({
@@ -693,26 +687,171 @@ server <- function(input, output, session) {
 
   })
 
-  # snaps.counter <- 0
-
   MSsnaps <- reactive({
-
-    # snaps.counter <<- snaps.counter + 1
 
     newrow <- data.frame(inputsnap())
     snaps <<- rbind(snaps, newrow)
 
-    #     newrow <- data.table(inputsnap())
-    #     snaps <<- rbindlist(list(snaps, newrow))
-
   }) %>%
     bindEvent(input$bttn1)
 
+
+  #### 2.3.2.2. Output table----
+  output$MSsnap <- renderDT(server = TRUE,{
+    datatable(
+      MSsnaps() %>%
+        select(filename, Species, mean.time, CFtime, mz, intensum,
+               min.time, max.time, min.scan, max.scan),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        'File name' = 'filename',
+        'Intensity' = 'intensum',
+        'Start TIC time' = 'min.time',
+        'End TIC time' = 'max.time',
+        'Start scan' = 'min.scan',
+        'End scan' = 'max.scan',
+        'm/z' = "mz",
+        'Manual time (min)' = 'CFtime',
+        'TIC time (min)' = 'mean.time'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0,6:9)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:9,
+        target = 'row',
+        background = '#272c30'
+      )
+  })
+
+  ### 2.3.3. Titration snapshots----
+
+  #### 2.3.3.1 snapping----
+
+  snaps.target <- data.frame()
+
+  snaps.std <- data.frame()
+
+  MSsnaps.target <- reactive({
+    newrow <- data.frame(inputsnap())
+    snaps.target <<- rbind(snaps.target, newrow)
+  }) %>%
+    bindEvent(input$bttn.target)
+
+  MSsnaps.std <- reactive({
+    newrow <- data.frame(inputsnap())
+    snaps.std <<- rbind(snaps.std, newrow)
+  }) %>%
+    bindEvent(input$bttn.std)
+
+  #### 2.3.3.2. Output tables----
+
+  output$target <- renderDT(server = TRUE,{
+    datatable(
+      MSsnaps.target() %>%
+        select(filename, Species, lgd.conc, Stoich, mz, intensum,
+               min.time, max.time, min.scan, max.scan, min.mz, max.mz),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        '[Ligand] (µM)' = 'lgd.conc',
+        'File name' = 'filename',
+        'Ligand stoichiometry' = 'Stoich',
+        'Intensity' = 'intensum',
+        'Start TIC time' = 'min.time',
+        'End TIC time' = 'max.time',
+        'Start scan' = 'min.scan',
+        'End scan' = 'max.scan',
+        'Start m/z' = 'min.mz',
+        'End m/z'= 'max.mz',
+        'm/z' = 'mz'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0,6:11)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:11,
+        target = 'row',
+        background = '#272c30'
+      )
+  })
+
+  output$standard <- renderDT(server = TRUE,{
+    datatable(
+      MSsnaps.std() %>%
+        select(filename, Species, lgd.conc, Stoich, mz, intensum,
+               min.time, max.time, min.scan, max.scan, min.mz, max.mz),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      selection = 'multiple',
+      colnames = c(
+        '[Ligand] (µM)' = 'lgd.conc',
+        'File name' = 'filename',
+        'Ligand stoichiometry' = 'Stoich',
+        'Intensity' = 'intensum',
+        'Start TIC time' = 'min.time',
+        'End TIC time' = 'max.time',
+        'Start scan' = 'min.scan',
+        'End scan' = 'max.scan',
+        'Start m/z' = 'min.mz',
+        'End m/z'= 'max.mz',
+        'm/z' = 'mz'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0,6:11)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:11,
+        target = 'row',
+        background = '#272c30'
+      )
+  })
+
   #3. MSstackR----
 
-  ##snaps plotting---------
-
-  #snaps scaling
+  ## 3.1. Time scaling and intensity normalization----
   MSsnaps1 <- reactive({
     if (isTRUE(input$timescale)) {
       MSsnaps() %>%
@@ -736,44 +875,10 @@ server <- function(input, output, session) {
     }
   })
 
-  # output$plot.snaps <- renderPlot({
-  #   plot.snaps()
-  # })
-  #
-  # output$plot.snaps.ui <- renderUI({
-  #   plotOutput("plot.snaps",
-  #              width = as.numeric(input$plot.snaps.w),
-  #              height = as.numeric(input$plot.snaps.h)
-  #   )
-  # })
 
-  ###plot stacked spectra----
-  # plot.snaps <- reactive({
-  #   ggplot(data = MSsnaps1(), aes(x = mz, y = intensum,
-  #                                 color = time.scale)) +
-  #     geom_line(size = input$size.line.snap) +
-  #     scale_color_gradient(
-  #       name = 't (min)', low=input$col.snap1, high=input$col.snap2,
-  #       guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
-  #       # breaks = breaks,
-  #       trans = input$trans.user
-  #     ) +
-  #     xlab("m/z") +
-  #     facet_grid(signif(time.scale, 3) ~ Species,
-  #                scales = common.scale()
-  #     ) +
-  #     custom.theme  +
-  #     theme(strip.text = element_blank(),
-  #           axis.title.y = element_blank(),
-  #           axis.text.y = element_blank(),
-  #           axis.line.y = element_blank(),
-  #           axis.ticks.y = element_blank(),
-  #           legend.position = "none") +
-  #     coord_cartesian(expand = FALSE)
-  # })
+  ## 3.2. Peak picking----
 
-
-  ##Peak picking----
+  ### 3.2.1. Current data----
 
   MSsnaps.pp.0 <- reactive({
 
@@ -785,9 +890,8 @@ server <- function(input, output, session) {
 
   })
 
-  ### Import already peak-picked data----
+  ### 3.2.2. Imported data----
 
-  ####upload already processed data----
   exported.snaps <- reactive({
     if(is.null(input$exported.snaps))
       return(NULL)
@@ -822,6 +926,7 @@ server <- function(input, output, session) {
     }
   })
 
+  ### 3.2.3. Merge current and imported data----
   MSsnaps.pp <- reactive({
     if(is.null(exported.snaps)) {
       return(MSsnaps.pp.0())
@@ -838,7 +943,7 @@ server <- function(input, output, session) {
     }
   })
 
-  ### Table output----
+  ### 3.2.4. Table output----
   output$MSsnaps.pp.table <- DT::renderDT(server = FALSE, {
     datatable(
       data = MSsnaps.pp() %>%
@@ -873,7 +978,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = list(
           list(extend='copy'),
           list(extend='csv',
@@ -894,7 +999,7 @@ server <- function(input, output, session) {
       )
   })
 
-  ### Plot output----
+  ### 3.2.5. Plot output----
   plot.pp <- reactive({
     ggplot(
       data = MSsnaps.pp(),
@@ -922,7 +1027,6 @@ server <- function(input, output, session) {
       scale_color_gradient(
         name = 't (min)',
         low=input$col.snap1, high=input$col.snap2,
-        # guide=guide_colourbar(reverse = TRUE, barheight = 20, barwidth = 3, ticks.linewidth = 2),
         trans = input$trans.user
       ) +
       custom.theme +
@@ -949,6 +1053,8 @@ server <- function(input, output, session) {
                height = as.numeric(input$plot.snaps.h)
     )
   })
+
+  ### 3.2.6. Download spectra------
 
   output$plot.pp.pdf <- downloadHandler(
     filename = function() { paste("Peak picking", '.pdf', sep='') },
@@ -981,9 +1087,9 @@ server <- function(input, output, session) {
   )
 
 
-  ## Optimization----
+  ## 3.3. Optimization----
 
-  ### Least-square minimization----
+  ### 3.3.1. Least-square minimization----
   opt.0 <- reactive({
 
     withProgress(
@@ -1025,9 +1131,9 @@ server <- function(input, output, session) {
   }) %>%
     bindEvent(input$optibtn)
 
-  ### Generation of optimized distributions----
+  ### 3.3.2. Generation of optimized distributions----
 
-  #### All distributions----
+  #### 3.3.2.1. All distributions----
   opt.distrib <- reactive({
 
     withProgress(
@@ -1048,9 +1154,8 @@ server <- function(input, output, session) {
       })
   })
 
-  ##### Import already optimized data----
+  ##### 3.3.2.1.1. Import already optimized data----
 
-  ###### import itself----
   exported.opt <- reactive({
     if(is.null(input$exported.opt))
       return(NULL)
@@ -1078,7 +1183,7 @@ server <- function(input, output, session) {
     }
   })
 
-  ##### binding to current data----
+  ##### 3.3.2.1.2.  binding to current data----
   opt <- reactive({
     if(is.null(exported.opt)) {
       return(opt.distrib())
@@ -1092,7 +1197,7 @@ server <- function(input, output, session) {
     }
   })
 
-  #### Filtered distributions----
+  #### 3.3.2.3. Filtered distributions----
 
   alpha <- reactive({as.numeric(input$alpha)})
 
@@ -1120,9 +1225,9 @@ server <- function(input, output, session) {
   })
 
 
-  ### Derived values----
+  ### 3.3.3. Derived values----
 
-  #### All values----
+  #### 3.3.3.1. All values----
   binom.NUS <- reactive({
     binom.NUS.f(
       opt(),
@@ -1133,7 +1238,7 @@ server <- function(input, output, session) {
     )
   })
 
-  #### Filtered values----
+  #### 3.3.3.2. Filtered values----
 
   binom.filter <- reactive({
 
@@ -1157,7 +1262,9 @@ server <- function(input, output, session) {
   })
 
 
-  ## modeling table outputs----
+  ## 3.4. Modeling table outputs----
+
+  ### 3.4.1. Optimized distributions----
 
   output$opt.table <- DT::renderDT(server = FALSE, {
     datatable(
@@ -1184,7 +1291,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = list(
           list(extend='copy'),
           list(extend='csv',
@@ -1205,6 +1312,7 @@ server <- function(input, output, session) {
       )
   })
 
+  ### 3.4.2. Optimization results----
   output$opt.stat <- DT::renderDT(server = FALSE, {
     datatable(
       data = opt() %>%
@@ -1252,7 +1360,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = list(
           list(extend='copy'),
           list(extend='csv',
@@ -1273,6 +1381,7 @@ server <- function(input, output, session) {
       )
   })
 
+  ### 3.4.3. Derived values----
   output$binom.NUS.table <- DT::renderDT(server = TRUE, {
     datatable(
       data = binom.NUS() %>%
@@ -1316,7 +1425,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = list(
           list(extend='copy'),
           list(extend='csv',
@@ -1337,6 +1446,7 @@ server <- function(input, output, session) {
       )
   })
 
+  ### 3.4.4. Optimization results----
   output$opt.filter.table <- DT::renderDT(server = TRUE, {
     datatable(
       data = opt.filter() %>%
@@ -1366,7 +1476,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = list(
           list(extend='copy'),
           list(extend='csv',
@@ -1386,6 +1496,7 @@ server <- function(input, output, session) {
       )
   })
 
+  ### 3.4.5. Filtered derived results----
   output$binom.filter.table <- DT::renderDT(server = TRUE, {
     datatable(
       data = binom.filter()%>%
@@ -1429,7 +1540,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = list(
           list(extend='copy'),
           list(extend='csv',
@@ -1450,7 +1561,7 @@ server <- function(input, output, session) {
       )
   })
 
-  ## Optimized  plot outputs-------
+  ## 3.5. Optimized  plot outputs-------
 
   optiplot <- reactive({
 
@@ -1538,7 +1649,8 @@ server <- function(input, output, session) {
   })
 
 
-  ##Download spectra----------
+  ## 3.6. Download spectra----------
+
   output$optiplot.pdf <- downloadHandler(
     filename = function() { paste("Deconvoluted spectra", '.pdf', sep='') },
     content = function(file) {
@@ -1571,50 +1683,9 @@ server <- function(input, output, session) {
 
   ## 4. HDXplotR--------
 
-  ### 4.0. snap output----
-  output$MSsnap <- renderDT(server = TRUE,{
-    datatable(
-      MSsnaps() %>%
-        select(filename, Species, mean.time, CFtime, mz, intensum,
-               min.time, max.time, min.scan, max.scan),
-      style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
-      selection = 'multiple',
-      colnames = c(
-        'File name' = 'filename',
-        'Intensity' = 'intensum',
-        'Start TIC time' = 'min.time',
-        'End TIC time' = 'max.time',
-        'Start scan' = 'min.scan',
-        'End scan' = 'max.scan',
-        'm/z' = "mz",
-        'Manual time (min)' = 'CFtime',
-        'TIC time (min)' = 'mean.time'
-      ),
-      editable = T,
-      rownames = F,
-      escape = T,
-      filter = 'top',
-      autoHideNavigation = T,
-      plugins = 'natural',
-      options = list(
-        deferRender = TRUE,
-        scrollY = 200,
-        scroller = TRUE,
-        autoWidth = F,
-        dom = 'Bfrtip', #button position
-        buttons = c('copy', 'csv', 'excel', 'colvis'),
-        columnDefs = list(list(visible=FALSE, targets=c(0,6:9)))
-      )
-    ) %>%
-      formatStyle(
-        columns = 0:9,
-        target = 'row',
-        background = '#272c30'
-      )
-  })
-
   ###4.1. Centroid calculation----
+
+  #### 4.1.1. Calculation----
   centroids <- reactive({
 
     req(MSsnaps.pp())
@@ -1625,7 +1696,7 @@ server <- function(input, output, session) {
       summarise(centroid = weighted.mean(mz, intensum)) #calculation of centroids
   })
 
-  #### Species naming
+  #### 4.1.2. Species naming----
   NUS.init0 <- reactive({
 
     data.frame(Species = paste("Species", c(1:8)),
@@ -1639,6 +1710,7 @@ server <- function(input, output, session) {
 
   })
 
+  #### 4.1.3. Hot table for user input----
   NUS.change <- reactive({
     req(input$hotable2)
     req(NUS.init0())
@@ -1649,6 +1721,52 @@ server <- function(input, output, session) {
     # req(centroids())
     NUS.init0()
   }, readOnly = F)
+
+  #### 4.1.4. Apparent centroid plot----
+
+  p.app.cent <- reactive({
+
+    req(NUS()) #computes only once centroidscaled() is populated
+
+    #data selection
+    s = input$NUS_rows_selected
+    selected.points <- NUS()[ s,]
+
+    p <- ggplot(
+      data = centroids(),
+      aes(x = centroids()$time.scale, y = centroids()$centroid)
+    ) +
+      geom_point(
+        color = input$col.kin, size = input$size.kin
+      ) +
+      geom_point(
+        data = selected.points,
+        aes(x = time.scale, y = centroid, color = Name),
+        inherit.aes = F,
+        size = input$size.kin
+      ) +
+      scale_color_manual(
+        values = c(
+          input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4,
+          input$col.kin.high5, input$col.kin.high6, input$col.kin.high7,input$col.kin.high8
+        )
+      ) +
+      xlab("time (min)") +
+      ylab("centroid (m/z)") +
+      custom.theme
+
+    return(p)
+  })
+
+  output$p.app.cent <- renderPlot({p.app.cent()})
+
+  output$p.app.cent.ui <- renderUI({
+    plotOutput("p.app.cent",
+               width = as.numeric(input$plot.hdx.w),
+               height = as.numeric(input$plot.hdx.h)
+    )
+  })
+
 
   ### 4.2 NUS calculation----
 
@@ -1669,13 +1787,13 @@ server <- function(input, output, session) {
     rt.cf.switch(new.rt.cf.switch)
   })
 
-  #### 4.2.2 Apparent NUS----
 
+  #### 4.2.2 Apparent NUS----
 
   NUS <- reactive({
 
     #uses RT or CF data depending on switch value
-    if(rt.cf.switch()>0){
+    if(rt.cf.switch()>=0){
       NUS <- centroids()
     } else {
       NUS <- k.norm.0() %>%
@@ -1757,8 +1875,8 @@ server <- function(input, output, session) {
                 scrollY = 200,
                 scroller = TRUE,
                 autoWidth = F,
-                dom = 'Bfrtip', #button position
-                buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+                dom = 'Bfrtip',
+                buttons = c('copy', 'csv', 'excel', 'colvis'),
                 columnDefs = list(list(visible=FALSE, targets=c(0:4, 8:14)))
               )
     ) %>%
@@ -1779,43 +1897,6 @@ server <- function(input, output, session) {
     } else {
       DT::selectRows(NUS.proxy, NULL)
     }
-  })
-
-
-  #Diagnostics
-  # output$selected_rows <- renderPrint(print(input$NUS_rows_selected))
-
-
-  output$p.app.cent <- renderPlot({
-
-    req(NUS()) #computes only once centroidscaled() is populated
-
-    #data selection
-    s = input$NUS_rows_selected
-    selected.points <- NUS()[ s,]
-
-    ggplot(
-      data = centroids(),
-      aes(x = centroids()$time.scale, y = centroids()$centroid)
-    ) +
-      geom_point(
-        color = input$col.kin, size = input$size.kin
-      ) +
-      geom_point(
-        data = selected.points,
-        aes(x = time.scale, y = centroid, color = Name),
-        inherit.aes = F,
-        size = input$size.kin
-      ) +
-      scale_color_manual(
-        values = c(
-          input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4,
-          input$col.kin.high5, input$col.kin.high6, input$col.kin.high7,input$col.kin.high8
-        )
-      ) +
-      xlab("time (min)") +
-      ylab("centroid (m/z)") +
-      custom.theme
   })
 
 
@@ -2035,8 +2116,8 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
-        buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
         columnDefs = list(list(visible=FALSE, targets=c(0,5,6)))
       )
     ) %>%
@@ -2524,8 +2605,8 @@ server <- function(input, output, session) {
           scrollY = 200,
           scroller = TRUE,
           autoWidth = F,
-          dom = 'Bfrtip', #button position
-          buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+          dom = 'Bfrtip',
+          buttons = c('copy', 'csv', 'excel', 'colvis'),
           columnDefs = list(list(visible=FALSE, targets=c(0,5,6)))
         )
       ) %>%
@@ -2838,8 +2919,8 @@ server <- function(input, output, session) {
           scrollY = 200,
           scroller = TRUE,
           autoWidth = F,
-          dom = 'Bfrtip', #button position
-          buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+          dom = 'Bfrtip',
+          buttons = c('copy', 'csv', 'excel', 'colvis'),
           columnDefs = list(list(visible=FALSE, targets=c(0,5,6)))
         )
       ) %>%
@@ -2928,6 +3009,38 @@ server <- function(input, output, session) {
     }
 
   })
+
+  ## 4.4. Download spectra----------
+
+  output$centroids.pdf <- downloadHandler(
+    filename = function() { paste("Apparent centroids", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.app.cent(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$centroids.png <- downloadHandler(
+    filename = function() { paste("Apparent centroids", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = p.app.cent(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
 
 
   ##5. TimeR--------------
@@ -3168,7 +3281,7 @@ server <- function(input, output, session) {
                 scrollY = 200,
                 scroller = TRUE,
                 autoWidth = F,
-                dom = 'Bfrtip', #button position
+                dom = 'Bfrtip',
                 buttons = list(
                   list(extend='copy'),
                   list(extend='csv',
@@ -3218,7 +3331,7 @@ server <- function(input, output, session) {
                 scrollY = 200,
                 scroller = TRUE,
                 autoWidth = F,
-                dom = 'Bfrtip', #button position
+                dom = 'Bfrtip',
                 buttons = list(
                   list(extend='copy'),
                   list(extend='csv',
@@ -3314,118 +3427,11 @@ server <- function(input, output, session) {
     as.numeric(input$Std)
   })
 
-  ## 6.2 Snap data----
 
-  ### 6.2.1 snapping----
 
-  snaps.target <- data.frame()
+  ## 6.2 Data processing----
 
-  snaps.std <- data.frame()
-
-  MSsnaps.target <- reactive({
-    newrow <- data.frame(inputsnap())
-    snaps.target <<- rbind(snaps.target, newrow)
-  }) %>%
-    bindEvent(input$bttn.target)
-
-  MSsnaps.std <- reactive({
-    newrow <- data.frame(inputsnap())
-    snaps.std <<- rbind(snaps.std, newrow)
-  }) %>%
-    bindEvent(input$bttn.std)
-
-  ### 6.2.3 snap output----
-  output$target <- renderDT(server = TRUE,{
-    datatable(
-      MSsnaps.target() %>%
-        select(filename, Species, lgd.conc, Stoich, mz, intensum,
-               min.time, max.time, min.scan, max.scan, min.mz, max.mz),
-      style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
-      selection = 'multiple',
-      colnames = c(
-        '[Ligand] (µM)' = 'lgd.conc',
-        'File name' = 'filename',
-        'Ligand stoichiometry' = 'Stoich',
-        'Intensity' = 'intensum',
-        'Start TIC time' = 'min.time',
-        'End TIC time' = 'max.time',
-        'Start scan' = 'min.scan',
-        'End scan' = 'max.scan',
-        'Start m/z' = 'min.mz',
-        'End m/z'= 'max.mz',
-        'm/z' = 'mz'
-      ),
-      editable = T,
-      rownames = F,
-      escape = T,
-      filter = 'top',
-      autoHideNavigation = T,
-      plugins = 'natural',
-      options = list(
-        deferRender = TRUE,
-        scrollY = 200,
-        scroller = TRUE,
-        autoWidth = F,
-        dom = 'Bfrtip', #button position
-        buttons = c('copy', 'csv', 'excel', 'colvis'),
-        columnDefs = list(list(visible=FALSE, targets=c(0,6:11)))
-      )
-    ) %>%
-      formatStyle(
-        columns = 0:11,
-        target = 'row',
-        background = '#272c30'
-      )
-  })
-
-  output$standard <- renderDT(server = TRUE,{
-    datatable(
-      MSsnaps.std() %>%
-        select(filename, Species, lgd.conc, Stoich, mz, intensum,
-               min.time, max.time, min.scan, max.scan, min.mz, max.mz),
-      style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
-      selection = 'multiple',
-      colnames = c(
-        '[Ligand] (µM)' = 'lgd.conc',
-        'File name' = 'filename',
-        'Ligand stoichiometry' = 'Stoich',
-        'Intensity' = 'intensum',
-        'Start TIC time' = 'min.time',
-        'End TIC time' = 'max.time',
-        'Start scan' = 'min.scan',
-        'End scan' = 'max.scan',
-        'Start m/z' = 'min.mz',
-        'End m/z'= 'max.mz',
-        'm/z' = 'mz'
-      ),
-      editable = T,
-      rownames = F,
-      escape = T,
-      filter = 'top',
-      autoHideNavigation = T,
-      plugins = 'natural',
-      options = list(
-        deferRender = TRUE,
-        scrollY = 200,
-        scroller = TRUE,
-        autoWidth = F,
-        dom = 'Bfrtip', #button position
-        buttons = c('copy', 'csv', 'excel', 'colvis'),
-        columnDefs = list(list(visible=FALSE, targets=c(0,6:11)))
-      )
-    ) %>%
-      formatStyle(
-        columns = 0:11,
-        target = 'row',
-        background = '#272c30'
-      )
-  })
-
-  ## 6.3 Data processing----
-
-  ### 6.3.1 Calculations----
+  ### 6.2.1 Calculations----
 
   eq.raw.target <- reactive({
 
@@ -3470,7 +3476,7 @@ server <- function(input, output, session) {
   }) %>%
     bindEvent(input$IS)
 
-  ### 6.3.2 Tables----
+  ### 6.2.2 Tables----
 
   output$eq.raw.target <- DT::renderDT(server = FALSE, {
 
@@ -3500,7 +3506,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = c('copy', 'csv', 'excel', 'colvis'),
         columnDefs = list(list(visible=FALSE, targets=c(3:7)))
       )
@@ -3540,7 +3546,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = c('copy', 'csv', 'excel', 'colvis'),
         columnDefs = list(list(visible=FALSE, targets=c(0)))
       )
@@ -3584,7 +3590,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = c('copy', 'csv', 'excel', 'colvis'),
         columnDefs = list(list(visible=FALSE, targets=c(0, 3:7)))
       )
@@ -3598,7 +3604,7 @@ server <- function(input, output, session) {
   })
 
 
-  ##6.4 import processed data----
+  ##6.3 import processed data----
 
   titr.old <- reactive({
     if(is.null(input$titr.old)){
@@ -3630,9 +3636,9 @@ server <- function(input, output, session) {
 
   })
 
-  ## 6.5 Internal standardization----
+  ## 6.4 Internal standardization----
 
-  ### 6.5.1 Response factors----
+  ### 6.4.1 Response factors----
 
   Rf <- reactive({
 
@@ -3717,7 +3723,7 @@ server <- function(input, output, session) {
         scrollY = 200,
         scroller = TRUE,
         autoWidth = F,
-        dom = 'Bfrtip', #button position
+        dom = 'Bfrtip',
         buttons = c('copy', 'csv', 'excel', 'colvis')
       )
     ) %>%
@@ -3733,7 +3739,7 @@ server <- function(input, output, session) {
       )
   })
 
-  ### 6.5.2 Corrected concentrations----
+  ### 6.4.2 Corrected concentrations----
 
   corr.C <- reactive({
 
@@ -3799,7 +3805,7 @@ server <- function(input, output, session) {
                 scrollY = 200,
                 scroller = TRUE,
                 autoWidth = F,
-                dom = 'Bfrtip', #button position
+                dom = 'Bfrtip',
                 buttons = c('copy', 'csv', 'excel', 'colvis')
               )
     ) %>%
@@ -3817,7 +3823,7 @@ server <- function(input, output, session) {
 
 
 
-  # #output options-----------
+  #output options-----------
   # outputOptions(output, "plot.snaps", suspendWhenHidden = FALSE)
   # outputOptions(output, "plot.snaps.ui", suspendWhenHidden = FALSE)
   outputOptions(output, "plot.pp", suspendWhenHidden = FALSE)
