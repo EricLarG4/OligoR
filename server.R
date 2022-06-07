@@ -151,12 +151,13 @@ server <- function(input, output, session) {
     datatable(
       oligo.data(),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       rownames = F,
       escape = T,
       filter = 'top',
       autoHideNavigation = T,
       options = list(
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -191,7 +192,7 @@ server <- function(input, output, session) {
     datatable(
       peak.position(),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       rownames = F,
       escape = T,
       filter = 'top',
@@ -199,6 +200,7 @@ server <- function(input, output, session) {
       colnames = c('m/z' = 'mz.th',
                    'Abundance' = 'Iso.Pattern'),
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -703,7 +705,7 @@ server <- function(input, output, session) {
         select(filename, Species, mean.time, CFtime, mz, intensum,
                min.time, max.time, min.scan, max.scan),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         'File name' = 'filename',
@@ -723,6 +725,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -767,7 +770,7 @@ server <- function(input, output, session) {
         select(filename, Species, lgd.conc, Stoich, mz, intensum,
                min.time, max.time, min.scan, max.scan, min.mz, max.mz),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         '[Ligand] (µM)' = 'lgd.conc',
@@ -789,6 +792,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -811,7 +815,7 @@ server <- function(input, output, session) {
         select(filename, Species, lgd.conc, Stoich, mz, intensum,
                min.time, max.time, min.scan, max.scan, min.mz, max.mz),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         '[Ligand] (µM)' = 'lgd.conc',
@@ -833,6 +837,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -950,7 +955,7 @@ server <- function(input, output, session) {
         select(c(filename, Species, time.scale, mean.time, CFtime, mz, intensum, peak,
                  min.time, max.time, min.scan, max.scan, min.mz, max.mz)),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         "Time (min)" = "time.scale",
@@ -974,6 +979,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1270,7 +1276,7 @@ server <- function(input, output, session) {
     datatable(
       data = opt(),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         "Time (min)" = "time.scale",
@@ -1287,6 +1293,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1336,7 +1343,7 @@ server <- function(input, output, session) {
           )
         ),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         "Time (min)" = "time.scale",
@@ -1356,6 +1363,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1394,7 +1402,7 @@ server <- function(input, output, session) {
           fraction.1, fraction.2
         ),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         "Time (min)" = "time.scale",
@@ -1421,6 +1429,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1455,7 +1464,7 @@ server <- function(input, output, session) {
           mz.th, iso, iso.1, iso.2
         ),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         "Time (min)" = "time.scale",
@@ -1472,6 +1481,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1509,7 +1519,7 @@ server <- function(input, output, session) {
           fraction.1, fraction.2
         ),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         "Time (min)" = "time.scale",
@@ -1536,6 +1546,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1845,7 +1856,7 @@ server <- function(input, output, session) {
                   centroid, Reference, Charge, NUS
                 ),
               style = "bootstrap",
-              extensions = c('Buttons', 'Responsive', 'Scroller'),
+              extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
               selection = 'multiple',
               colnames = c(
                 'TIC Time (min)' = 'mean.time',
@@ -1871,6 +1882,7 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
+               colReorder = TRUE, rowReorder = TRUE,
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
@@ -2099,7 +2111,7 @@ server <- function(input, output, session) {
         ) %>%
         select(Species, Name, param, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         "Parameter" = "param",
@@ -2112,6 +2124,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -2597,7 +2610,7 @@ server <- function(input, output, session) {
       datatable(
         data = .,
         style = "bootstrap",
-        extensions = c('Buttons', 'Responsive', 'Scroller'),
+        extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
         selection = 'multiple',
         colnames = c(
           "Standard Error" =  "Std. Error"
@@ -2609,6 +2622,7 @@ server <- function(input, output, session) {
         autoHideNavigation = T,
         plugins = 'natural',
         options = list(
+         colReorder = TRUE, rowReorder = TRUE,
           deferRender = TRUE,
           scrollY = 200,
           scroller = TRUE,
@@ -2920,7 +2934,7 @@ server <- function(input, output, session) {
       datatable(
         data = .,
         style = "bootstrap",
-        extensions = c('Buttons', 'Responsive', 'Scroller'),
+        extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
         selection = 'multiple',
         colnames = c(
           "Standard Error" =  "Std. Error"
@@ -2932,6 +2946,7 @@ server <- function(input, output, session) {
         autoHideNavigation = T,
         plugins = 'natural',
         options = list(
+         colReorder = TRUE, rowReorder = TRUE,
           deferRender = TRUE,
           scrollY = 200,
           scroller = TRUE,
@@ -3370,7 +3385,7 @@ server <- function(input, output, session) {
     datatable(data = k.norm.0() %>%
                 relocate(name),
               style = "bootstrap",
-              extensions = c('Buttons', 'Responsive', 'Scroller'),
+              extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
               selection = 'multiple',
               colnames = c('Species #' = 'Species',
                            'Name' = 'name',
@@ -3394,6 +3409,7 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
+               colReorder = TRUE, rowReorder = TRUE,
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
@@ -3430,7 +3446,7 @@ server <- function(input, output, session) {
     datatable(data = k.spectra() %>%
                 select(-mz.range),
               style = "bootstrap",
-              extensions = c('Buttons', 'Responsive', 'Scroller'),
+              extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
               selection = 'multiple',
               colnames = c(
                 "m/z" = "mz",
@@ -3444,6 +3460,7 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
+               colReorder = TRUE, rowReorder = TRUE,
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
@@ -3636,7 +3653,7 @@ server <- function(input, output, session) {
     datatable(
       data = eq.raw.target(),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         '[Ligand] (µM)' = 'lgd.conc',
@@ -3655,6 +3672,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -3681,7 +3699,7 @@ server <- function(input, output, session) {
     datatable(
       data = eq.raw.std(),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         '[Ligand] (µM)' = 'lgd.conc',
@@ -3695,6 +3713,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -3717,7 +3736,7 @@ server <- function(input, output, session) {
     datatable(
       data = eq.raw(),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       colnames = c(
         '[Ligand] (µM)' = 'lgd.conc',
@@ -3739,6 +3758,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -3863,7 +3883,7 @@ server <- function(input, output, session) {
         select(species, V1) %>%
         set_colnames(c("Species", "Response factor")),
       style = "bootstrap",
-      extensions = c('Buttons', 'Responsive', 'Scroller'),
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       selection = 'multiple',
       editable = T,
       rownames = F,
@@ -3872,6 +3892,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
+       colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -3945,7 +3966,7 @@ server <- function(input, output, session) {
 
     datatable(data = corr.C(),
               style = "bootstrap",
-              extensions = c('Buttons', 'Responsive', 'Scroller'),
+              extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
               selection = 'multiple',
               editable = T,
               rownames = F,
@@ -3954,6 +3975,7 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
+               colReorder = TRUE, rowReorder = TRUE,
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
