@@ -106,7 +106,6 @@ server <- function(input, output, session) {
       paste(
         tags$b(style="color:#EEE8D5", 'Chemical formula: '),
         tags$span(style="color:#EEE8D5", "C"), tags$sub(style="color:#EEE8D5", sequencer()$nC),
-
         tags$span(style="font-weight: bold; color:#EEE8D5", "H"), tags$sub(style="font-weight: bold; color:#EEE8D5", sequencer()$nH),
         tags$span(style="color:#EEE8D5", "O"), tags$sub(style="color:#EEE8D5", sequencer()$nO),
         tags$span(style="color:#EEE8D5", "N"), tags$sub(style="color:#EEE8D5", sequencer()$nN),
@@ -159,7 +158,7 @@ server <- function(input, output, session) {
       options = list(
         colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
-        scrollY = 200,
+        scrollY = 300,
         scroller = TRUE,
         autoWidth = F,
         dom = 'Bfrtip',
@@ -175,6 +174,43 @@ server <- function(input, output, session) {
 
   })
 
+  output$charge.series <- renderDT(server = FALSE,{
+    datatable(
+      data.frame(
+        z = 1:sequencer()$nb_PO
+      ) %>%
+        mutate(
+          "Average m/z" = round(
+            (massr()$AveMW-z*1.00811)/z,
+            5
+          ),
+          "Monoisotopic m/z" = round(
+            (massr()$MonoMW-z*1.00811)/z,
+            5
+          )
+        ),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      options = list(
+        colReorder = TRUE, rowReorder = TRUE,
+        deferRender = TRUE,
+        scrollY = 300,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel')
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:2,
+        target = 'row',
+        background = '#272c30'
+      )
+  })
 
   ## 1.3. Peak position calculation-----------
   peak.position <- reactive({
@@ -200,7 +236,7 @@ server <- function(input, output, session) {
       colnames = c('m/z' = 'mz.th',
                    'Abundance' = 'Iso.Pattern'),
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -725,7 +761,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -792,7 +828,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -837,7 +873,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -979,7 +1015,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1293,7 +1329,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1363,7 +1399,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1429,7 +1465,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1481,7 +1517,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1546,7 +1582,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -1882,7 +1918,7 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
-               colReorder = TRUE, rowReorder = TRUE,
+                colReorder = TRUE, rowReorder = TRUE,
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
@@ -2124,7 +2160,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -2622,7 +2658,7 @@ server <- function(input, output, session) {
         autoHideNavigation = T,
         plugins = 'natural',
         options = list(
-         colReorder = TRUE, rowReorder = TRUE,
+          colReorder = TRUE, rowReorder = TRUE,
           deferRender = TRUE,
           scrollY = 200,
           scroller = TRUE,
@@ -2946,7 +2982,7 @@ server <- function(input, output, session) {
         autoHideNavigation = T,
         plugins = 'natural',
         options = list(
-         colReorder = TRUE, rowReorder = TRUE,
+          colReorder = TRUE, rowReorder = TRUE,
           deferRender = TRUE,
           scrollY = 200,
           scroller = TRUE,
@@ -3409,7 +3445,7 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
-               colReorder = TRUE, rowReorder = TRUE,
+                colReorder = TRUE, rowReorder = TRUE,
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
@@ -3460,7 +3496,7 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
-               colReorder = TRUE, rowReorder = TRUE,
+                colReorder = TRUE, rowReorder = TRUE,
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
@@ -3672,7 +3708,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -3713,7 +3749,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -3758,7 +3794,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -3892,7 +3928,7 @@ server <- function(input, output, session) {
       autoHideNavigation = T,
       plugins = 'natural',
       options = list(
-       colReorder = TRUE, rowReorder = TRUE,
+        colReorder = TRUE, rowReorder = TRUE,
         deferRender = TRUE,
         scrollY = 200,
         scroller = TRUE,
@@ -3975,7 +4011,7 @@ server <- function(input, output, session) {
               autoHideNavigation = T,
               plugins = 'natural',
               options = list(
-               colReorder = TRUE, rowReorder = TRUE,
+                colReorder = TRUE, rowReorder = TRUE,
                 deferRender = TRUE,
                 scrollY = 200,
                 scroller = TRUE,
