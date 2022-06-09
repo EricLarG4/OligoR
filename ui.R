@@ -691,9 +691,17 @@ ui <- dashboardPage(
               title = 'Analyte characteristics',
               collapsible = T,
               collapsed = T,
-              width = 6,
+              width = 3,
               status = "primary",
               dataTableOutput("oligo.data")
+          ),
+          box(id = 'charge series',
+              title = 'Electrospray series',
+              collapsible = T,
+              collapsed = T,
+              width = 3,
+              status = "primary",
+              dataTableOutput("charge.series")
           ),
           box(id = 'Oligoutput10',
               title = 'Theoretical distribution data',
