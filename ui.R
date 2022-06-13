@@ -277,6 +277,134 @@ ui <- dashboardPage(
           )
       )
     ),
+    ##sidebar TimeR-------------
+    conditionalPanel(
+      condition = "input.tabs =='TimeR'",
+      br(),
+      box(
+        width = 12,
+        title = "Import kinetics data",
+        status = 'primary',
+        solidHeader = F,
+        collapsible = T,
+        enable_dropdown = T,
+        dropdown_icon = 'upload',
+        fileInput(
+          'kin.old',
+          'Select .xlsx file'
+        )
+      ),
+      box(
+        width = 12,
+        title = "Data processing",
+        status = 'primary',
+        solidHeader = F,
+        collapsible = T,
+        collapsed = F,
+        textInput(
+          inputId = "text33",
+          label = "Start (min)",
+          value = 0
+        ),
+        textInput(
+          inputId = "text34",
+          label = "End (min)",
+          value = 999
+        ),
+        sliderInput(
+          inputId = "ave.scan",
+          label = "Scans to average",
+          min = 1,
+          max = 25,
+          step = 1,
+          value = 1,
+          ticks = FALSE
+        )
+      ),
+      box(
+        width = 12,
+        title = "Standardization",
+        prettyRadioButtons(
+          inputId = "kin.input",
+          label = "Intensity",
+          choices = c("Raw" = 'raw', "Corrected" = 'corrected', "Centroids" = 'centroid'),
+          icon = icon("check"),
+          inline = T,
+          bigger = TRUE,
+          status = "info",
+          animation = "jelly"
+        ),
+        prettyToggle(
+          inputId = 'kin.norm',
+          label_off = 'absolute intensity',
+          label_on = 'relative intensity',
+          value = FALSE
+        )
+      ),
+      box(
+        width = 12,
+        title = "Species",
+        status = 'danger',
+        solidHeader = FALSE,
+        collapsible = TRUE,
+        collapsed = FALSE,
+        checkboxGroupButtons(
+          inputId = "Pick1",
+          label = "Select species",
+          choices = c("Species 1", "Species 2", "Species 3", "Species 4", "Species 5", "Species 6", "Species 7", "Species 8"),
+          selected = c("Species 1", "Species 2", "Species 3", "Species 4", "Species 5", "Species 6", "Species 7", "Species 8"),
+          size = 'xs',
+          status = "primary",
+          direction = 'horizontal',
+          checkIcon = list(
+            yes = icon("ok", lib = "glyphicon"),
+            no = icon("remove", lib = "glyphicon"))
+        ),
+        br(),
+        strong("Name Species"),
+        br(),
+        textInput(
+          inputId = "text36",
+          label = "Species 1",
+          value = "Species 1"
+        ),
+        textInput(
+          inputId = "text37",
+          label = "Species 2",
+          value = "Species 2"
+        ),
+        textInput(
+          inputId = "text38",
+          label = "Species 3",
+          value = "Species 3"
+        ),
+        textInput(
+          inputId = "text39",
+          label = "Species 4",
+          value = "Species 4"
+        ),
+        textInput(
+          inputId = "text40",
+          label = "Species 5",
+          value = "Species 5"
+        ),
+        textInput(
+          inputId = "text41",
+          label = "Species 6",
+          value = "Species 6"
+        ),
+        textInput(
+          inputId = "text42",
+          label = "Species 7",
+          value = "Species 7"
+        ),
+        textInput(
+          inputId = "text43",
+          label = "Species 8",
+          value = "Species 8"
+        )
+      )
+    ),
     ##sidebar HDXplotR-------------
     conditionalPanel(
       condition = "input.tabs == 'HDXplotR'",
@@ -465,134 +593,6 @@ ui <- dashboardPage(
         )
       )
     ),
-    ##sidebar TimeR-------------
-    conditionalPanel(
-      condition = "input.tabs =='TimeR'",
-      br(),
-      box(
-        width = 12,
-        title = "Import kinetics data",
-        status = 'primary',
-        solidHeader = F,
-        collapsible = T,
-        enable_dropdown = T,
-        dropdown_icon = 'upload',
-        fileInput(
-          'kin.old',
-          'Select .xlsx file'
-        )
-      ),
-      box(
-        width = 12,
-        title = "Data processing",
-        status = 'primary',
-        solidHeader = F,
-        collapsible = T,
-        collapsed = F,
-        textInput(
-          inputId = "text33",
-          label = "Start (min)",
-          value = 0
-        ),
-        textInput(
-          inputId = "text34",
-          label = "End (min)",
-          value = 999
-        ),
-        sliderInput(
-          inputId = "ave.scan",
-          label = "Scans to average",
-          min = 1,
-          max = 25,
-          step = 1,
-          value = 1,
-          ticks = FALSE
-        )
-      ),
-      box(
-        width = 12,
-        title = "Standardization",
-        prettyRadioButtons(
-          inputId = "kin.input",
-          label = "Intensity",
-          choices = c("Raw" = 'raw', "Corrected" = 'corrected', "Centroids" = 'centroid'),
-          icon = icon("check"),
-          inline = T,
-          bigger = TRUE,
-          status = "info",
-          animation = "jelly"
-        ),
-        prettyToggle(
-          inputId = 'kin.norm',
-          label_off = 'absolute intensity',
-          label_on = 'relative intensity',
-          value = FALSE
-        )
-      ),
-      box(
-        width = 12,
-        title = "Species",
-        status = 'danger',
-        solidHeader = FALSE,
-        collapsible = TRUE,
-        collapsed = FALSE,
-        checkboxGroupButtons(
-          inputId = "Pick1",
-          label = "Select species",
-          choices = c("Species 1", "Species 2", "Species 3", "Species 4", "Species 5", "Species 6", "Species 7", "Species 8"),
-          selected = c("Species 1", "Species 2", "Species 3", "Species 4", "Species 5", "Species 6", "Species 7", "Species 8"),
-          size = 'xs',
-          status = "primary",
-          direction = 'horizontal',
-          checkIcon = list(
-            yes = icon("ok", lib = "glyphicon"),
-            no = icon("remove", lib = "glyphicon"))
-        ),
-        br(),
-        strong("Name Species"),
-        br(),
-        textInput(
-          inputId = "text36",
-          label = "Species 1",
-          value = "Species 1"
-        ),
-        textInput(
-          inputId = "text37",
-          label = "Species 2",
-          value = "Species 2"
-        ),
-        textInput(
-          inputId = "text38",
-          label = "Species 3",
-          value = "Species 3"
-        ),
-        textInput(
-          inputId = "text39",
-          label = "Species 4",
-          value = "Species 4"
-        ),
-        textInput(
-          inputId = "text40",
-          label = "Species 5",
-          value = "Species 5"
-        ),
-        textInput(
-          inputId = "text41",
-          label = "Species 6",
-          value = "Species 6"
-        ),
-        textInput(
-          inputId = "text42",
-          label = "Species 7",
-          value = "Species 7"
-        ),
-        textInput(
-          inputId = "text43",
-          label = "Species 8",
-          value = "Species 8"
-        )
-      )
-    ),
     ##sidebar TitratR-------------
     conditionalPanel(
       condition = "input.tabs =='TitratR'",
@@ -701,6 +701,7 @@ ui <- dashboardPage(
               collapsed = T,
               width = 3,
               status = "primary",
+              p("m/z corresponding to natural isotopic abundances"),
               dataTableOutput("charge.series")
           ),
           box(id = 'Oligoutput10',
@@ -840,14 +841,26 @@ ui <- dashboardPage(
             p("Brush to select scans, resize edges and drag as desired"),
             status = 'primary',
             collapsible = TRUE,
-            plotOutput(
-              "plot1",
-              brush = brushOpts(
-                id = "plot_brush",
-                fill = "#fff5e7", stroke = "#fff5e7",
-                direction = "x"
+            uiOutput("plot1.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.tic",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "plot1.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
               ),
-              height = 200
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "plot1.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
             )
           ),
           box(
@@ -873,16 +886,7 @@ ui <- dashboardPage(
             p("Brush to zoom, double click to reset zoom"),
             status = "danger",
             collapsible = TRUE,
-            plotOutput(
-              "plot3",
-              height = 750,
-              dblclick = "plot3_dblclick",
-              brush = brushOpts(
-                id = "plot3_brush",
-                fill = "#fff5e7", stroke = "#fff5e7", direction = "xy",
-                resetOnNew = TRUE
-              )
-            ),
+            uiOutput("plot3.ui"),
             sidebar = boxSidebar(
               id = "dwn.sidebar.3",
               width = 25,
@@ -960,6 +964,34 @@ ui <- dashboardPage(
                 min=0.25, max=5, value=1,
                 step=0.25, round=0,
                 ticks = FALSE
+              ),
+              splitLayout(
+                sliderInput(
+                  'plot.tic.w', 'TIC width',
+                  min=100, max=2000, value=1500,
+                  step=20, round=0,
+                  ticks = FALSE
+                ),
+                sliderInput(
+                  'plot.tic.h', 'TIC height',
+                  min=100, max=3000, value= 150,
+                  step=10, round=0,
+                  ticks = FALSE
+                )
+              ),
+              splitLayout(
+                sliderInput(
+                  'plot.xplor.w', 'Plot width',
+                  min=100, max=2000, value=1500,
+                  step=20, round=0,
+                  ticks = FALSE
+                ),
+                sliderInput(
+                  'plot.xplor.h', 'Plot height',
+                  min=100, max=3000, value= 600,
+                  step=20, round=0,
+                  ticks = FALSE
+                )
               )
             )
           ),
@@ -1151,6 +1183,112 @@ ui <- dashboardPage(
                 sliderInput(
                   'plot.snaps.h', 'Plot height',
                   min=100, max=3000, value= 750,
+                  step=20, round=0,
+                  ticks = FALSE
+                )
+              )
+            )
+          ),
+          style = "opacity: 0.9"
+        )
+      ),
+      ##panel TimeR--------
+      tabPanel(
+        "TimeR",
+        icon = icon('clock'),
+        fluidRow(
+          box(
+            title = "Kinetics plot",
+            width = 12,
+            status = "danger",
+            solidHeader = F,
+            collapsible = T,
+            uiOutput("k.plot.ui"),
+            sidebar = boxSidebar(
+              id = "dwn.sidebar.10",
+              width = 25,
+              startOpen = FALSE,
+              icon = icon("download"),
+              downloadBttn(
+                outputId = "timer.png",
+                label = "Save as png",
+                style = "simple",
+                size = 'sm'
+              ),
+              br(),
+              br(),
+              downloadBttn(
+                outputId = "timer.pdf",
+                label = "Save as pdf",
+                style = "simple",
+                size = 'sm'
+              )
+            )
+          ),
+          box(
+            title = "Kinetics data",
+            footer = "To be able to reimport the data, save as Excel. The number of scans to average and time range can be reprocessed. Caution: scans excluded will not be exported.",
+            width = 12,
+            status = "success",
+            solidHeader = FALSE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            DTOutput("k.table")
+          ),
+          box(
+            title = 'Raw spectrum data',
+            solidHeader = FALSE,
+            status = 'primary',
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = 12,
+            DTOutput('k.spectra')
+          )
+        ),
+        absolutePanel(
+          top = 150, right = 40, width = 300,
+          draggable = TRUE,
+          fixed = TRUE,
+          bsCollapse(
+            open = "plop.5",
+            bsCollapsePanel(
+              "Customisation",
+              flowLayout(
+                colourInput("col.dot.kin1", "Series 1", "#E69F00", allowTransparent = TRUE),
+                colourInput("col.dot.kin2", "Series 2", "#56B4E9", allowTransparent = TRUE),
+                colourInput("col.dot.kin3", "Series 3", "#009E73", allowTransparent = TRUE),
+                colourInput("col.dot.kin4", "Series 4", "#F0E442", allowTransparent = TRUE),
+                colourInput("col.dot.kin5", "Series 5", "#0072B2", allowTransparent = TRUE),
+                colourInput("col.dot.kin6", "Series 6", "#D55E00", allowTransparent = TRUE),
+                colourInput("col.dot.kin7", "Series 7", "#CC79A7", allowTransparent = TRUE),
+                colourInput("col.dot.kin8", "Series 8", "#777F85", allowTransparent = TRUE)
+              ),
+              splitLayout(
+                sliderInput(
+                  'size.dot.kin', 'Size',
+                  min=0, max=10, value=4,
+                  step=0.25, round=0,
+                  ticks = FALSE
+                ),
+                sliderInput(
+                  'transp.kin', 'Opacity',
+                  min=0, max=1, value=0.9,
+                  step=0.05,
+                  ticks = FALSE
+                )
+              ),
+              splitLayout(
+                sliderInput(
+                  'k.plot.w',
+                  'Plot width',
+                  min=100, max=2000, value=1000,
+                  step=20, round=0,
+                  ticks = FALSE
+                ),
+                sliderInput(
+                  'k.plot.h',
+                  'Plot height',
+                  min=100, max=3000, value= 500,
                   step=20, round=0,
                   ticks = FALSE
                 )
@@ -1377,112 +1515,6 @@ ui <- dashboardPage(
                 sliderInput(
                   'plot.hdx.h', 'Plot height',
                   min=100, max=3000, value= 600,
-                  step=20, round=0,
-                  ticks = FALSE
-                )
-              )
-            )
-          ),
-          style = "opacity: 0.9"
-        )
-      ),
-      ##panel TimeR--------
-      tabPanel(
-        "TimeR",
-        icon = icon('clock'),
-        fluidRow(
-          box(
-            title = "Kinetics plot",
-            width = 12,
-            status = "danger",
-            solidHeader = F,
-            collapsible = T,
-            uiOutput("k.plot.ui"),
-            sidebar = boxSidebar(
-              id = "dwn.sidebar.10",
-              width = 25,
-              startOpen = FALSE,
-              icon = icon("download"),
-              downloadBttn(
-                outputId = "timer.png",
-                label = "Save as png",
-                style = "simple",
-                size = 'sm'
-              ),
-              br(),
-              br(),
-              downloadBttn(
-                outputId = "timer.pdf",
-                label = "Save as pdf",
-                style = "simple",
-                size = 'sm'
-              )
-            )
-          ),
-          box(
-            title = "Kinetics data",
-            footer = "To be able to reimport the data, save as Excel. The number of scans to average and time range can be reprocessed. Caution: scans excluded will not be exported.",
-            width = 12,
-            status = "success",
-            solidHeader = FALSE,
-            collapsible = TRUE,
-            collapsed = TRUE,
-            DTOutput("k.table")
-          ),
-          box(
-            title = 'Raw spectrum data',
-            solidHeader = FALSE,
-            status = 'primary',
-            collapsible = TRUE,
-            collapsed = TRUE,
-            width = 12,
-            DTOutput('k.spectra')
-          )
-        ),
-        absolutePanel(
-          top = 150, right = 40, width = 300,
-          draggable = TRUE,
-          fixed = TRUE,
-          bsCollapse(
-            open = "plop.5",
-            bsCollapsePanel(
-              "Customisation",
-              flowLayout(
-                colourInput("col.dot.kin1", "Series 1", "#E69F00", allowTransparent = TRUE),
-                colourInput("col.dot.kin2", "Series 2", "#56B4E9", allowTransparent = TRUE),
-                colourInput("col.dot.kin3", "Series 3", "#009E73", allowTransparent = TRUE),
-                colourInput("col.dot.kin4", "Series 4", "#F0E442", allowTransparent = TRUE),
-                colourInput("col.dot.kin5", "Series 5", "#0072B2", allowTransparent = TRUE),
-                colourInput("col.dot.kin6", "Series 6", "#D55E00", allowTransparent = TRUE),
-                colourInput("col.dot.kin7", "Series 7", "#CC79A7", allowTransparent = TRUE),
-                colourInput("col.dot.kin8", "Series 8", "#777F85", allowTransparent = TRUE)
-              ),
-              splitLayout(
-                sliderInput(
-                  'size.dot.kin', 'Size',
-                  min=0, max=10, value=4,
-                  step=0.25, round=0,
-                  ticks = FALSE
-                ),
-                sliderInput(
-                  'transp.kin', 'Opacity',
-                  min=0, max=1, value=0.9,
-                  step=0.05,
-                  ticks = FALSE
-                )
-              ),
-              splitLayout(
-                sliderInput(
-                  'k.plot.w',
-                  'Plot width',
-                  min=100, max=2000, value=1000,
-                  step=20, round=0,
-                  ticks = FALSE
-                ),
-                sliderInput(
-                  'k.plot.h',
-                  'Plot height',
-                  min=100, max=3000, value= 500,
                   step=20, round=0,
                   ticks = FALSE
                 )

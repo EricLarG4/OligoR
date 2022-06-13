@@ -523,15 +523,30 @@ server <- function(input, output, session) {
   })
 
 
-  output$plot1 <- renderPlot({
-
+  plot1 <- reactive({
     req(input$mzml.file)
 
     ggplot(data = TIC(), aes(x = time, y = intensity)) +
       geom_line(color = input$col.TIC, size = input$size.line.TIC) +
       xlab("time (min)") +
       custom.theme
+  })
+
+  output$plot1 <- renderPlot({
+    plot1()
   }, bg = "transparent")
+
+  output$plot1.ui <- renderUI({
+    plotOutput("plot1",
+               width = as.numeric(input$plot.tic.w),
+               height = as.numeric(input$plot.tic.h),
+               brush = brushOpts(
+                 id = "plot_brush",
+                 fill = "#fff5e7", stroke = "#fff5e7",
+                 direction = "x"
+               )
+    )
+  })
 
   ###2.2.1 Selection of MS data from TIC-------
   selectedData <- reactive({
@@ -663,8 +678,51 @@ server <- function(input, output, session) {
     plot3()
   })
 
+  output$plot3.ui <- renderUI({
+    plotOutput("plot3",
+               width = as.numeric(input$plot.xplor.w),
+               height = as.numeric(input$plot.xplor.h),
+               dblclick = "plot3_dblclick",
+               brush = brushOpts(
+                 id = "plot3_brush",
+                 fill = "#fff5e7", stroke = "#fff5e7", direction = "xy",
+                 resetOnNew = TRUE
+               )
+    )
+  })
+
 
   ### 2.3.5. Download spectra-------
+
+  output$plot1.pdf <- downloadHandler(
+    filename = function() { paste("TIC", '.pdf', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = plot1(),
+        device = "pdf",
+        width = 29.7,
+        height = 29.7*input$plot.tic.h/input$plot.tic.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
+
+  output$plot1.png <- downloadHandler(
+    filename = function() { paste("TIC", '.png', sep='') },
+    content = function(file) {
+      ggsave(
+        file,
+        plot = plot1(),
+        device = "png",
+        width = 29.7,
+        height = 29.7*input$plot.tic.h/input$plot.tic.w,
+        units = 'cm',
+        bg = NULL
+      )
+    }
+  )
 
   output$plot3.pdf <- downloadHandler(
     filename = function() { paste("Mass spectrum", '.pdf', sep='') },
@@ -674,7 +732,7 @@ server <- function(input, output, session) {
         plot = plot3(),
         device = "pdf",
         width = 29.7,
-        height = 21,
+        height = 29.7*input$plot.xplor.h/input$plot.xplor.w,
         units = 'cm',
         bg = NULL
       )
@@ -689,7 +747,7 @@ server <- function(input, output, session) {
         plot = plot3(),
         device = "png",
         width = 29.7,
-        height = 21,
+        height = 29.7*input$plot.xplor.h/input$plot.xplor.w,
         units = 'cm',
         bg = NULL
       )
