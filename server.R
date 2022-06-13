@@ -41,20 +41,24 @@ server <- function(input, output, session) {
 
   ## 0.1. Custom theme for figures----
 
-  custom.theme <- theme(
-    panel.background = element_blank(),
-    strip.background = element_blank(),
-    legend.position = 'bottom',
-    legend.background = element_blank(),
-    legend.box.background = element_blank(),
-    legend.key=element_blank(),
-    legend.text = element_text(size = 18),
-    legend.title = element_text(size = 22),
-    axis.text = element_text(size = 18),
-    axis.title = element_text(size = 22),
-    strip.text = element_text(size = 20),
-    axis.line = element_line(size = 0.5)
-  )
+  custom.theme <- reactive({
+    theme(
+      panel.background = element_blank(),
+      strip.background = element_blank(),
+      legend.position = 'bottom',
+      legend.background = element_blank(),
+      legend.box.background = element_blank(),
+      legend.key=element_blank(),
+      legend.text = element_text(size = input$lgd.txt.scl),
+      legend.title = element_text(size = input$lgd.ttl.scl),
+      axis.text = element_text(size = input$axs.txt.scl),
+      axis.title = element_text(size = input$axs.ttl.scl),
+      strip.text = element_text(size = input$strp.txt.scl),
+      axis.line = element_line(size = input$axs.ln.scl),
+      axis.ticks = element_line(size = input$axs.ln.scl)
+    )
+  })
+
 
   ## 0.2. Dark/light switch----
   theme.dark <- observeEvent(input$theme, {
@@ -283,7 +287,7 @@ server <- function(input, output, session) {
       geom_vline(xintercept = massr()$Avemz, linetype = 'dashed', color = input$col.centroid.th, size = input$size.centroid.th) +
       xlab("m/z") +
       ylab('normalized abundance') +
-      custom.theme
+      custom.theme()
   })
 
   output$p.hdx.ref <- renderPlot({
@@ -326,7 +330,7 @@ server <- function(input, output, session) {
       ) +
       xlab("m/z") +
       ylab('normalized abundance') +
-      custom.theme
+      custom.theme()
   })
 
   output$p.hdx.ref.vs.exp <- renderPlot({
@@ -529,7 +533,7 @@ server <- function(input, output, session) {
     ggplot(data = TIC(), aes(x = time, y = intensity)) +
       geom_line(color = input$col.TIC, size = input$size.line.TIC) +
       xlab("time (min)") +
-      custom.theme
+      custom.theme()
   })
 
   output$plot1 <- renderPlot({
@@ -670,7 +674,7 @@ server <- function(input, output, session) {
         x = "m/z",
         y = "intensity"
       ) +
-      custom.theme +
+      custom.theme() +
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
   })
 
@@ -1129,7 +1133,7 @@ server <- function(input, output, session) {
         low=input$col.snap1, high=input$col.snap2,
         trans = input$trans.user
       ) +
-      custom.theme +
+      custom.theme() +
       theme(
         # strip.text = element_blank(),
         axis.title.y = element_blank(),
@@ -1682,7 +1686,7 @@ server <- function(input, output, session) {
             signif(time.scale, 3) ~ Species,
             scales = common.scale()
           ) +
-          custom.theme +
+          custom.theme() +
           theme(strip.text = element_blank(),
                 axis.title.y = element_blank(),
                 axis.text.y = element_blank(),
@@ -1858,7 +1862,7 @@ server <- function(input, output, session) {
       ) +
       xlab("time (min)") +
       ylab("centroid (m/z)") +
-      custom.theme
+      custom.theme()
 
     return(p)
   })
@@ -2037,7 +2041,7 @@ server <- function(input, output, session) {
         )
       ) +
       geom_point(size = input$size.kin) +
-      custom.theme +
+      custom.theme() +
       labs(x = "time (min)")
   })
 
@@ -2062,7 +2066,7 @@ server <- function(input, output, session) {
         aes(x = time.scale, y = fraction, color = Population, shape = Name)
       ) +
       geom_point(size = input$size.kin) +
-      custom.theme +
+      custom.theme() +
       labs(x = "time (min)")
   })
 
@@ -2302,7 +2306,7 @@ server <- function(input, output, session) {
           size = input$size.txt.kin,
           show.legend = FALSE
         ) +
-        custom.theme +
+        custom.theme() +
         scale_color_manual(
           values = c(
             input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4,
@@ -2319,7 +2323,7 @@ server <- function(input, output, session) {
       NUS()[ s,] %>%
         ggplot(aes(time.scale, NUS, color = Name)) +
         geom_point(size = input$size.kin) +
-        custom.theme +
+        custom.theme() +
         scale_color_manual(
           values = c(
             input$col.kin.high1, input$col.kin.high2, input$col.kin.high3,input$col.kin.high4,
@@ -2805,7 +2809,7 @@ server <- function(input, output, session) {
           aes(y = NUS.fit),
           size = input$size.line.kin
         ) +
-        custom.theme +
+        custom.theme() +
         labs(x = "time (s)")
 
     } else {
@@ -3127,7 +3131,7 @@ server <- function(input, output, session) {
           aes(y = frac.fit),
           size = input$size.line.kin
         ) +
-        custom.theme +
+        custom.theme() +
         labs(x = "time (s)")
 
     } else {
@@ -3605,7 +3609,7 @@ server <- function(input, output, session) {
         )
       ) +
       xlab("time (min)") +
-      custom.theme
+      custom.theme()
 
 
     if (input$kin.input == 'raw') {

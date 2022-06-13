@@ -1576,7 +1576,59 @@ ui <- dashboardPage(
         box(
           title = "Figure theme",
           width = 2,
-          uiOutput('theme.dark')
+          uiOutput('theme.dark'),
+          splitLayout(
+            sliderInput(
+              inputId = "lgd.ttl.scl",
+              label = "Legend title",
+              value = 22,
+              min = 0, max = 40,
+              step = 0.25,
+              ticks = FALSE
+            ),
+            sliderInput(
+              inputId = "lgd.txt.scl",
+              label = "Legend text",
+              value = 18,
+              min = 0, max = 40,
+              step = 0.25,
+              ticks = FALSE
+            )
+          ),
+          splitLayout(
+            sliderInput(
+              inputId = "axs.ttl.scl",
+              label = "Axis title",
+              value = 22,
+              min = 0, max = 40,
+              step = 0.25,
+              ticks = FALSE
+            ),
+            sliderInput(
+              inputId = "axs.txt.scl",
+              label = "Axis text",
+              value = 18,
+              min = 0, max = 40,
+              step = 0.25,
+              ticks = FALSE
+            )
+          ),
+          sliderInput(
+            inputId = "strp.txt.scl",
+            label = "Strip text",
+            value = 18,
+            min = 0, max = 40,
+            step = 0.25,
+            ticks = FALSE
+          ),
+          sliderInput(
+            inputId = "axs.ln.scl",
+            label = "Axis line",
+            value = 0.75,
+            min = 0, max = 5,
+            step = 0.25,
+            ticks = FALSE
+          )
         ),
         p("Refresh plot after switching to trigger the change")
       )
