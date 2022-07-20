@@ -6,15 +6,16 @@ options(shiny.maxRequestSize=5000*1024^2)
 
 ##libraries----
 
-# BiocManager::install("mzR")
-
 librarian::shelf(
   tidyverse, readr, readxl, data.table, DT, tidytable, magrittr, stringr,
   formattable, gnm, DescTools,
   ggpubr, ggrepel, ggthemes, ggpmisc, thematic, zoo,
-  BiocManager, V8, mzR,
-  bslib
+  BiocManager, V8
+  # bslib
 )
+
+# BiocManager::install('mzR')
+library(mzR)
 
 ##custom functions----
 
@@ -90,6 +91,19 @@ server <- function(input, output, session) {
 
   ## 1.1. Sequencing----
 
+  ### 1.1.1. User suplied atoms----
+
+  user.atoms <- reactive({
+    list(
+      nC = as.numeric(input$user.nC),
+      nH = as.numeric(input$user.nH),
+      nN = as.numeric(input$user.nN),
+      nO = as.numeric(input$user.nO),
+      nP = as.numeric(input$user.nP)
+    )
+  })
+
+  ### 1.1.2. Oligo sequence processing----
   sequencer <- reactive({
     sequenceR(
       z = input$z,
@@ -97,7 +111,8 @@ server <- function(input, output, session) {
       sequence = input$sequence,
       mol = input$mol,
       nX.user.input = input$nX.user,
-      nX.select = input$nX.select
+      nX.select = input$nX.select,
+      user.atom = user.atoms()
     )
   })
 
@@ -142,7 +157,6 @@ server <- function(input, output, session) {
   })
 
   oligo.data <- reactive({
-
     data.frame(
       "Parameters" = c('phosphates', 'neutralized phosphates', 'exchangeable sites', 'monoisotopic mass',
                        'average mass', 'monoisotopic m/z', 'average m/z'),
@@ -181,18 +195,21 @@ server <- function(input, output, session) {
   output$charge.series <- renderDT(server = FALSE,{
     datatable(
       data.frame(
-        z = 1:sequencer()$nb_PO
+        z = 1:sequencer()$nb_PO,
+        mass = massr()$Avemz*as.numeric(input$z) + as.numeric(input$z)*1.00811,
+        iso.mass = massr()$Monomz*as.numeric(input$z) + as.numeric(input$z)*1.00811
       ) %>%
         mutate(
           "Average m/z" = round(
-            (massr()$AveMW-z*1.00811)/z,
+            (mass-z*1.00811)/z,
             5
           ),
           "Monoisotopic m/z" = round(
-            (massr()$MonoMW-z*1.00811)/z,
+            (iso.mass-z*1.00811)/z,
             5
           )
-        ),
+        ) %>%
+        select(-c(mass, iso.mass)),
       style = "bootstrap",
       extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
       rownames = F,
@@ -355,9 +372,9 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.ref(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.ref.h/input$plot.ref.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -370,9 +387,9 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.ref(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.ref.h/input$plot.ref.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -386,9 +403,9 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.ref.vs.exp(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.ref.h/input$plot.ref.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -401,9 +418,9 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.ref.vs.exp(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.ref.h/input$plot.ref.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.ref.h/input$plot.ref.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -705,9 +722,9 @@ server <- function(input, output, session) {
         file,
         plot = plot1(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.tic.h/input$plot.tic.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.tic.h/input$plot.tic.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -720,9 +737,9 @@ server <- function(input, output, session) {
         file,
         plot = plot1(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.tic.h/input$plot.tic.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.tic.h/input$plot.tic.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -735,9 +752,9 @@ server <- function(input, output, session) {
         file,
         plot = plot3(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.xplor.h/input$plot.xplor.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.xplor.h/input$plot.xplor.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -750,9 +767,9 @@ server <- function(input, output, session) {
         file,
         plot = plot3(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.xplor.h/input$plot.xplor.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.xplor.h/input$plot.xplor.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -1167,9 +1184,9 @@ server <- function(input, output, session) {
         file,
         plot = plot.pp(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.snaps.h/input$plot.snaps.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -1182,9 +1199,9 @@ server <- function(input, output, session) {
         file,
         plot = plot.pp(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.snaps.h/input$plot.snaps.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -1767,10 +1784,10 @@ server <- function(input, output, session) {
         file,
         plot = optiplot(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.snaps.h/input$plot.snaps.w,
-        units = 'cm',
-        bg = NULL
+        width = 12,
+        height = 12*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm', scale = input$export.scl,
+        bg = NULL,
       )
     }
   )
@@ -1782,9 +1799,9 @@ server <- function(input, output, session) {
         file,
         plot = optiplot(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.snaps.h/input$plot.snaps.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.snaps.h/input$plot.snaps.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3159,9 +3176,9 @@ server <- function(input, output, session) {
         file,
         plot = p.app.cent(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3174,9 +3191,9 @@ server <- function(input, output, session) {
         file,
         plot = p.app.cent(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3189,9 +3206,9 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.fit.app(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3204,9 +3221,9 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.fit.app(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3219,9 +3236,9 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.fit.opt(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3234,9 +3251,9 @@ server <- function(input, output, session) {
         file,
         plot = p.hdx.fit.opt(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3249,9 +3266,9 @@ server <- function(input, output, session) {
         file,
         plot = p.pop.fit.opt(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3264,9 +3281,9 @@ server <- function(input, output, session) {
         file,
         plot = p.pop.fit.opt(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$plot.hdx.h/input$plot.hdx.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$plot.hdx.h/input$plot.hdx.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3609,6 +3626,7 @@ server <- function(input, output, session) {
         )
       ) +
       xlab("time (min)") +
+      scale_x_continuous(limits = c(0,NA), expand = c(0.025,0.05)) +
       custom.theme()
 
 
@@ -3654,9 +3672,9 @@ server <- function(input, output, session) {
         file,
         plot = k.plot(),
         device = "pdf",
-        width = 29.7,
-        height = 29.7*input$k.plot.h/input$k.plot.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$k.plot.h/input$k.plot.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }
@@ -3669,9 +3687,9 @@ server <- function(input, output, session) {
         file,
         plot = k.plot(),
         device = "png",
-        width = 29.7,
-        height = 29.7*input$k.plot.h/input$k.plot.w,
-        units = 'cm',
+        width = 12,
+        height = 12*input$k.plot.h/input$k.plot.w,
+        units = 'cm', scale = input$export.scl,
         bg = NULL
       )
     }

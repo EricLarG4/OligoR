@@ -16,7 +16,7 @@
 #' sequenceR(z=4, K=2, sequence="TTGGGTGGGTGGGTGGGT", nX.user.input='', nX.select='C')
 
 
-sequenceR <- function(z, K, sequence, nX.user.input, nX.select, mol = 1){
+sequenceR <- function(z, K, sequence, nX.user.input, nX.select, mol = 1, user.atom = list(nC = 0, nH = 0, nN = 0, nO = 0, nP = 0)){
 
   #strand molecularity----
   mol <- as.numeric(mol)
@@ -49,17 +49,17 @@ sequenceR <- function(z, K, sequence, nX.user.input, nX.select, mol = 1){
   nts$nb_POH <- nts$nb_PO - nts$z - nts$K
 
   #number of atoms----
-  nts$nC <- nts$nbA*10 + nts$nbG*10 + nts$nbC*9 + nts$nbT*10
+  nts$nC <- nts$nbA*10 + nts$nbG*10 + nts$nbC*9 + nts$nbT*10 + user.atom$nC
 
   #This is the total amount of hydrogen across isotopes (among which nX are exchangeable)
   #Charge taken into account here, so H will not be taken out when calculating m/z
-  nts$nH <- nts$nbA*12 + nts$nbG*12 + nts$nbC*12 +nts$nbT*13 + 1*mol - nts$z - nts$K
+  nts$nH <- nts$nbA*12 + nts$nbG*12 + nts$nbC*12 +nts$nbT*13 + 1*mol - nts$z - nts$K + user.atom$nH
 
-  nts$nO <- nts$nbA*5 + nts$nbG*6 + nts$nbC*6 + nts$nbT*7 - 2*mol
+  nts$nO <- nts$nbA*5 + nts$nbG*6 + nts$nbC*6 + nts$nbT*7 - 2*mol  + user.atom$nO
 
-  nts$nN <- nts$nbA*5 + nts$nbG*5 + nts$nbC*3 + nts$nbT*2
+  nts$nN <- nts$nbA*5 + nts$nbG*5 + nts$nbC*3 + nts$nbT*2 + user.atom$nN
 
-  nts$nP <- nts$nb_PO
+  nts$nP <- nts$nb_PO + user.atom$nP
 
   nts$nK <- nts$K
 
@@ -86,3 +86,4 @@ sequenceR <- function(z, K, sequence, nX.user.input, nX.select, mol = 1){
   return(nts)
 
 }
+

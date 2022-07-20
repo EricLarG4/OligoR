@@ -77,10 +77,41 @@ ui <- dashboardPage(
               inputId = "z",
               label = "Charge",
               value = "4"
+            )
+          ),
+          splitLayout(
+            textInput(
+              inputId = "user.nC",
+              label = "C",
+              value = 0
+            ),
+            textInput(
+              inputId = "user.nH",
+              label = "H",
+              value = 0
+            )
+          ),
+          splitLayout(
+            textInput(
+              inputId = "user.nN",
+              label = "N",
+              value = 0
+            ),
+            textInput(
+              inputId = "user.nO",
+              label = "O",
+              value = 0
+            )
+          ),
+          splitLayout(
+            textInput(
+              inputId = "user.nP",
+              label = "P",
+              value = 0
             ),
             textInput(
               inputId = "K",
-              label = "Potassium",
+              label = "K+",
               value = "2"
             )
           )
@@ -1573,6 +1604,7 @@ ui <- dashboardPage(
       ),
       ##footer----
       footer = list(
+        p("Refresh plot after switching to trigger the change"),
         box(
           title = "Figure theme",
           width = 2,
@@ -1630,7 +1662,18 @@ ui <- dashboardPage(
             ticks = FALSE
           )
         ),
-        p("Refresh plot after switching to trigger the change")
+        box(
+          title = "Figure export",
+          width = 1,
+          sliderInput(
+            inputId = "export.scl",
+            label = "Export scaling",
+            value = 1.3,
+            min = 0, max = 5,
+            step = 0.1,
+            ticks = FALSE
+          )
+        )
       )
     )
   )
