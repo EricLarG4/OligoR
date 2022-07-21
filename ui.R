@@ -79,41 +79,47 @@ ui <- dashboardPage(
               value = "4"
             )
           ),
-          splitLayout(
-            textInput(
-              inputId = "user.nC",
-              label = "C",
-              value = 0
+          column(
+            width = 12,
+            strong("Additional atoms"),
+            splitLayout(
+              textInput(
+                inputId = "user.nC",
+                label = "C",
+                value = 0
+              ),
+              textInput(
+                inputId = "user.nH",
+                label = "H",
+                value = 0
+              )
             ),
-            textInput(
-              inputId = "user.nH",
-              label = "H",
-              value = 0
-            )
-          ),
-          splitLayout(
-            textInput(
-              inputId = "user.nN",
-              label = "N",
-              value = 0
+            splitLayout(
+              textInput(
+                inputId = "user.nN",
+                label = "N",
+                value = 0
+              ),
+              textInput(
+                inputId = "user.nO",
+                label = "O",
+                value = 0
+              )
             ),
-            textInput(
-              inputId = "user.nO",
-              label = "O",
-              value = 0
-            )
-          ),
-          splitLayout(
-            textInput(
-              inputId = "user.nP",
-              label = "P",
-              value = 0
+            splitLayout(
+              textInput(
+                inputId = "user.nP",
+                label = "P",
+                value = 0
+              ),
+              textInput(
+                inputId = "K",
+                label = "K+",
+                value = "2"
+              )
             ),
-            textInput(
-              inputId = "K",
-              label = "K+",
-              value = "2"
-            )
+            htmlOutput('chem.formula'),
+            htmlOutput('ex.sites')
           )
       ),
       box(
@@ -136,9 +142,7 @@ ui <- dashboardPage(
             "all sites" = 'A'
           ),
           selected = "C"
-        ),
-        htmlOutput('chem.formula'),
-        htmlOutput('ex.sites')
+        )
       ),
       box(
         title = "Isotopic abundance",
