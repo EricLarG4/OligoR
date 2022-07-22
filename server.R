@@ -444,20 +444,22 @@ server <- function(input, output, session) {
     header(ms())
   })
 
-  header.dim <- reactive({
-    dim(hd())
-  })
+  # header.dim <- reactive({
+  #   dim(hd())
+  # })
+  #
+  # last.scan <- reactive({
+  #   header.dim()[1]
+  # })
 
-  last.scan <- reactive({
-    header.dim()[1]
-  })
+  # id <- reactive({
+  #   1:(1+max(as.integer(hd()$acquisitionNum))-min(as.integer(hd()$acquisitionNum)))
+  # })
 
-  id <- reactive({
-    1:last.scan()
-  })
+  id <- reactive({1:nrow(hd())})
 
   ret.time <- reactive({
-    data.frame(hd()[7])
+    data.frame(hd()$retentionTime)
   })
 
   sample.name <- "Sample 1"
@@ -536,7 +538,7 @@ server <- function(input, output, session) {
 
   TIC <- reactive({
 
-    TIC <- data.frame(hd()[7]/60, hd()[2], hd()[6])
+    TIC <- data.frame(hd()$retentionTime/60, hd()$seqNum, hd()$totIonCurrent)
 
     colnames(TIC)[1:3] <- c("time","scan","intensity")
 
