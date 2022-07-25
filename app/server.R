@@ -14,7 +14,11 @@ librarian::shelf(
   # bslib
 )
 
-# BiocManager::install('mzR')
+
+if ("mzR" %in% rownames(installed.packages()) == FALSE) {
+  BiocManager::install('mzR')
+}
+
 library(mzR)
 
 ##custom functions----
