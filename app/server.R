@@ -3334,10 +3334,10 @@ server <- function(input, output, session) {
         centroid = sum(prod.int)/sum(intensity)
       )
 
-    writexl::write_xlsx(
-      x = k.data,
-      path = "kdata.xlsx"
-    )
+    # writexl::write_xlsx(
+    #   x = k.data,
+    #   path = "kdata.xlsx"
+    # )
 
     k.standard <- k.data %>%
       filter(Species == 'Standard') %>%
@@ -3345,10 +3345,10 @@ server <- function(input, output, session) {
       ungroup() %>%
       select(filename, scan, time, std.intensity)
 
-    writexl::write_xlsx(
-      x = k.standard,
-      path = "k.standard.xlsx"
-    )
+    # writexl::write_xlsx(
+    #   x = k.standard,
+    #   path = "k.standard.xlsx"
+    # )
 
     if(nrow(k.standard)>0){
       k.joined <- k.data %>%
