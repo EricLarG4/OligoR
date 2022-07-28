@@ -2316,11 +2316,13 @@ server <- function(input, output, session) {
         ) +
         geom_point(
           aes(y = NUS),
-          size = input$size.kin
+          size = input$size.kin,
+          alpha = input$transp.hdx.dot
         ) +
         geom_line(
           aes(y = NUS.fit),
-          size = input$size.line.kin
+          size = input$size.line.kin,
+          alpha = input$transp.hdx.line
         ) +
         geom_text_repel(
           data = label,

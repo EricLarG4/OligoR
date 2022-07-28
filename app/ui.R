@@ -1168,7 +1168,7 @@ ui <- dashboardPage(
                 inputId = "com.scale",
                 label_on = "fixed m/z axis",
                 label_off = "free m/z axis",
-                value = TRUE,
+                value = FALSE,
                 shape = "round",
                 width = "100%",
                 bigger = TRUE,
@@ -1511,15 +1511,15 @@ ui <- dashboardPage(
             open = "plop.4",
             bsCollapsePanel(
               "Customisation",
-              colourInput("col.kin", "Unselected points", "#777F85", allowTransparent = TRUE),
-              colourInput("col.kin.high1", "Series 1", "#E69F00", allowTransparent = TRUE),
-              colourInput("col.kin.high2", "Series 2", "#56B4E9", allowTransparent = TRUE),
-              colourInput("col.kin.high3", "Series 3", "#009E73", allowTransparent = TRUE),
-              colourInput("col.kin.high4", "Series 4", "#F0E442", allowTransparent = TRUE),
-              colourInput("col.kin.high5", "Series 5", "#0072B2", allowTransparent = TRUE),
-              colourInput("col.kin.high6", "Series 6", "#D55E00", allowTransparent = TRUE),
-              colourInput("col.kin.high7", "Series 7", "#CC79A7", allowTransparent = TRUE),
-              colourInput("col.kin.high8", "Series 8", "black", allowTransparent = TRUE),
+              colourInput("col.kin", "Unselected points", "#777F85"),
+              colourInput("col.kin.high1", "Series 1", "#E69F00"),
+              colourInput("col.kin.high2", "Series 2", "#56B4E9"),
+              colourInput("col.kin.high3", "Series 3", "#009E73"),
+              colourInput("col.kin.high4", "Series 4", "#F0E442"),
+              colourInput("col.kin.high5", "Series 5", "#0072B2"),
+              colourInput("col.kin.high6", "Series 6", "#D55E00"),
+              colourInput("col.kin.high7", "Series 7", "#CC79A7"),
+              colourInput("col.kin.high8", "Series 8", "black"),
               splitLayout(
                 sliderInput(
                   'size.kin', 'Dot Size',
@@ -1538,6 +1538,20 @@ ui <- dashboardPage(
                   min=1, max=10, value=5,
                   step=0.25, round=0,
                   tick = FALSE
+                )
+              ),
+              splitLayout(
+                sliderInput(
+                  'transp.hdx.dot', 'Point opacity',
+                  min=0, max=1, value=1,
+                  step=0.05,
+                  ticks = FALSE
+                ),
+                sliderInput(
+                  'transp.hdx.line', 'Line opacity',
+                  min=0, max=1, value=1,
+                  step=0.05,
+                  ticks = FALSE
                 )
               ),
               splitLayout(
