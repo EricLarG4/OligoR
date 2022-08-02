@@ -975,6 +975,74 @@ server <- function(input, output, session) {
       )
   })
 
+  #### 2.3.4 Kinetics snapshot----
+
+  #### 2.3.4.1 snapping----
+  snaps.kin <- data.frame()
+
+  kin.brsh <- reactive({
+    selecscansbrsh()
+  })
+
+  k.spectra <- reactive({
+
+    k.init <- data.frame(kin.brsh()) %>%
+      filter(
+        mz > min(ranges$x),
+        mz < max(ranges$x)
+      ) %>%
+      mutate(
+        Species = input$sample.id,
+        mz.range = paste0(round(min(ranges$x),2),"-",round(max(ranges$x), 2))
+      )
+
+    snaps.kin <<- rbind(snaps.kin, data.frame(k.init))
+
+  }) %>%
+    bindEvent(input$bttn42)
+
+  #### 2.3.4.2 output table----
+
+  output$kinsnap <- renderDT(server = TRUE,{
+
+    datatable(
+      k.spectra() %>%
+        select(filename, Species, scan, time, mz, intensity, mz.range),
+      style = "bootstrap",
+      extensions = c('Buttons', 'Responsive', 'Scroller', 'ColReorder', 'RowReorder'),
+      selection = 'multiple',
+      colnames = c(
+        'File name' = 'filename',
+        'Intensity' = 'intensity',
+        'Time' = 'time',
+        'Scan' = 'scan',
+        'm/z' = "mz",
+        'm/z range' = 'mz.range'
+      ),
+      editable = T,
+      rownames = F,
+      escape = T,
+      filter = 'top',
+      autoHideNavigation = T,
+      plugins = 'natural',
+      options = list(
+        colReorder = TRUE, rowReorder = TRUE,
+        deferRender = TRUE,
+        scrollY = 200,
+        scroller = TRUE,
+        autoWidth = F,
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'colvis'),
+        columnDefs = list(list(visible=FALSE, targets=c(0,2,6)))
+      )
+    ) %>%
+      formatStyle(
+        columns = 0:6,
+        target = 'row',
+        background = '#272c30'
+      )
+  })
+
   #3. MSstackR----
 
   ## 3.1. Time scaling and intensity normalization----
@@ -3302,33 +3370,6 @@ server <- function(input, output, session) {
 
   ### 5.1. Process new data----
 
-  #### 5.1.1 Snap data----
-  snaps.kin <- data.frame()
-
-  kin.brsh <- reactive({
-    selecscansbrsh()
-  })
-
-  k.spectra <- reactive({
-
-    k.init <- data.frame(kin.brsh()) %>%
-      filter(
-        mz > min(ranges$x),
-        mz < max(ranges$x)
-      ) %>%
-      mutate(
-        Species = input$sample.id,
-        mz.range = paste0(round(min(ranges$x),2),"-",round(max(ranges$x), 2))
-      )
-
-    snaps.kin <<- rbind(snaps.kin, data.frame(k.init))
-
-  }) %>%
-    bindEvent(input$bttn42)
-
-
-  #### 5.1.2. Data processing----
-
   k.norm <- reactive({
 
     k.data <- k.spectra() %>%
@@ -3340,21 +3381,12 @@ server <- function(input, output, session) {
         centroid = sum(prod.int)/sum(intensity)
       )
 
-    # writexl::write_xlsx(
-    #   x = k.data,
-    #   path = "kdata.xlsx"
-    # )
-
     k.standard <- k.data %>%
       filter(Species == 'Standard') %>%
       mutate(std.intensity = intensity) %>%
       ungroup() %>%
       select(filename, scan, time, std.intensity)
 
-    # writexl::write_xlsx(
-    #   x = k.standard,
-    #   path = "k.standard.xlsx"
-    # )
 
     if(nrow(k.standard)>0){
       k.joined <- k.data %>%

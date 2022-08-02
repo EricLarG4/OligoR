@@ -964,16 +964,23 @@ ui <- dashboardPage(
             DTOutput("MSsnap")
           ),
           box(
-            title = "Target snap",
+            title = "Kinetics snap",
             width = 4,
             status = "success",
+            collapsible = TRUE,
+            DTOutput("kinsnap")
+          ),
+          box(
+            title = "Target snap",
+            width = 4,
+            status = "danger",
             collapsible = TRUE,
             DTOutput("target")
           ),
           box(
             title = "Standard snap",
             width = 4,
-            status = "success",
+            status = "danger",
             collapsible = TRUE,
             DTOutput("standard")
           )
