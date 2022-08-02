@@ -654,8 +654,8 @@ server <- function(input, output, session) {
   ranges <- reactiveValues(x = mzlimits, y = NULL)
 
   #### 2.3.3.2. Zoom event---------
-  observeEvent(input$plot3_brush, {
-    brush <- input$plot3_brush
+  observeEvent(input$plotTIC_brush, {
+    brush <- input$plotTIC_brush
     ranges$x <- c(brush$xmin, brush$xmax)
     ranges$y <- c(brush$ymin, brush$ymax)
   })
@@ -667,8 +667,8 @@ server <- function(input, output, session) {
   })
 
   # Zoom reset
-  observeEvent(input$plot3_dblclick, {
-    brush <- input$plot3_brush
+  observeEvent(input$plotTIC_dblclick, {
+    brush <- input$plotTIC_brush
     ranges$x <- mzlimits
     ranges$y <- NULL
   })
@@ -681,7 +681,7 @@ server <- function(input, output, session) {
 
   ### 2.3.4. Plot----
 
-  plot3 <- reactive({
+  plotTIC <- reactive({
 
     req(input$mzml.file)
 
@@ -701,17 +701,17 @@ server <- function(input, output, session) {
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
   })
 
-  output$plot3 <- renderPlot({
-    plot3()
+  output$plotTIC <- renderPlot({
+    plotTIC()
   })
 
-  output$plot3.ui <- renderUI({
-    plotOutput("plot3",
+  output$plotTIC.ui <- renderUI({
+    plotOutput("plotTIC",
                width = as.numeric(input$plot.xplor.w),
                height = as.numeric(input$plot.xplor.h),
-               dblclick = "plot3_dblclick",
+               dblclick = "plotTIC_dblclick",
                brush = brushOpts(
-                 id = "plot3_brush",
+                 id = "plotTIC_brush",
                  fill = "#fff5e7", stroke = "#fff5e7", direction = "xy",
                  resetOnNew = TRUE
                )
@@ -751,12 +751,12 @@ server <- function(input, output, session) {
     }
   )
 
-  output$plot3.pdf <- downloadHandler(
+  output$plotTIC.pdf <- downloadHandler(
     filename = function() { paste("Mass spectrum", '.pdf', sep='') },
     content = function(file) {
       ggsave(
         file,
-        plot = plot3(),
+        plot = plotTIC(),
         device = "pdf",
         width = 12,
         height = 12*input$plot.xplor.h/input$plot.xplor.w,
@@ -766,12 +766,12 @@ server <- function(input, output, session) {
     }
   )
 
-  output$plot3.png <- downloadHandler(
+  output$plotTIC.png <- downloadHandler(
     filename = function() { paste("Mass spectrum", '.png', sep='') },
     content = function(file) {
       ggsave(
         file,
-        plot = plot3(),
+        plot = plotTIC(),
         device = "png",
         width = 12,
         height = 12*input$plot.xplor.h/input$plot.xplor.w,
@@ -4125,8 +4125,8 @@ server <- function(input, output, session) {
   #output options-----------
   # outputOptions(output, "plot.snaps", suspendWhenHidden = FALSE)
   # outputOptions(output, "plot.snaps.ui", suspendWhenHidden = FALSE)
-  outputOptions(output, "plot.pp", suspendWhenHidden = FALSE)
-  outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
+  # outputOptions(output, "plot.pp", suspendWhenHidden = FALSE)
+  # outputOptions(output, "k.plot", suspendWhenHidden = FALSE)
   # outputOptions(output, "eq.raw.target", suspendWhenHidden = FALSE)
   # outputOptions(output, "eq.raw.std", suspendWhenHidden = FALSE)
 

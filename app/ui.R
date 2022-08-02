@@ -12,6 +12,10 @@ if (any(installed_packages == FALSE)) {
 devtools::install_github("AnalytixWare/ShinySky", force = FALSE)
 library(shinysky)
 
+library(Cairo)
+options(shiny.usecairo=T)
+# options(bitmapType='cairo')
+
 librarian::shelf(
   shiny, shinydashboard, shinydashboardPlus, shinyBS, shinyWidgets, bslib,
   DT, colourpicker, DavidBarke/QWUtils
@@ -921,14 +925,14 @@ ui <- dashboardPage(
             p("Brush to zoom, double click to reset zoom"),
             status = "danger",
             collapsible = TRUE,
-            uiOutput("plot3.ui"),
+            uiOutput("plotTIC.ui"),
             sidebar = boxSidebar(
               id = "dwn.sidebar.3",
               width = 25,
               startOpen = FALSE,
               icon = icon("download"),
               downloadBttn(
-                outputId = "plot3.png",
+                outputId = "plotTIC.png",
                 label = "Save as png",
                 style = "simple",
                 size = 'sm'
@@ -936,7 +940,7 @@ ui <- dashboardPage(
               br(),
               br(),
               downloadBttn(
-                outputId = "plot3.pdf",
+                outputId = "plotTIC.pdf",
                 label = "Save as pdf",
                 style = "simple",
                 size = 'sm'

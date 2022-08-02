@@ -15,7 +15,8 @@ libxt-dev \
 libssl-dev \
 libssh2-1-dev \
 libssl1.1 \
-libnetcdf-dev
+libnetcdf-dev \
+libcairo2-dev 
 
 RUN apt-get update && apt-get install -y \
 libmpfr-dev
@@ -29,7 +30,7 @@ RUN install2.r --error \
     librarian \
     ncdf4 
 RUN R -e "librarian::shelf(tidyverse, devtools, BiocManager, readr, readxl, data.table, DT, tidytable, dtplyr, magrittr, stringr, formattable, gnm, DescTools, ggsci, ggpubr, ggrepel, ggthemes, ggpmisc, thematic, zoo, BiocManager, V8)"
-RUN R -e "librarian::shelf(shiny, shinydashboard, shinydashboardPlus, shinyBS, shinyWidgets, bslib, DT, colourpicker, DavidBarke/QWUtils)"
+RUN R -e "librarian::shelf(shiny, shinydashboard, shinydashboardPlus, shinyBS, shinyWidgets, bslib, DT, Cairo, colourpicker, DavidBarke/QWUtils)"
 RUN R -e "librarian::shelf(peakPick)"
 RUN R -e "devtools::install_github('AnalytixWare/ShinySky')"
 RUN R -e "devtools::install_github('cran/peakPick')"
