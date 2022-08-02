@@ -609,7 +609,7 @@ ui <- dashboardPage(
         textInput(
           inputId = "alpha",
           label = "alpha for automated model selection",
-          value = 0.8
+          value = 0.05
         ),
         textInput(
           inputId = "b.t.limit",
