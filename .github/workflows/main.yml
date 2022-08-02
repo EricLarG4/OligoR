@@ -14,7 +14,7 @@ jobs:
           target_repo_url:
             git@github.com:EricLarG4/OligoR.git
           ssh_private_key:                              # <-- use 'secrets' to pass credential information.
-            ${{ secrets.4bwhxpZfhkHBY8DquMY1Opw61agespI6Sai2pDZck1s }}
+            ${{ secrets.SHA256:4bwhxpZfhkHBY8DquMY1Opw61agespI6Sai2pDZck1s }}
 
   to_codecommit:                                        # <-- different jobs are executed in parallel.
     runs-on: ubuntu-latest
