@@ -1,0 +1,11 @@
+on: [push]
+  ...
+      steps:
+        - uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+        - uses: yesolutions/mirror-action@master
+          with:
+            REMOTE: 'https://github.com/EricLarG4/OligoR'
+            GIT_USERNAME: EricLarG4
+            GIT_PASSWORD: ${{ secrets.Supermegasecretdelamortquitue_ }}
