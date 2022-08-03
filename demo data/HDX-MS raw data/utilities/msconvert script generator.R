@@ -127,3 +127,46 @@ convert.generator <- convert.generator %>%
 
 #generate concatenated command line without starting and ending quotes and double backslashes
 writeLines(paste(convert.generator$commands, collapse = ' && '))
+
+
+
+#VEGF----
+
+#indicate demo data time filters file
+convert.generator <- readxl::read_excel(
+  "demo data/HDX-MS raw data/mzML convert generator.xlsx",
+  sheet = "VEGF"
+)
+
+#specify input file template, ouput file path, and output file name template
+#use double backslashes \\
+input.file.template <- 'msconvert C:\\Users\\Eric\\Desktop\\VEGF\\190110-Exac-6358-VG-EL-VEGF-'
+#must contain final \\
+output.path <- 'C:\\Users\\Eric\\Desktop\\VEGF\\filtered\\'
+output.file.template <- 'VEGF-'
+
+#generate command line for each file
+convert.generator <- convert.generator %>%
+  mutate(
+    commands = paste0(
+      input.file.template,
+      tube,
+      '.RAW --mzML -g --filter "mzWindow [',
+      start.mz,
+      ',',
+      end.mz,
+      ']" -o ',
+      output.path,
+      ' --outfile ',
+      output.file.template,
+      pt,
+      ' --filter "scanTime [',
+      start.s,
+      ',',
+      end.s,
+      ']"'
+    )
+  )
+
+#generate concatenated command line without starting and ending quotes and double backslashes
+writeLines(paste(convert.generator$commands, collapse = ' && '))
