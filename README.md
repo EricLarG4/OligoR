@@ -75,6 +75,8 @@ To open the app with Docker, either:
 
 Refer to the [Wiki of the repository](https://github.com/EricLarG4/OligoR/wiki).
 
+Demo data files are available in the *demo data* directory of OligoR, including both raw and processed data.
+
 # Who to ask in case of issue?
 
 Create an issue of the [issues page](https://github.com/EricLarG4/OligoR/issues) or ask [this guy](mailto:e-deuteron@protonmail.com).
