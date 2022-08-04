@@ -50,17 +50,17 @@ To open the app with Docker, either:
 
     -   In the *Images* panel, hover the cursor over *ghcr.io/ericlarg4/oligor*, then click on Run
 
-        ![Docker Images panel](resources/Docker_images.png){width="500"}
+        ![Docker Images panel](resources/Docker_images.png)
 
     -   In the *Optional settings*, set the first *Host port* to 3838
 
-        ![Docker container optional settings](resources/Docker_settings.png){width="306"}
+        ![Docker container optional settings](resources/Docker_settings.png)
 
     -   Click on Run
 
     -   In the Containers panel, which should now be opened, click on the *Open with browser* icon (immediatly to the right of the Started time, on the right-hand side of the line)
 
-        ![Opening OligoR in the browser from the Containers panel](resources/Docker_running.PNG){width="500"}
+        ![Opening OligoR in the browser from the Containers panel](resources/Docker_running.PNG)
 
     -   After using OligoR, you may stop and remove the container (using the dedicated icons), or keep it running for further uses
 
