@@ -1,4 +1,3 @@
-
 # What is OligoR?
 
 OligoR is a native HDX/MS data processing application dedicated to oligonucleotides and their complexes. OligoR accepts open-format MS files, and can be used for data processing and the generation of publication-quality figures for HDX/MS, MS kinetics, and MS titrations experiments.
@@ -18,7 +17,7 @@ Download or clone the source code to your local machine. All dependencies will b
 Create a project at the root of the OligoR directory, or set the working directory to this location using the following command (where `PATH_TO_OLIGOR` with the actual path to OligoR on your machine):
 
     setwd(PATH_TO_OLIGOR/OligoR)
-    
+
 To update, either download the latest version of OligoR, or if you have cloned the repository simply pull the changes.
 
 ## From Docker
@@ -28,7 +27,7 @@ This method requires the installation of [Docker Desktop](https://docs.docker.co
 From a terminal, execute the following command to obtain the OligoR image.
 
     docker pull ghcr.io/ericlarg4/oligor:master
-    
+
 To update, simply use the above command again to pull the latest version of the Docker image. This image is automatically re-built when the source code is changed.
 
 # How to launch OligoR?
@@ -51,17 +50,17 @@ To open the app with Docker, either:
 
     -   In the *Images* panel, hover the cursor over *ghcr.io/ericlarg4/oligor*, then click on Run
 
-        ![Docker Images panel](resources/Docker_images.png)
+        ![Docker Images panel](resources/Docker_images.png){width="500"}
 
     -   In the *Optional settings*, set the first *Host port* to 3838
 
-    ![Docker container optional settings](resources/Docker_settings.png)
+        ![Docker container optional settings](resources/Docker_settings.png){width="306"}
 
     -   Click on Run
 
     -   In the Containers panel, which should now be opened, click on the *Open with browser* icon (immediatly to the right of the Started time, on the right-hand side of the line)
 
-    ![Opening OligoR in the browser from the Containers panel](resources/Docker_running.PNG)
+        ![Opening OligoR in the browser from the Containers panel](resources/Docker_running.PNG){width="500"}
 
     -   After using OligoR, you may stop and remove the container (using the dedicated icons), or keep it running for further uses
 
@@ -79,4 +78,3 @@ Refer to the [Wiki of the repository](https://github.com/EricLarG4/OligoR/wiki).
 # Who to ask in case of issue?
 
 Create an issue of the [issues page](https://github.com/EricLarG4/OligoR/issues) or ask [this guy](mailto:e-deuteron@protonmail.com).
-
