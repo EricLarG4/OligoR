@@ -1,11 +1,11 @@
----
-title: OligoR
-output: 
-  html_document: 
-    fig_caption: yes
-    keep_md: yes
-    toc: yes
----
+
+# What is OligoR?
+
+OligoR is a native HDX/MS data processing application dedicated to oligonucleotides and their complexes. OligoR accepts open-format MS files, and can be used for data processing and the generation of publication-quality figures for HDX/MS, MS kinetics, and MS titrations experiments.
+
+Although developed with oligonucleotides in mind, OligoR can be used for other types of analytes.
+
+OligoR is an entirely open-source application, that can be run from the source code in R, or more simply from a Docker container.
 
 # Installation and updating
 
@@ -31,7 +31,7 @@ From a terminal, execute the following command to obtain the OligoR image.
     
 To update, simply use the above command again to pull the latest version of the Docker image. This image is automatically re-built when the source code is changed.
 
-# Use
+# How to launch OligoR?
 
 ## With the R source code
 
@@ -72,6 +72,11 @@ To open the app with Docker, either:
     -   In a browser, connect to `http://localhost:3838/`
     -   To stop and remove the container, execute `docker ps -q --filter ancestor=ghcr.io/ericlarg4/oligor:master | xargs docker stop` in a terminal
 
-# Use
+# How to use OligoR?
 
 Refer to the [Wiki of the repository](https://github.com/EricLarG4/OligoR/wiki).
+
+# Who to ask in case of issue?
+
+Create an issue of the [issues page](https://github.com/EricLarG4/OligoR/issues) or ask [this guy](mailto:e-deuteron@protonmail.com).
+
