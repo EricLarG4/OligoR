@@ -2021,7 +2021,7 @@ server <- function(input, output, session) {
         min.time, max.time, min.scan, max.scan, min.mz, max.mz
       ) %>%
       mutate(#NUS calculation
-        NUS = (centroid - Reference)*Charge/((D.initial - D.final)/100*(2.013553-1.007825)),
+        NUS = (centroid - as.numeric(Reference))*as.numeric(Charge)/((as.numeric(D.initial) - as.numeric(D.final))/100*(2.013553-1.007825)),
         mean.time.s = mean.time * 60,
         CFtime.s = CFtime * 60) %>% #creation of a time column in seconds
       dplyr::select(
