@@ -1,5 +1,8 @@
 library(tidyverse)
 
+# ms convert is there: cd C:\Program Files\ProteoWizard\ProteoWizard 3.0.22163.4cd43c9
+
+
 #indicate demo data time filters file
 convert.generator <- readxl::read_excel(
   "demo data/HDX-MS raw data/mzML convert generator.xlsx",
@@ -170,3 +173,133 @@ convert.generator <- convert.generator %>%
 
 #generate concatenated command line without starting and ending quotes and double backslashes
 writeLines(paste(convert.generator$commands, collapse = ' && '))
+
+
+
+
+#5YEY IMS----
+
+#indicate demo data time filters file
+convert.generator <- readxl::read_excel(
+  "demo data/HDX-MS raw data/utilities/mzML convert generator.xlsx",
+  sheet = "5YEY"
+)
+
+#specify input file template, ouput file path, and output file name template
+#use double backslashes \\
+input.file.template <- 'msconvert C:\\Users\\Eric\\Desktop\\cache\\5YEY\\220811-RG-5YEY-1KCl-'
+#must contain final \\
+output.path <- 'C:\\Users\\Eric\\Desktop\\cache\\5YEY\\filtered\\'
+output.file.template <- '5YEY-'
+
+#generate command line for each file
+convert.generator <- convert.generator %>%
+  mutate(
+    commands = paste0(
+      input.file.template,
+      tube,
+      '.d --mzML -g --filter "mzWindow [',
+      start.mz,
+      ',',
+      end.mz,
+      ']" -o ',
+      output.path,
+      ' --outfile ',
+      output.file.template,
+      pt,
+      ' --filter "scanTime [',
+      start.s,
+      ',',
+      end.s,
+      ']"'
+    )
+  )
+
+#generate concatenated command line without starting and ending quotes and double backslashes
+writeLines(paste(convert.generator$commands, collapse = ' && '))
+
+
+#5YEY IMS - zone 1----
+
+#indicate demo data time filters file
+convert.generator <- readxl::read_excel(
+  "demo data/HDX-MS raw data/utilities/mzML convert generator.xlsx",
+  sheet = "5YEY-zone1"
+)
+
+#specify input file template, ouput file path, and output file name template
+#use double backslashes \\
+input.file.template <- 'msconvert C:\\Users\\Eric\\Desktop\\cache\\5YEY-zone1\\220811-RG-5YEY-1KCl-'
+#must contain final \\
+output.path <- 'C:\\Users\\Eric\\Desktop\\cache\\5YEY-zone1\\filtered\\'
+output.file.template <- '5YEY-zone1-'
+
+#generate command line for each file
+convert.generator <- convert.generator %>%
+  mutate(
+    commands = paste0(
+      input.file.template,
+      tube,
+      '_filtered[1].d --mzML -g --filter "mzWindow [',
+      start.mz,
+      ',',
+      end.mz,
+      ']" -o ',
+      output.path,
+      ' --outfile ',
+      output.file.template,
+      pt,
+      ' --filter "scanTime [',
+      start.s,
+      ',',
+      end.s,
+      ']"'
+    )
+  )
+
+#generate concatenated command line without starting and ending quotes and double backslashes
+writeLines(paste(convert.generator$commands, collapse = ' && '))
+
+
+#2KPR----
+
+#indicate demo data time filters file
+#use double backslashes \\
+convert.generator <- readxl::read_excel(
+  "C:\\Users\\Eric\\OneDrive - u-bordeaux.fr\\Backups\\Raw Data IMS\\HDX\\RG\\mzML convert generator.xlsx",
+  sheet = "2KPR"
+)
+
+#specify input file template, ouput file path, and output file name template
+#use double backslashes \\
+input.file.template <- 'msconvert C:\\Users\\Eric\\Desktop\\cache\\2KPR\\220823-RG-2kpr-1KCl-'
+#must contain final \\
+output.path <- 'C:\\Users\\Eric\\Desktop\\cache\\2KPR\\converted\\'
+output.file.template <- '2KPR'
+
+#generate command line for each file
+convert.generator <- convert.generator %>%
+  mutate(
+    commands = paste0(
+      input.file.template,
+      tube,
+      '.d --mzML -g --filter "mzWindow [',
+      start.mz,
+      ',',
+      end.mz,
+      ']" -o ',
+      output.path,
+      ' --outfile ',
+      output.file.template,
+      pt,
+      ' --filter "scanTime [',
+      start.s,
+      ',',
+      end.s,
+      ']"'
+    )
+  )
+
+#generate concatenated command line without starting and ending quotes and double backslashes
+writeLines(paste(convert.generator$commands, collapse = ' && '))
+
