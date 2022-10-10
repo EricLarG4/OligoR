@@ -85,6 +85,22 @@ ui <- dashboardPage(
           ),
           column(
             width = 12,
+            strong("Cations"),
+            splitLayout(
+              textInput(
+                inputId = "K",
+                label = "K+",
+                value = 2
+              ),
+              textInput(
+                inputId = "NH4",
+                label = "NH4+",
+                value = 0
+              )
+            )
+          ),
+          column(
+            width = 12,
             strong("Additional atoms"),
             splitLayout(
               textInput(
@@ -117,9 +133,9 @@ ui <- dashboardPage(
                 value = 0
               ),
               textInput(
-                inputId = "K",
-                label = "K+",
-                value = "2"
+                inputId = "user.charge",
+                label = "charge",
+                value = 0
               )
             ),
             htmlOutput('chem.formula'),

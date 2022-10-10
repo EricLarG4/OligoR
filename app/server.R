@@ -111,7 +111,9 @@ server <- function(input, output, session) {
   sequencer <- reactive({
     sequenceR(
       z = input$z,
+      user.charge = input$user.charge,
       K = input$K,
+      NH4 = input$NH4,
       sequence = input$sequence,
       mol = input$mol,
       nX.user.input = input$nX.user,
