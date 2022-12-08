@@ -14,7 +14,8 @@ libcairo2-dev \
 libxt-dev \
 libssl-dev \
 libssh2-1-dev \
-libssl1.1 \
+#libssl1.1 \
+libssl3 \
 libnetcdf-dev \
 libcairo2-dev 
 
