@@ -999,7 +999,7 @@ server <- function(input, output, session) {
       )
 
     snaps.kin <<- rbind(snaps.kin, data.frame(k.init))
-
+    
   }) %>%
     bindEvent(input$bttn42)
 
@@ -1049,12 +1049,14 @@ server <- function(input, output, session) {
 
   ## 3.1. Time scaling and intensity normalization----
   MSsnaps1 <- reactive({
+    
     if (isTRUE(input$timescale)) {
       MSsnaps() %>%
         mutate(time.scale = MSsnaps()$CFtime) %>% #creates a variable to scale the color and position the spectrum in the stack based on manual or TIC time
         group_by(time.scale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
         mutate(intensum = 1-(max(intensum)-intensum)/(max(intensum)-min(intensum))) #Normalization of each spectrum (per time point, per sample)
-    } else {
+
+       } else {
       MSsnaps() %>%
         mutate(time.scale = MSsnaps()$mean.time) %>%
         group_by(time.scale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
@@ -3375,21 +3377,21 @@ server <- function(input, output, session) {
   k.norm <- reactive({
 
     k.data <- k.spectra() %>%
-      group_by(filename, Species, scan, time, mz) %>%
+      group_by.(filename, Species, scan, time, mz) %>%
       mutate(prod.int = intensity*mz) %>%
-      group_by(filename, Species, scan, time) %>%
+      group_by.(filename, Species, scan, time) %>%
       summarise(
         intensity = sum(intensity),
         centroid = sum(prod.int)/sum(intensity)
       )
-
+    
     k.standard <- k.data %>%
       filter(Species == 'Standard') %>%
       mutate(std.intensity = intensity) %>%
-      ungroup() %>%
+      ungroup.() %>%
       select(filename, scan, time, std.intensity)
-
-
+    
+    
     if(nrow(k.standard)>0){
       k.joined <- k.data %>%
         filter(Species != 'Standard') %>%
@@ -3401,27 +3403,28 @@ server <- function(input, output, session) {
       k.joined <- k.data %>%
         mutate(std.intensity = 1)
     }
-
+    
+    
     k.joined <- k.joined %>%
-      group_by(scan, Species, time) %>%
-      mutate(
+      group_by.(scan, Species, time) %>%
+      mutate.(
         corr.int = intensity/std.intensity,
         corrected.time = time + as.numeric(input$deadtxt),
         group = round(scan/as.numeric(input$ave.scan), 0)
       ) %>%
-      group_by(Species, group) %>%
-      mutate(
+      group_by.(Species, group) %>%
+      mutate.(
         mean.raw = mean(intensity),
         mean.corr = mean(corr.int),
         mean.time = mean(corrected.time),
         mean.centroid = mean(centroid)
       ) %>%
-      filter(
+      filter.(
         mean.time >= as.numeric(input$text33),
         mean.time <= as.numeric(input$text34)
       ) %>%
-      ungroup() %>%
-      mutate(
+      ungroup.() %>%
+      mutate.(
         name = case_when(
           Species == 'Species 1' ~ input$text36,
           Species == 'Species 2' ~ input$text37,
@@ -3434,6 +3437,9 @@ server <- function(input, output, session) {
         )
       ) %>%
       setcolorder(c(1,2,14,5,3,10,4,9,6,7,8,13,11,12))
+    
+    # save(k.joined, file = 'k.joined.RData')
+    save(k.joined, file = 'k.joined.RData')
 
     return(k.joined)
 
