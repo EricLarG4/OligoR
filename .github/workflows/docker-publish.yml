@@ -15,6 +15,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+runs:
+  using: 'node16'
+  main: 'main.js'
+
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
