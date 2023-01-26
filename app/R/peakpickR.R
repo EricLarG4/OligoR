@@ -38,9 +38,10 @@ peakpickR <- function(raw.data, neighlim = 5, deriv.lim = 10000, int.thresh = 0.
         intensum,
         0
       )
-    )
+    ) %>% 
+    as.data.frame()
 
-  # return(pp$peak)
+  return(pp)
 
 }
 
