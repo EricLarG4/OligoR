@@ -20,9 +20,11 @@
 # }
 
 ppf <- function(raw, neigh = 5, deriv = 10000, thresh = 0){
+  
   raw %>%
     mutate(time.scale = round(time.scale, 2)) %>%
-    nest_by.(Species, time.scale) %>%
+    dplyr::group_by(Species, time.scale) %>% 
+    tidyr::nest() %>%
     mutate(
       peak = map(
         data,
@@ -34,6 +36,9 @@ ppf <- function(raw, neigh = 5, deriv = 10000, thresh = 0){
         )
       )
     ) %>%
-    unnest(peak) %>%
+    tidyr::unnest(peak) %>%
     as_tibble()
+  
 }
+
+
