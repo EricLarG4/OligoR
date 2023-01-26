@@ -16,14 +16,15 @@
 peakpickR <- function(raw.data, neighlim = 5, deriv.lim = 10000, int.thresh = 0.02) {
 
   library('tidyverse')
-  library("peakPick")
+  # library("peakPick")
+  source('R/peakpicking.R')
 
   unpicked <- data.frame(raw.data)
 
   pp <- unpicked %>%
     # group_by(time.scale, Species, filename, min.time, max.time, min.scan, max.scan, min.mz, max.mz) %>%
     mutate( #applies pickpicking function from peakPick package
-      peak = peakPick::peakpick(
+      peak = peakpick(
         matrix(.$intensum %>% #prepare input data as matrix
                  magrittr::set_colnames(NULL),
                ncol = 1),
@@ -38,10 +39,9 @@ peakpickR <- function(raw.data, neighlim = 5, deriv.lim = 10000, int.thresh = 0.
         intensum,
         0
       )
-    ) %>% 
-    as.data.frame()
+    )
 
-  return(pp)
+  # return(pp$peak)
 
 }
 
