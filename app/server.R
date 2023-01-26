@@ -3377,9 +3377,9 @@ server <- function(input, output, session) {
   k.norm <- reactive({
 
     k.data <- k.spectra() %>%
-      group_by.(filename, Species, scan, time, mz) %>%
+      group_by(filename, Species, scan, time, mz) %>%
       mutate(prod.int = intensity*mz) %>%
-      group_by.(filename, Species, scan, time) %>%
+      group_by(filename, Species, scan, time) %>%
       summarise(
         intensity = sum(intensity),
         centroid = sum(prod.int)/sum(intensity)
@@ -3388,7 +3388,7 @@ server <- function(input, output, session) {
     k.standard <- k.data %>%
       filter(Species == 'Standard') %>%
       mutate(std.intensity = intensity) %>%
-      ungroup.() %>%
+      ungroup() %>%
       select(filename, scan, time, std.intensity)
     
     
@@ -3406,25 +3406,25 @@ server <- function(input, output, session) {
     
     
     k.joined <- k.joined %>%
-      group_by.(scan, Species, time) %>%
-      mutate.(
+      group_by(scan, Species, time) %>%
+      mutate(
         corr.int = intensity/std.intensity,
         corrected.time = time + as.numeric(input$deadtxt),
         group = round(scan/as.numeric(input$ave.scan), 0)
       ) %>%
-      group_by.(Species, group) %>%
-      mutate.(
+      group_by(Species, group) %>%
+      mutate(
         mean.raw = mean(intensity),
         mean.corr = mean(corr.int),
         mean.time = mean(corrected.time),
         mean.centroid = mean(centroid)
       ) %>%
-      filter.(
+      filter(
         mean.time >= as.numeric(input$text33),
         mean.time <= as.numeric(input$text34)
       ) %>%
-      ungroup.() %>%
-      mutate.(
+      ungroup() %>%
+      mutate(
         name = case_when(
           Species == 'Species 1' ~ input$text36,
           Species == 'Species 2' ~ input$text37,
