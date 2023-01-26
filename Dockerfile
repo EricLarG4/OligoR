@@ -30,7 +30,7 @@ RUN sudo ldconfig
 RUN install2.r --error \
     librarian \
     ncdf4 
-RUN R -e "librarian::shelf(tidyverse, devtools, BiocManager, readr, readxl, data.table, DT, tidytable, dtplyr, magrittr, stringr, formattable, gnm, DescTools, ggsci, ggpubr, ggrepel, ggthemes, ggpmisc, thematic, zoo, BiocManager, V8)"
+RUN R -e "librarian::shelf(tidyverse, devtools, BiocManager, readr, readxl, data.table, DT, magrittr, stringr, formattable, gnm, DescTools, ggsci, ggpubr, ggrepel, ggthemes, ggpmisc, thematic, zoo, BiocManager, V8, matrixStats)"
 RUN R -e "librarian::shelf(shiny, shinydashboard, shinydashboardPlus, shinyBS, shinyWidgets, bslib, DT, Cairo, colourpicker, DavidBarke/QWUtils)"
 RUN R -e "librarian::shelf(peakPick)"
 RUN R -e "devtools::install_github('AnalytixWare/ShinySky')"
