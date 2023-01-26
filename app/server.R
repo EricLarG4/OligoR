@@ -7,10 +7,11 @@ options(shiny.maxRequestSize=5000*1024^2)
 ##libraries----
 
 librarian::shelf(
-  tidyverse, readr, readxl, data.table, DT, tidytable, magrittr, stringr,
+  tidyverse, readr, readxl, data.table, DT, magrittr, stringr,
   formattable, gnm, DescTools,
   ggpubr, ggrepel, ggthemes, ggpmisc, thematic, zoo,
-  BiocManager, V8
+  BiocManager, V8,
+  matrixStats
   # bslib
 )
 
@@ -1290,6 +1291,8 @@ server <- function(input, output, session) {
 
   ### 3.3.1. Least-square minimization----
   opt.0 <- reactive({
+    
+    # writexl::write_xlsx(MSsnaps.pp(), 'snaps.xlsx')
 
     withProgress(
       message = 'Optimizing data',
@@ -1300,7 +1303,7 @@ server <- function(input, output, session) {
         opt.0 <- MSsnaps.pp() %>%
           as.data.frame() %>%
           group_by(Species, time.scale) %>%
-          nest() %>%
+          tidyr::nest() %>%
           mutate(
             par = map(
               data,
@@ -1318,8 +1321,8 @@ server <- function(input, output, session) {
             )
           ) %>%
           as.data.frame() %>%
-          unnest(par) %>%
-          unnest(par)
+          tidyr::unnest(par) %>%
+          tidyr::unnest(par)
 
         incProgress(amount=2/2)
 
@@ -3375,6 +3378,8 @@ server <- function(input, output, session) {
   ### 5.1. Process new data----
 
   k.norm <- reactive({
+    
+    writexl::write_xlsx(k.spectra(), 'kin.spectra.xlsx')
 
     k.data <- k.spectra() %>%
       group_by(filename, Species, scan, time, mz) %>%
@@ -3437,9 +3442,6 @@ server <- function(input, output, session) {
         )
       ) %>%
       setcolorder(c(1,2,14,5,3,10,4,9,6,7,8,13,11,12))
-    
-    # save(k.joined, file = 'k.joined.RData')
-    save(k.joined, file = 'k.joined.RData')
 
     return(k.joined)
 
@@ -3492,6 +3494,7 @@ server <- function(input, output, session) {
 
   #### 5.2.3. Merging----
   k.norm.0 <- reactive({
+    
     if (is.null(kin.old)) {
       return(
         k.norm() %>%
