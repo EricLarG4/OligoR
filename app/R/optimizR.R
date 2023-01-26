@@ -8,7 +8,7 @@ optimizer <- function(par, z, nX.select, K,
                       pp, seq, massr){
 
   library(DescTools)
-  library(dtplyr)
+  # library(dtplyr)
 
   #theoretical distribution (no optim)
 
@@ -21,7 +21,7 @@ optimizer <- function(par, z, nX.select, K,
                              DC=par[1], #deuteration of the distribution (optimizable)
                              seq=seq,
                              MonoMW=massr$MonoMW) %>%
-      lazy_dt(.) %>%
+      # lazy_dt(.) %>%
       mutate(Iso.Pattern = Iso.Pattern * par[3]) %>%  #scaling to abundance of the distribution (optimizable)
       as.data.frame()
 
@@ -32,7 +32,7 @@ optimizer <- function(par, z, nX.select, K,
                            MonoMW=massr$MonoMW) %>%
       mutate(Iso.Pattern = Iso.Pattern * par[4]) %>% #scaling to abundance of the distribution (optimizable)
       rbind(theo.1) %>% #binding to first distribution
-      lazy_dt(.) %>%
+      # lazy_dt(.) %>%
       group_by(mz.th) %>% #grouping by mass
       mutate(Iso.Pattern = sum(Iso.Pattern)) %>%  #summing intensities of each mass group to output a single series
       as.data.frame()
@@ -50,7 +50,8 @@ optimizer <- function(par, z, nX.select, K,
 
   #merging of optimized theoretical data to experimental data
   #to calculate sum of squares of differences
-  merged <- lazy_dt(pp) %>%
+  merged <- pp %>% 
+    # lazy_dt(pp) %>%
     #mz rouding to bin theoretical and experimental data together
     mutate(rmz = RoundTo(mz, multiple = 1/z, FUN = round)) %>%
     filter(peak > 0) %>% #removes 0 intensity data
@@ -74,6 +75,7 @@ optimizer <- function(par, z, nX.select, K,
   }
 
 }
+
 
 
 
