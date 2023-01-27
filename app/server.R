@@ -1291,8 +1291,6 @@ server <- function(input, output, session) {
 
   ### 3.3.1. Least-square minimization----
   opt.0 <- reactive({
-    
-    # writexl::write_xlsx(MSsnaps.pp(), 'snaps.xlsx')
 
     withProgress(
       message = 'Optimizing data',
@@ -3378,8 +3376,6 @@ server <- function(input, output, session) {
   ### 5.1. Process new data----
 
   k.norm <- reactive({
-    
-    writexl::write_xlsx(k.spectra(), 'kin.spectra.xlsx')
 
     k.data <- k.spectra() %>%
       group_by(filename, Species, scan, time, mz) %>%
