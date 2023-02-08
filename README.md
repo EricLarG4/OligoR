@@ -6,7 +6,11 @@ Although developed with oligonucleotides in mind, OligoR can be used for other t
 
 OligoR is an entirely open-source application, that can be run from the source code in R, or more simply from a Docker container.
 
-# Installation and updating
+# Online access
+
+OligoR may be accessed online, provided the server is running, at [oligor.seis.me](oligor.seis.me)
+
+# Installation and updating for local use
 
 ## From R source code
 
