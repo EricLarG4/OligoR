@@ -65,8 +65,8 @@ jobs:
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: |
-          my-docker-hub-namespace/my-docker-hub-repository
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ericlarg4/oligor
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           
 
       - name: Build and push Docker image
