@@ -1,3 +1,9 @@
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/EricLarG4/OligoR)
+[![DOI](https://zenodo.org/badge/261233310.svg)](https://zenodo.org/badge/latestdoi/261233310)
+![GitHub](https://img.shields.io/github/license/EricLarG4/OligoR)
+
+![Twitter Follow](https://img.shields.io/twitter/follow/EricLarG4)
+
 # What is OligoR?
 
 OligoR is a native HDX/MS data processing application dedicated to oligonucleotides and their complexes. OligoR accepts open-format MS files, and can be used for data processing and the generation of publication-quality figures for HDX/MS, MS kinetics, and MS titrations experiments.
