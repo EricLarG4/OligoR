@@ -25,10 +25,10 @@ librarian::shelf(
 ui <- dashboardPage(
   skin = "midnight",
   # includeCSS("www/ui.css"),
-  title = "OligoR 0.9",
+  title = "OligoR 1.0",
   scrollToTop = TRUE,
   header = dashboardHeader(
-    title = "OligoR 0.9"
+    title = "OligoR 1.0"
   ),
   #sidebar-------------
   dashboardSidebar(
