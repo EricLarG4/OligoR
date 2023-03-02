@@ -6,7 +6,11 @@ Although developed with oligonucleotides in mind, OligoR can be used for other t
 
 OligoR is an entirely open-source application, that can be run from the source code in R, or more simply from a Docker container.
 
-# Installation and updating
+# Online access
+
+OligoR may be accessed online, provided the server is running, at [oligor.seis.me](http://oligor.seis.me)
+
+# Installation and updating for local use
 
 ## From R source code
 
@@ -24,9 +28,15 @@ To update, either download the latest version of OligoR, or if you have cloned t
 
 This method requires the installation of [Docker Desktop](https://docs.docker.com/get-docker/).
 
-From a terminal, execute the following command to obtain the OligoR image.
+From a terminal, execute either of the following command to obtain the OligoR image.
+
+From GitHub:
 
     docker pull ghcr.io/ericlarg4/oligor:master
+    
+From DockerHub:
+    
+    docker pull ericlarg4/oligor:master
 
 To update, simply use the above command again, or click on pull in the Docker desktop software (click on the three dot menu on the image line, then click on pull). This image is automatically re-built when the source code is changed.
 
