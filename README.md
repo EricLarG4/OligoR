@@ -14,7 +14,7 @@ OligoR is an entirely open-source application, that can be run from the source c
 
 # Online access
 
-OligoR may be accessed online at [oligor.seis.me](oligor.seis.me). The server may not always be running. Feel free to contact me if that is the case.
+OligoR may be accessed online at [oligor.seis.me](https://oligor.seis.me/). The server may not always be running. Feel free to contact me if that is the case.
 
 # Installation and updating for local use
 
