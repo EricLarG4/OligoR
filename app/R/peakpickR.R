@@ -34,7 +34,7 @@ peakpickR <- function(raw.data, neighlim = 5, deriv.lim = 10000, int.thresh = 0.
     # magrittr::set_colnames(c('mz', 'int', 'Species', 'time.scale', 'peak')) %>%
     ungroup() %>%
     mutate( #removes peak below intensity threshold
-      peak = if_else(
+      peak = dplyr::if_else(
         peak == TRUE & intensum > int.thresh*max(intensum),
         intensum,
         0
