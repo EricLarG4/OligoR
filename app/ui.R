@@ -1690,13 +1690,23 @@ ui <- dashboardPage(
               ticks = FALSE
             )
           ),
-          sliderInput(
-            inputId = "strp.txt.scl",
-            label = "Strip text",
-            value = 18,
-            min = 0, max = 40,
-            step = 0.25,
-            ticks = FALSE
+          splitLayout(
+            sliderInput(
+              inputId = "strp.txt.scl",
+              label = "Strip text",
+              value = 18,
+              min = 0, max = 40,
+              step = 0.25,
+              ticks = FALSE
+            ),
+            sliderInput(
+              inputId = "overlap.txt.scl",
+              label = "Overlap text",
+              value = 5.5,
+              min = 0, max = 40,
+              step = 0.5,
+              ticks = FALSE
+            )
           ),
           sliderInput(
             inputId = "axs.ln.scl",

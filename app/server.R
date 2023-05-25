@@ -37,6 +37,7 @@ source("R/optimizR.R")
 source("R/map.optimR.R")
 source("R/optf.R")
 source("R/binomNUSf.R")
+source("R/OverlapTrue.R")
 # source("R/custom theme.R")
 
 
@@ -1201,7 +1202,8 @@ server <- function(input, output, session) {
 
   ### 3.2.5. Plot output----
   plot.pp <- reactive({
-    ggplot(
+    
+    plot.pp <- ggplot(
       data = MSsnaps.pp(),
       aes(
         x = mz,
@@ -1239,6 +1241,9 @@ server <- function(input, output, session) {
         legend.position = "none"
       ) +
       coord_cartesian(expand = TRUE)
+    
+    return(plot.pp)
+    
   })
 
 
@@ -1797,8 +1802,20 @@ server <- function(input, output, session) {
       group_by(time.scale, Species) %>%
       arrange(mz.th) %>%
       slice_head(n = input$nrPeaks.user.pp)
+    
+    # Overlap calculation
+    overlap.df <- opt.filter %>% 
+      filter(distrib == 'bi') %>% #only for binomial distributions
+      group_by(Species, time.scale) %>% #per spectrum
+      summarise(overlap = round(overlapTrue(iso.1, iso.2), 2)) %>% 
+      left_join( #joins maximum m/z value to position the overlap result label on plot
+        opt.filter %>% 
+          filter(distrib == 'bi') %>% 
+          group_by(Species, time.scale) %>% 
+          summarise(mz = max(mz.th))
+      )
 
-
+    
     optiplot <- optiplot +
       geom_point(data = opt.filter,
                  aes(x = mz.th, y = iso.1),
@@ -1832,7 +1849,16 @@ server <- function(input, output, session) {
                    aes(x = centroid.2, xend = centroid.2, y = 0, yend = 1),
                    color = '#009E73',
                    size = input$size.line.cent, alpha = 0.75,
-                   linetype = 'dashed')
+                   linetype = 'dashed') +
+      geom_text( #overlap label placed at top right hand corner
+        data = overlap.df,
+        aes(
+          label = paste0("\u0394 = ", overlap),
+          x = mz - 0.5,
+          y = 0.95,
+        ),
+        size = input$overlap.txt.scl
+      )
 
     if (is.null(input$mzml.file)&is.null(input$exported.snaps)&is.null(input$exported.opt)) {
       return(NULL)
