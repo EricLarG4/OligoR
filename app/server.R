@@ -37,7 +37,7 @@ source("R/optimizR.R")
 source("R/map.optimR.R")
 source("R/optf.R")
 source("R/binomNUSf.R")
-source("R/OverlapTrue.R")
+source("R/overlapTrue.R")
 # source("R/custom theme.R")
 
 
