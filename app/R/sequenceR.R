@@ -16,77 +16,83 @@
 #' sequenceR(z=4, K=2, sequence="TTGGGTGGGTGGGTGGGT", nX.user.input='', nX.select='C')
 
 
-sequenceR <- function(z, user.charge=0, K, NH4=0, sequence, nX.user.input, nX.select, mol = 1, user.atom = list(nC = 0, nH = 0, nN = 0, nO = 0, nP = 0)){
-
+sequenceR <- function(z, user.charge=0, K, NH4=0,
+                      sequence,
+                      nX.user.input, nX.select,
+                      mol = 1,
+                      user.atom = list(nC = 0, nH = 0, nN = 0, nO = 0, nP = 0)){
+  
   #strand molecularity----
   mol <- as.numeric(mol)
-
+  
   #nucleotide extraction from sequence----
-  seq2 <- data.frame(number=1:1, string=c(sequence), stringsAsFactors = F)
-
+  seq2 <- data.frame(number = 1:1, string = c(sequence), stringsAsFactors = F)
+  
   nts <- list(
     nbA = str_count(seq2$string, "A"),
     nbT = str_count(seq2$string, "T"),
     nbG = str_count(seq2$string, "G"),
-    nbC = str_count(seq2$string, "C")
+    nbC = str_count(seq2$string, "C"),
+    nbI = str_count(seq2$string, "I")
   )
-
+  
+  
   #Number of nucleotides per strand----
-  nts$nb_nt <- nts$nbA + nts$nbT + nts$nbG + nts$nbC
-
+  nts$nb_nt <- nts$nbA + nts$nbT + nts$nbG + nts$nbC + nts$nbI
+  
   #Number of phosphates per strand----
   nts$nb_PO <- nts$nb_nt - 1
-
+  
   #Total number of nucleotides and phosphates----
   nts <- lapply(nts, function(x){x*mol})
-
+  
   #Charge and cations----
   nts$z <- as.numeric(z)
   nts$K <- as.numeric(K)
   nts$user.z <- as.numeric(user.charge)
   nts$NH4 <- as.numeric(NH4)
   
-
+  
   #Neutralized phosphate
   #(takes into account charge and potassium adducts that bring positive charges)
   nts$nb_POH <- nts$nb_PO - nts$z - nts$K
-
+  
   #number of atoms----
-  nts$nC <- nts$nbA*10 + nts$nbG*10 + nts$nbC*9 + nts$nbT*10 + user.atom$nC
-
+  nts$nC <- nts$nbA*10 + nts$nbG*10 + nts$nbC*9 + nts$nbT*10 + nts$nbI*10 + user.atom$nC
+  
   #This is the total amount of hydrogen across isotopes (among which nX are exchangeable)
   #Charge taken into account here, so H will not be taken out when calculating m/z
-  nts$nH <- nts$nbA*12 + nts$nbG*12 + nts$nbC*12 +nts$nbT*13 + 1*mol + user.atom$nH + nts$NH4*3 - (nts$z + nts$K +nts$user.z)
-
-  nts$nO <- nts$nbA*5 + nts$nbG*6 + nts$nbC*6 + nts$nbT*7 - 2*mol  + user.atom$nO
-
-  nts$nN <- nts$nbA*5 + nts$nbG*5 + nts$nbC*3 + nts$nbT*2 + user.atom$nN + nts$NH4
-
+  nts$nH <- nts$nbA*12 + nts$nbG*12 + nts$nbC*12 + nts$nbT*13 + nts$nbI*11 + 1*mol + user.atom$nH + nts$NH4*3 - (nts$z + nts$K + nts$user.z)
+  
+  nts$nO <- nts$nbA*5 + nts$nbG*6 + nts$nbC*6 + nts$nbT*7 + nts$nbI*6 - 2*mol  + user.atom$nO
+  
+  nts$nN <- nts$nbA*5 + nts$nbG*5 + nts$nbC*3 + nts$nbT*2 + nts$nbI*4 + user.atom$nN + nts$NH4
+  
   nts$nP <- nts$nb_PO + user.atom$nP
-
+  
   nts$nK <- nts$K
-
+  
   #number of exchanging sites----
-
+  
   #defined by user
-  nX.user <-as.numeric(nX.user.input)
-
+  nX.user <- as.numeric(nX.user.input)
+  
   #presets
-  if(nX.user.input == ''){
-    if(nX.select == 'A'){
-      nts$nX <- nts$nb_PO + 2 + nts$nbA*2 + nts$nbT*1 + nts$nbG*3 + nts$nbC*2 - nts$z
+  if (nX.user.input == '') {
+    if (nX.select == 'A') {
+      nts$nX <- nts$nb_PO + 2 + nts$nbA*2 + nts$nbT*1 + nts$nbG*3 + nts$nbC*2 + nts$nbI*1 - nts$z
     } else {
-      if(nX.select == 'B'){
-        nts$nX <- 2 + nts$nbA*2 + nts$nbT*1 + nts$nbG*3 + nts$nbC*2
+      if (nX.select == 'B') {
+        nts$nX <- 2 + nts$nbA*2 + nts$nbT*1 + nts$nbG*3 + nts$nbC*2 + nts$nbI*1
       } else {
-        nts$nX <- nts$nbA*2 + nts$nbT*1 + nts$nbG*3 + nts$nbC*2
+        nts$nX <- nts$nbA*2 + nts$nbT*1 + nts$nbG*3 + nts$nbC*2 + nts$nbI*1
       }
     }
   } else {
     nts$nX <- nX.user
   }
-
+  
   return(nts)
-
+  
 }
 
