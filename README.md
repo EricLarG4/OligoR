@@ -83,9 +83,11 @@ To open the app with Docker, either:
 -   Use a terminal:
 
     -   Open a terminal
-    -   Type `docker run --rm -p 3838:3838 ghcr.io/ericlarg4/oligor:master`
+    -   Type `docker run --rm -p 3838:3838 --name oligor ghcr.io/ericlarg4/oligor:master`
+          - Linux users may need to use sudo
     -   In a browser, connect to `http://localhost:3838/`
-    -   To stop and remove the container, execute `docker ps -q --filter ancestor=ghcr.io/ericlarg4/oligor:master | xargs docker stop` in a terminal
+    -   To stop and remove the container, execute `docker stop oligor` then `docker remove oligor` in a terminal
+          - Linux users may need to use sudo
 
 # How to use OligoR?
 
