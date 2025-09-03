@@ -6,6 +6,7 @@ LABEL maintainer "Eric Largy <eric.largy@u-bordeaux.fr>"
 
 # System libraries
 RUN apt-get update && apt-get install -y sudo pandoc libcurl4-gnutls-dev libcairo2-dev libxt-dev libssl-dev libssh2-1-dev libssl3 libnetcdf-dev libcairo2-dev
+RUN apt-get update && apt-get install -y nodejs
 #RUN apt-get update && apt-get install -y \
 #sudo \
 #pandoc \
